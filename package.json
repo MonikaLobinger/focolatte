@@ -37,7 +37,7 @@
   },
   "homepage": "https://amekusa.github.io/docolatte",
   "devDependencies": {
-    "@amekusa/nodeutil": "^1.4.0",
+    "@amekusa/nodeutil": "^1.5.1",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-strip": "^3.0.4",
@@ -48,8 +48,8 @@
     "jsdoc": "^4.0.2",
     "less": "^4.2.0",
     "puppeteer-core": "^20.9.0",
-    "rollup": "^4.9.5",
-    "terser": "^5.27.0"
+    "rollup": "^4.13.2",
+    "terser": "^5.30.0"
   },
   "dependencies": {
     "@jsdoc/salty": "^0.2.7",
