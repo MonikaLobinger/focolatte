@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.5.1] - 2024-03-30
+
+### Fixed
+- Fixed missing description for `@modifies` tag
+
+
+---
+
 ## [4.5.0] - 2024-01-20
 
 ### Added
