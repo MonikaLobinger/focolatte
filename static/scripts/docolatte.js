@@ -1786,6 +1786,42 @@ function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
 
+function getDefaultExportFromNamespaceIfPresent (n) {
+	return n && Object.prototype.hasOwnProperty.call(n, 'default') ? n['default'] : n;
+}
+
+function getDefaultExportFromNamespaceIfNotNamed (n) {
+	return n && Object.prototype.hasOwnProperty.call(n, 'default') && Object.keys(n).length === 1 ? n['default'] : n;
+}
+
+function getAugmentedNamespace(n) {
+  if (n.__esModule) return n;
+  var f = n.default;
+	if (typeof f == "function") {
+		var a = function a () {
+			if (this instanceof a) {
+        return Reflect.construct(f, arguments, this.constructor);
+			}
+			return f.apply(this, arguments);
+		};
+		a.prototype = f.prototype;
+  } else a = {};
+  Object.defineProperty(a, '__esModule', {value: true});
+	Object.keys(n).forEach(function (k) {
+		var d = Object.getOwnPropertyDescriptor(n, k);
+		Object.defineProperty(a, k, d.get ? d : {
+			enumerable: true,
+			get: function () {
+				return n[k];
+			}
+		});
+	});
+	return a;
+}
+
+var es_object_toString = {};
+
+'use strict';
 var check = function (it) {
   return it && it.Math === Math && it;
 };
@@ -1802,8 +1838,16 @@ var global$l =
   // eslint-disable-next-line no-new-func -- fallback
   (function () { return this; })() || Function('return this')();
 
-var shared$4 = {exports: {}};
+var global_default = /*@__PURE__*/getDefaultExportFromCjs(global$l);
 
+var shared$5 = {exports: {}};
+
+'use strict';
+var isPure = false;
+
+var isPure_default = /*@__PURE__*/getDefaultExportFromCjs(isPure);
+
+'use strict';
 var global$k = global$l;
 
 // eslint-disable-next-line es/no-object-defineproperty -- safe
@@ -1817,6 +1861,9 @@ var defineGlobalProperty$3 = function (key, value) {
   } return value;
 };
 
+var defineGlobalProperty_default = /*@__PURE__*/getDefaultExportFromCjs(defineGlobalProperty$3);
+
+'use strict';
 var global$j = global$l;
 var defineGlobalProperty$2 = defineGlobalProperty$3;
 
@@ -1825,20 +1872,28 @@ var store$3 = global$j[SHARED] || defineGlobalProperty$2(SHARED, {});
 
 var sharedStore = store$3;
 
+var sharedStore_default = /*@__PURE__*/getDefaultExportFromCjs(sharedStore);
+
+var shared$4 = shared$5.exports;
+
+'use strict';
+var IS_PURE$3 = isPure;
 var store$2 = sharedStore;
 
-(shared$4.exports = function (key, value) {
+(shared$5.exports = function (key, value) {
   return store$2[key] || (store$2[key] = value !== undefined ? value : {});
 })('versions', []).push({
   version: '3.35.0',
-  mode: 'global',
+  mode: IS_PURE$3 ? 'pure' : 'global',
   copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
   license: 'https://github.com/zloirock/core-js/blob/v3.35.0/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
-var sharedExports = shared$4.exports;
+var sharedExports = shared$5.exports;
+var shared_default = /*@__PURE__*/getDefaultExportFromCjs(sharedExports);
 
+'use strict';
 var fails$p = function (exec) {
   try {
     return !!exec();
@@ -1847,6 +1902,9 @@ var fails$p = function (exec) {
   }
 };
 
+var fails_default = /*@__PURE__*/getDefaultExportFromCjs(fails$p);
+
+'use strict';
 var fails$o = fails$p;
 
 var functionBindNative = !fails$o(function () {
@@ -1856,6 +1914,9 @@ var functionBindNative = !fails$o(function () {
   return typeof test != 'function' || test.hasOwnProperty('prototype');
 });
 
+var functionBindNative_default = /*@__PURE__*/getDefaultExportFromCjs(functionBindNative);
+
+'use strict';
 var NATIVE_BIND$3 = functionBindNative;
 
 var FunctionPrototype$3 = Function.prototype;
@@ -1868,12 +1929,18 @@ var functionUncurryThis = NATIVE_BIND$3 ? uncurryThisWithBind : function (fn) {
   };
 };
 
+var functionUncurryThis_default = /*@__PURE__*/getDefaultExportFromCjs(functionUncurryThis);
+
+'use strict';
 // we can't use just `it == null` since of `document.all` special case
 // https://tc39.es/ecma262/#sec-IsHTMLDDA-internal-slot-aec
 var isNullOrUndefined$7 = function (it) {
   return it === null || it === undefined;
 };
 
+var isNullOrUndefined_default = /*@__PURE__*/getDefaultExportFromCjs(isNullOrUndefined$7);
+
+'use strict';
 var isNullOrUndefined$6 = isNullOrUndefined$7;
 
 var $TypeError$b = TypeError;
@@ -1885,6 +1952,9 @@ var requireObjectCoercible$6 = function (it) {
   return it;
 };
 
+var requireObjectCoercible_default = /*@__PURE__*/getDefaultExportFromCjs(requireObjectCoercible$6);
+
+'use strict';
 var requireObjectCoercible$5 = requireObjectCoercible$6;
 
 var $Object$5 = Object;
@@ -1895,6 +1965,9 @@ var toObject$6 = function (argument) {
   return $Object$5(requireObjectCoercible$5(argument));
 };
 
+var toObject_default = /*@__PURE__*/getDefaultExportFromCjs(toObject$6);
+
+'use strict';
 var uncurryThis$r = functionUncurryThis;
 var toObject$5 = toObject$6;
 
@@ -1907,6 +1980,9 @@ var hasOwnProperty_1 = Object.hasOwn || function hasOwn(it, key) {
   return hasOwnProperty$1(toObject$5(it), key);
 };
 
+var hasOwnProperty_default = /*@__PURE__*/getDefaultExportFromCjs(hasOwnProperty_1);
+
+'use strict';
 var uncurryThis$q = functionUncurryThis;
 
 var id$2 = 0;
@@ -1917,8 +1993,14 @@ var uid$3 = function (key) {
   return 'Symbol(' + (key === undefined ? '' : key) + ')_' + toString$a(++id$2 + postfix, 36);
 };
 
+var uid_default = /*@__PURE__*/getDefaultExportFromCjs(uid$3);
+
+'use strict';
 var engineUserAgent = typeof navigator != 'undefined' && String(navigator.userAgent) || '';
 
+var engineUserAgent_default = /*@__PURE__*/getDefaultExportFromCjs(engineUserAgent);
+
+'use strict';
 var global$i = global$l;
 var userAgent = engineUserAgent;
 
@@ -1947,6 +2029,9 @@ if (!version$1 && userAgent) {
 
 var engineV8Version = version$1;
 
+var engineV8Version_default = /*@__PURE__*/getDefaultExportFromCjs(engineV8Version);
+
+'use strict';
 /* eslint-disable es/no-symbol -- required for testing */
 var V8_VERSION$1 = engineV8Version;
 var fails$n = fails$p;
@@ -1966,6 +2051,9 @@ var symbolConstructorDetection = !!Object.getOwnPropertySymbols && !fails$n(func
     !Symbol.sham && V8_VERSION$1 && V8_VERSION$1 < 41;
 });
 
+var symbolConstructorDetection_default = /*@__PURE__*/getDefaultExportFromCjs(symbolConstructorDetection);
+
+'use strict';
 /* eslint-disable es/no-symbol -- required for testing */
 var NATIVE_SYMBOL$1 = symbolConstructorDetection;
 
@@ -1973,6 +2061,9 @@ var useSymbolAsUid = NATIVE_SYMBOL$1
   && !Symbol.sham
   && typeof Symbol.iterator == 'symbol';
 
+var useSymbolAsUid_default = /*@__PURE__*/getDefaultExportFromCjs(useSymbolAsUid);
+
+'use strict';
 var global$g = global$l;
 var shared$3 = sharedExports;
 var hasOwn$a = hasOwnProperty_1;
@@ -1992,6 +2083,9 @@ var wellKnownSymbol$f = function (name) {
   } return WellKnownSymbolsStore[name];
 };
 
+var wellKnownSymbol_default = /*@__PURE__*/getDefaultExportFromCjs(wellKnownSymbol$f);
+
+'use strict';
 var wellKnownSymbol$e = wellKnownSymbol$f;
 
 var TO_STRING_TAG$2 = wellKnownSymbol$e('toStringTag');
@@ -2001,6 +2095,9 @@ test[TO_STRING_TAG$2] = 'z';
 
 var toStringTagSupport = String(test) === '[object z]';
 
+var toStringTagSupport_default = /*@__PURE__*/getDefaultExportFromCjs(toStringTagSupport);
+
+'use strict';
 // https://tc39.es/ecma262/#sec-IsHTMLDDA-internal-slot
 var documentAll = typeof document == 'object' && document.all;
 
@@ -2013,8 +2110,11 @@ var isCallable$j = typeof documentAll == 'undefined' && documentAll !== undefine
   return typeof argument == 'function';
 };
 
+var isCallable_default = /*@__PURE__*/getDefaultExportFromCjs(isCallable$j);
+
 var objectDefineProperty = {};
 
+'use strict';
 var fails$m = fails$p;
 
 // Detect IE8's incomplete defineProperty implementation
@@ -2023,12 +2123,18 @@ var descriptors = !fails$m(function () {
   return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] !== 7;
 });
 
+var descriptors_default = /*@__PURE__*/getDefaultExportFromCjs(descriptors);
+
+'use strict';
 var isCallable$i = isCallable$j;
 
 var isObject$h = function (it) {
   return typeof it == 'object' ? it !== null : isCallable$i(it);
 };
 
+var isObject_default = /*@__PURE__*/getDefaultExportFromCjs(isObject$h);
+
+'use strict';
 var global$f = global$l;
 var isObject$g = isObject$h;
 
@@ -2040,6 +2146,9 @@ var documentCreateElement$2 = function (it) {
   return EXISTS$1 ? document$1.createElement(it) : {};
 };
 
+var documentCreateElement_default = /*@__PURE__*/getDefaultExportFromCjs(documentCreateElement$2);
+
+'use strict';
 var DESCRIPTORS$a = descriptors;
 var fails$l = fails$p;
 var createElement = documentCreateElement$2;
@@ -2052,6 +2161,9 @@ var ie8DomDefine = !DESCRIPTORS$a && !fails$l(function () {
   }).a !== 7;
 });
 
+var ie8DomDefine_default = /*@__PURE__*/getDefaultExportFromCjs(ie8DomDefine);
+
+'use strict';
 var DESCRIPTORS$9 = descriptors;
 var fails$k = fails$p;
 
@@ -2065,6 +2177,9 @@ var v8PrototypeDefineBug = DESCRIPTORS$9 && fails$k(function () {
   }).prototype !== 42;
 });
 
+var v8PrototypeDefineBug_default = /*@__PURE__*/getDefaultExportFromCjs(v8PrototypeDefineBug);
+
+'use strict';
 var isObject$f = isObject$h;
 
 var $String$4 = String;
@@ -2076,6 +2191,9 @@ var anObject$d = function (argument) {
   throw new $TypeError$a($String$4(argument) + ' is not an object');
 };
 
+var anObject_default = /*@__PURE__*/getDefaultExportFromCjs(anObject$d);
+
+'use strict';
 var NATIVE_BIND$2 = functionBindNative;
 
 var call$d = Function.prototype.call;
@@ -2084,6 +2202,9 @@ var functionCall = NATIVE_BIND$2 ? call$d.bind(call$d) : function () {
   return call$d.apply(call$d, arguments);
 };
 
+var functionCall_default = /*@__PURE__*/getDefaultExportFromCjs(functionCall);
+
+'use strict';
 var global$e = global$l;
 var isCallable$h = isCallable$j;
 
@@ -2095,10 +2216,16 @@ var getBuiltIn$4 = function (namespace, method) {
   return arguments.length < 2 ? aFunction(global$e[namespace]) : global$e[namespace] && global$e[namespace][method];
 };
 
+var getBuiltIn_default = /*@__PURE__*/getDefaultExportFromCjs(getBuiltIn$4);
+
+'use strict';
 var uncurryThis$p = functionUncurryThis;
 
 var objectIsPrototypeOf = uncurryThis$p({}.isPrototypeOf);
 
+var objectIsPrototypeOf_default = /*@__PURE__*/getDefaultExportFromCjs(objectIsPrototypeOf);
+
+'use strict';
 var getBuiltIn$3 = getBuiltIn$4;
 var isCallable$g = isCallable$j;
 var isPrototypeOf$2 = objectIsPrototypeOf;
@@ -2113,6 +2240,9 @@ var isSymbol$4 = USE_SYMBOL_AS_UID ? function (it) {
   return isCallable$g($Symbol) && isPrototypeOf$2($Symbol.prototype, $Object$4(it));
 };
 
+var isSymbol_default = /*@__PURE__*/getDefaultExportFromCjs(isSymbol$4);
+
+'use strict';
 var $String$3 = String;
 
 var tryToString$3 = function (argument) {
@@ -2123,6 +2253,9 @@ var tryToString$3 = function (argument) {
   }
 };
 
+var tryToString_default = /*@__PURE__*/getDefaultExportFromCjs(tryToString$3);
+
+'use strict';
 var isCallable$f = isCallable$j;
 var tryToString$2 = tryToString$3;
 
@@ -2134,6 +2267,9 @@ var aCallable$5 = function (argument) {
   throw new $TypeError$9(tryToString$2(argument) + ' is not a function');
 };
 
+var aCallable_default = /*@__PURE__*/getDefaultExportFromCjs(aCallable$5);
+
+'use strict';
 var aCallable$4 = aCallable$5;
 var isNullOrUndefined$5 = isNullOrUndefined$7;
 
@@ -2144,6 +2280,9 @@ var getMethod$5 = function (V, P) {
   return isNullOrUndefined$5(func) ? undefined : aCallable$4(func);
 };
 
+var getMethod_default = /*@__PURE__*/getDefaultExportFromCjs(getMethod$5);
+
+'use strict';
 var call$c = functionCall;
 var isCallable$e = isCallable$j;
 var isObject$e = isObject$h;
@@ -2160,6 +2299,9 @@ var ordinaryToPrimitive$1 = function (input, pref) {
   throw new $TypeError$8("Can't convert object to primitive value");
 };
 
+var ordinaryToPrimitive_default = /*@__PURE__*/getDefaultExportFromCjs(ordinaryToPrimitive$1);
+
+'use strict';
 var call$b = functionCall;
 var isObject$d = isObject$h;
 var isSymbol$3 = isSymbol$4;
@@ -2186,6 +2328,9 @@ var toPrimitive$1 = function (input, pref) {
   return ordinaryToPrimitive(input, pref);
 };
 
+var toPrimitive_default = /*@__PURE__*/getDefaultExportFromCjs(toPrimitive$1);
+
+'use strict';
 var toPrimitive = toPrimitive$1;
 var isSymbol$2 = isSymbol$4;
 
@@ -2196,6 +2341,9 @@ var toPropertyKey$2 = function (argument) {
   return isSymbol$2(key) ? key : key + '';
 };
 
+var toPropertyKey_default = /*@__PURE__*/getDefaultExportFromCjs(toPropertyKey$2);
+
+'use strict';
 var DESCRIPTORS$8 = descriptors;
 var IE8_DOM_DEFINE$1 = ie8DomDefine;
 var V8_PROTOTYPE_DEFINE_BUG$1 = v8PrototypeDefineBug;
@@ -2213,7 +2361,7 @@ var WRITABLE = 'writable';
 
 // `Object.defineProperty` method
 // https://tc39.es/ecma262/#sec-object.defineproperty
-objectDefineProperty.f = DESCRIPTORS$8 ? V8_PROTOTYPE_DEFINE_BUG$1 ? function defineProperty(O, P, Attributes) {
+var f$6 = objectDefineProperty.f = DESCRIPTORS$8 ? V8_PROTOTYPE_DEFINE_BUG$1 ? function defineProperty(O, P, Attributes) {
   anObject$c(O);
   P = toPropertyKey$1(P);
   anObject$c(Attributes);
@@ -2242,6 +2390,7 @@ objectDefineProperty.f = DESCRIPTORS$8 ? V8_PROTOTYPE_DEFINE_BUG$1 ? function de
 
 var makeBuiltIn$3 = {exports: {}};
 
+'use strict';
 var DESCRIPTORS$7 = descriptors;
 var hasOwn$9 = hasOwnProperty_1;
 
@@ -2260,6 +2409,9 @@ var functionName = {
   CONFIGURABLE: CONFIGURABLE
 };
 
+var functionName_default = /*@__PURE__*/getDefaultExportFromCjs(functionName);
+
+'use strict';
 var uncurryThis$o = functionUncurryThis;
 var isCallable$d = isCallable$j;
 var store$1 = sharedStore;
@@ -2275,6 +2427,9 @@ if (!isCallable$d(store$1.inspectSource)) {
 
 var inspectSource$2 = store$1.inspectSource;
 
+var inspectSource_default = /*@__PURE__*/getDefaultExportFromCjs(inspectSource$2);
+
+'use strict';
 var global$d = global$l;
 var isCallable$c = isCallable$j;
 
@@ -2282,6 +2437,9 @@ var WeakMap$2 = global$d.WeakMap;
 
 var weakMapBasicDetection = isCallable$c(WeakMap$2) && /native code/.test(String(WeakMap$2));
 
+var weakMapBasicDetection_default = /*@__PURE__*/getDefaultExportFromCjs(weakMapBasicDetection);
+
+'use strict';
 var createPropertyDescriptor$3 = function (bitmap, value) {
   return {
     enumerable: !(bitmap & 1),
@@ -2291,6 +2449,9 @@ var createPropertyDescriptor$3 = function (bitmap, value) {
   };
 };
 
+var createPropertyDescriptor_default = /*@__PURE__*/getDefaultExportFromCjs(createPropertyDescriptor$3);
+
+'use strict';
 var DESCRIPTORS$6 = descriptors;
 var definePropertyModule$3 = objectDefineProperty;
 var createPropertyDescriptor$2 = createPropertyDescriptor$3;
@@ -2302,6 +2463,9 @@ var createNonEnumerableProperty$6 = DESCRIPTORS$6 ? function (object, key, value
   return object;
 };
 
+var createNonEnumerableProperty_default = /*@__PURE__*/getDefaultExportFromCjs(createNonEnumerableProperty$6);
+
+'use strict';
 var shared$2 = sharedExports;
 var uid$1 = uid$3;
 
@@ -2311,8 +2475,14 @@ var sharedKey$3 = function (key) {
   return keys[key] || (keys[key] = uid$1(key));
 };
 
+var sharedKey_default = /*@__PURE__*/getDefaultExportFromCjs(sharedKey$3);
+
+'use strict';
 var hiddenKeys$5 = {};
 
+var hiddenKeys_default = /*@__PURE__*/getDefaultExportFromCjs(hiddenKeys$5);
+
+'use strict';
 var NATIVE_WEAK_MAP$1 = weakMapBasicDetection;
 var global$c = global$l;
 var isObject$c = isObject$h;
@@ -2384,6 +2554,11 @@ var internalState = {
   getterFor: getterFor
 };
 
+var internalState_default = /*@__PURE__*/getDefaultExportFromCjs(internalState);
+
+var makeBuiltIn_1 = makeBuiltIn$3.exports;
+
+'use strict';
 var uncurryThis$n = functionUncurryThis;
 var fails$j = fails$p;
 var isCallable$b = isCallable$j;
@@ -2440,7 +2615,9 @@ Function.prototype.toString = makeBuiltIn$2(function toString() {
 }, 'toString');
 
 var makeBuiltInExports = makeBuiltIn$3.exports;
+var makeBuiltIn_default = /*@__PURE__*/getDefaultExportFromCjs(makeBuiltInExports);
 
+'use strict';
 var isCallable$a = isCallable$j;
 var definePropertyModule$2 = objectDefineProperty;
 var makeBuiltIn$1 = makeBuiltInExports;
@@ -2469,6 +2646,9 @@ var defineBuiltIn$7 = function (O, key, value, options) {
   } return O;
 };
 
+var defineBuiltIn_default = /*@__PURE__*/getDefaultExportFromCjs(defineBuiltIn$7);
+
+'use strict';
 var uncurryThis$m = functionUncurryThis;
 
 var toString$9 = uncurryThis$m({}.toString);
@@ -2478,6 +2658,9 @@ var classofRaw$2 = function (it) {
   return stringSlice$4(toString$9(it), 8, -1);
 };
 
+var classofRaw_default = /*@__PURE__*/getDefaultExportFromCjs(classofRaw$2);
+
+'use strict';
 var TO_STRING_TAG_SUPPORT$2 = toStringTagSupport;
 var isCallable$9 = isCallable$j;
 var classofRaw$1 = classofRaw$2;
@@ -2508,6 +2691,9 @@ var classof$a = TO_STRING_TAG_SUPPORT$2 ? classofRaw$1 : function (it) {
     : (result = classofRaw$1(O)) === 'Object' && isCallable$9(O.callee) ? 'Arguments' : result;
 };
 
+var classof_default = /*@__PURE__*/getDefaultExportFromCjs(classof$a);
+
+'use strict';
 var TO_STRING_TAG_SUPPORT$1 = toStringTagSupport;
 var classof$9 = classof$a;
 
@@ -2517,6 +2703,9 @@ var objectToString$3 = TO_STRING_TAG_SUPPORT$1 ? {}.toString : function toString
   return '[object ' + classof$9(this) + ']';
 };
 
+var objectToString_default = /*@__PURE__*/getDefaultExportFromCjs(objectToString$3);
+
+'use strict';
 var TO_STRING_TAG_SUPPORT = toStringTagSupport;
 var defineBuiltIn$6 = defineBuiltIn$7;
 var toString$8 = objectToString$3;
@@ -2527,6 +2716,9 @@ if (!TO_STRING_TAG_SUPPORT) {
   defineBuiltIn$6(Object.prototype, 'toString', toString$8, { unsafe: true });
 }
 
+var web_domCollections_forEach = {};
+
+'use strict';
 // iterable DOM collections
 // flag - `iterable` interface - 'entries', 'keys', 'values', 'forEach' methods
 var domIterables = {
@@ -2563,6 +2755,9 @@ var domIterables = {
   TouchList: 0
 };
 
+var domIterables_default = /*@__PURE__*/getDefaultExportFromCjs(domIterables);
+
+'use strict';
 // in old WebKit versions, `element.classList` is not an instance of global `DOMTokenList`
 var documentCreateElement$1 = documentCreateElement$2;
 
@@ -2571,6 +2766,9 @@ var DOMTokenListPrototype$2 = classList && classList.constructor && classList.co
 
 var domTokenListPrototype = DOMTokenListPrototype$2 === Object.prototype ? undefined : DOMTokenListPrototype$2;
 
+var domTokenListPrototype_default = /*@__PURE__*/getDefaultExportFromCjs(domTokenListPrototype);
+
+'use strict';
 var classofRaw = classofRaw$2;
 var uncurryThis$l = functionUncurryThis;
 
@@ -2581,6 +2779,9 @@ var functionUncurryThisClause = function (fn) {
   if (classofRaw(fn) === 'Function') return uncurryThis$l(fn);
 };
 
+var functionUncurryThisClause_default = /*@__PURE__*/getDefaultExportFromCjs(functionUncurryThisClause);
+
+'use strict';
 var uncurryThis$k = functionUncurryThisClause;
 var aCallable$3 = aCallable$5;
 var NATIVE_BIND$1 = functionBindNative;
@@ -2595,6 +2796,9 @@ var functionBindContext = function (fn, that) {
   };
 };
 
+var functionBindContext_default = /*@__PURE__*/getDefaultExportFromCjs(functionBindContext);
+
+'use strict';
 var uncurryThis$j = functionUncurryThis;
 var fails$i = fails$p;
 var classof$8 = classofRaw$2;
@@ -2611,6 +2815,9 @@ var indexedObject = fails$i(function () {
   return classof$8(it) === 'String' ? split(it, '') : $Object$2(it);
 } : $Object$2;
 
+var indexedObject_default = /*@__PURE__*/getDefaultExportFromCjs(indexedObject);
+
+'use strict';
 var ceil = Math.ceil;
 var floor$1 = Math.floor;
 
@@ -2622,6 +2829,9 @@ var mathTrunc = Math.trunc || function trunc(x) {
   return (n > 0 ? floor$1 : ceil)(n);
 };
 
+var mathTrunc_default = /*@__PURE__*/getDefaultExportFromCjs(mathTrunc);
+
+'use strict';
 var trunc = mathTrunc;
 
 // `ToIntegerOrInfinity` abstract operation
@@ -2632,6 +2842,9 @@ var toIntegerOrInfinity$4 = function (argument) {
   return number !== number || number === 0 ? 0 : trunc(number);
 };
 
+var toIntegerOrInfinity_default = /*@__PURE__*/getDefaultExportFromCjs(toIntegerOrInfinity$4);
+
+'use strict';
 var toIntegerOrInfinity$3 = toIntegerOrInfinity$4;
 
 var min$2 = Math.min;
@@ -2642,6 +2855,9 @@ var toLength$3 = function (argument) {
   return argument > 0 ? min$2(toIntegerOrInfinity$3(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
 };
 
+var toLength_default = /*@__PURE__*/getDefaultExportFromCjs(toLength$3);
+
+'use strict';
 var toLength$2 = toLength$3;
 
 // `LengthOfArrayLike` abstract operation
@@ -2650,6 +2866,9 @@ var lengthOfArrayLike$4 = function (obj) {
   return toLength$2(obj.length);
 };
 
+var lengthOfArrayLike_default = /*@__PURE__*/getDefaultExportFromCjs(lengthOfArrayLike$4);
+
+'use strict';
 var classof$7 = classofRaw$2;
 
 // `IsArray` abstract operation
@@ -2659,6 +2878,9 @@ var isArray$2 = Array.isArray || function isArray(argument) {
   return classof$7(argument) === 'Array';
 };
 
+var isArray_default = /*@__PURE__*/getDefaultExportFromCjs(isArray$2);
+
+'use strict';
 var uncurryThis$i = functionUncurryThis;
 var fails$h = fails$p;
 var isCallable$8 = isCallable$j;
@@ -2712,6 +2934,9 @@ var isConstructor$1 = !construct || fails$h(function () {
     || called;
 }) ? isConstructorLegacy : isConstructorModern;
 
+var isConstructor_default = /*@__PURE__*/getDefaultExportFromCjs(isConstructor$1);
+
+'use strict';
 var isArray$1 = isArray$2;
 var isConstructor = isConstructor$1;
 var isObject$b = isObject$h;
@@ -2735,6 +2960,9 @@ var arraySpeciesConstructor$1 = function (originalArray) {
   } return C === undefined ? $Array : C;
 };
 
+var arraySpeciesConstructor_default = /*@__PURE__*/getDefaultExportFromCjs(arraySpeciesConstructor$1);
+
+'use strict';
 var arraySpeciesConstructor = arraySpeciesConstructor$1;
 
 // `ArraySpeciesCreate` abstract operation
@@ -2743,6 +2971,9 @@ var arraySpeciesCreate$1 = function (originalArray, length) {
   return new (arraySpeciesConstructor(originalArray))(length === 0 ? 0 : length);
 };
 
+var arraySpeciesCreate_default = /*@__PURE__*/getDefaultExportFromCjs(arraySpeciesCreate$1);
+
+'use strict';
 var bind$1 = functionBindContext;
 var uncurryThis$h = functionUncurryThis;
 var IndexedObject$3 = indexedObject;
@@ -2817,6 +3048,9 @@ var arrayIteration = {
   filterReject: createMethod$4(7)
 };
 
+var arrayIteration_default = /*@__PURE__*/getDefaultExportFromCjs(arrayIteration);
+
+'use strict';
 var fails$g = fails$p;
 
 var arrayMethodIsStrict$2 = function (METHOD_NAME, argument) {
@@ -2827,6 +3061,9 @@ var arrayMethodIsStrict$2 = function (METHOD_NAME, argument) {
   });
 };
 
+var arrayMethodIsStrict_default = /*@__PURE__*/getDefaultExportFromCjs(arrayMethodIsStrict$2);
+
+'use strict';
 var $forEach = arrayIteration.forEach;
 var arrayMethodIsStrict$1 = arrayMethodIsStrict$2;
 
@@ -2839,6 +3076,9 @@ var arrayForEach = !STRICT_METHOD ? function forEach(callbackfn /* , thisArg */)
 // eslint-disable-next-line es/no-array-prototype-foreach -- safe
 } : [].forEach;
 
+var arrayForEach_default = /*@__PURE__*/getDefaultExportFromCjs(arrayForEach);
+
+'use strict';
 var global$b = global$l;
 var DOMIterables$1 = domIterables;
 var DOMTokenListPrototype$1 = domTokenListPrototype;
@@ -2872,10 +3112,13 @@ var canUseDom = canUseDOM;
 
 var canUseDOM$1 = /*@__PURE__*/getDefaultExportFromCjs(canUseDom);
 
+var es_parseInt = {};
+
 var objectGetOwnPropertyDescriptor = {};
 
 var objectPropertyIsEnumerable = {};
 
+'use strict';
 var $propertyIsEnumerable = {}.propertyIsEnumerable;
 // eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
 var getOwnPropertyDescriptor$1 = Object.getOwnPropertyDescriptor;
@@ -2885,11 +3128,12 @@ var NASHORN_BUG = getOwnPropertyDescriptor$1 && !$propertyIsEnumerable.call({ 1:
 
 // `Object.prototype.propertyIsEnumerable` method implementation
 // https://tc39.es/ecma262/#sec-object.prototype.propertyisenumerable
-objectPropertyIsEnumerable.f = NASHORN_BUG ? function propertyIsEnumerable(V) {
+var f$5 = objectPropertyIsEnumerable.f = NASHORN_BUG ? function propertyIsEnumerable(V) {
   var descriptor = getOwnPropertyDescriptor$1(this, V);
   return !!descriptor && descriptor.enumerable;
 } : $propertyIsEnumerable;
 
+'use strict';
 // toObject with fallback for non-array-like ES3 strings
 var IndexedObject$2 = indexedObject;
 var requireObjectCoercible$4 = requireObjectCoercible$6;
@@ -2898,6 +3142,9 @@ var toIndexedObject$6 = function (it) {
   return IndexedObject$2(requireObjectCoercible$4(it));
 };
 
+var toIndexedObject_default = /*@__PURE__*/getDefaultExportFromCjs(toIndexedObject$6);
+
+'use strict';
 var DESCRIPTORS$4 = descriptors;
 var call$a = functionCall;
 var propertyIsEnumerableModule$1 = objectPropertyIsEnumerable;
@@ -2912,7 +3159,7 @@ var $getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 // `Object.getOwnPropertyDescriptor` method
 // https://tc39.es/ecma262/#sec-object.getownpropertydescriptor
-objectGetOwnPropertyDescriptor.f = DESCRIPTORS$4 ? $getOwnPropertyDescriptor : function getOwnPropertyDescriptor(O, P) {
+var f$4 = objectGetOwnPropertyDescriptor.f = DESCRIPTORS$4 ? $getOwnPropertyDescriptor : function getOwnPropertyDescriptor(O, P) {
   O = toIndexedObject$5(O);
   P = toPropertyKey(P);
   if (IE8_DOM_DEFINE) try {
@@ -2923,6 +3170,7 @@ objectGetOwnPropertyDescriptor.f = DESCRIPTORS$4 ? $getOwnPropertyDescriptor : f
 
 var objectGetOwnPropertyNames = {};
 
+'use strict';
 var toIntegerOrInfinity$2 = toIntegerOrInfinity$4;
 
 var max$1 = Math.max;
@@ -2936,6 +3184,9 @@ var toAbsoluteIndex$1 = function (index, length) {
   return integer < 0 ? max$1(integer + length, 0) : min$1(integer, length);
 };
 
+var toAbsoluteIndex_default = /*@__PURE__*/getDefaultExportFromCjs(toAbsoluteIndex$1);
+
+'use strict';
 var toIndexedObject$4 = toIndexedObject$6;
 var toAbsoluteIndex = toAbsoluteIndex$1;
 var lengthOfArrayLike$2 = lengthOfArrayLike$4;
@@ -2969,6 +3220,9 @@ var arrayIncludes = {
   indexOf: createMethod$3(false)
 };
 
+var arrayIncludes_default = /*@__PURE__*/getDefaultExportFromCjs(arrayIncludes);
+
+'use strict';
 var uncurryThis$g = functionUncurryThis;
 var hasOwn$5 = hasOwnProperty_1;
 var toIndexedObject$3 = toIndexedObject$6;
@@ -2990,6 +3244,9 @@ var objectKeysInternal = function (object, names) {
   return result;
 };
 
+var objectKeysInternal_default = /*@__PURE__*/getDefaultExportFromCjs(objectKeysInternal);
+
+'use strict';
 // IE8- don't enum bug keys
 var enumBugKeys$3 = [
   'constructor',
@@ -3001,6 +3258,9 @@ var enumBugKeys$3 = [
   'valueOf'
 ];
 
+var enumBugKeys_default = /*@__PURE__*/getDefaultExportFromCjs(enumBugKeys$3);
+
+'use strict';
 var internalObjectKeys$1 = objectKeysInternal;
 var enumBugKeys$2 = enumBugKeys$3;
 
@@ -3009,15 +3269,17 @@ var hiddenKeys$2 = enumBugKeys$2.concat('length', 'prototype');
 // `Object.getOwnPropertyNames` method
 // https://tc39.es/ecma262/#sec-object.getownpropertynames
 // eslint-disable-next-line es/no-object-getownpropertynames -- safe
-objectGetOwnPropertyNames.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
+var f$3 = objectGetOwnPropertyNames.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
   return internalObjectKeys$1(O, hiddenKeys$2);
 };
 
 var objectGetOwnPropertySymbols = {};
 
+'use strict';
 // eslint-disable-next-line es/no-object-getownpropertysymbols -- safe
-objectGetOwnPropertySymbols.f = Object.getOwnPropertySymbols;
+var f$2 = objectGetOwnPropertySymbols.f = Object.getOwnPropertySymbols;
 
+'use strict';
 var getBuiltIn$1 = getBuiltIn$4;
 var uncurryThis$f = functionUncurryThis;
 var getOwnPropertyNamesModule$1 = objectGetOwnPropertyNames;
@@ -3033,6 +3295,9 @@ var ownKeys$1 = getBuiltIn$1('Reflect', 'ownKeys') || function ownKeys(it) {
   return getOwnPropertySymbols ? concat$3(keys, getOwnPropertySymbols(it)) : keys;
 };
 
+var ownKeys_default = /*@__PURE__*/getDefaultExportFromCjs(ownKeys$1);
+
+'use strict';
 var hasOwn$4 = hasOwnProperty_1;
 var ownKeys = ownKeys$1;
 var getOwnPropertyDescriptorModule = objectGetOwnPropertyDescriptor;
@@ -3050,6 +3315,9 @@ var copyConstructorProperties$1 = function (target, source, exceptions) {
   }
 };
 
+var copyConstructorProperties_default = /*@__PURE__*/getDefaultExportFromCjs(copyConstructorProperties$1);
+
+'use strict';
 var fails$f = fails$p;
 var isCallable$7 = isCallable$j;
 
@@ -3073,6 +3341,9 @@ var POLYFILL = isForced$2.POLYFILL = 'P';
 
 var isForced_1 = isForced$2;
 
+var isForced_default = /*@__PURE__*/getDefaultExportFromCjs(isForced_1);
+
+'use strict';
 var global$a = global$l;
 var getOwnPropertyDescriptor = objectGetOwnPropertyDescriptor.f;
 var createNonEnumerableProperty$3 = createNonEnumerableProperty$6;
@@ -3128,6 +3399,9 @@ var _export = function (options, source) {
   }
 };
 
+var _export_default = /*@__PURE__*/getDefaultExportFromCjs(_export);
+
+'use strict';
 var classof$5 = classof$a;
 
 var $String$1 = String;
@@ -3137,10 +3411,16 @@ var toString$7 = function (argument) {
   return $String$1(argument);
 };
 
+var toString_default = /*@__PURE__*/getDefaultExportFromCjs(toString$7);
+
+'use strict';
 // a string of all valid unicode whitespaces
 var whitespaces$2 = '\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u2000\u2001\u2002' +
   '\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF';
 
+var whitespaces_default = /*@__PURE__*/getDefaultExportFromCjs(whitespaces$2);
+
+'use strict';
 var uncurryThis$e = functionUncurryThis;
 var requireObjectCoercible$3 = requireObjectCoercible$6;
 var toString$6 = toString$7;
@@ -3172,6 +3452,9 @@ var stringTrim = {
   trim: createMethod$2(3)
 };
 
+var stringTrim_default = /*@__PURE__*/getDefaultExportFromCjs(stringTrim);
+
+'use strict';
 var global$9 = global$l;
 var fails$e = fails$p;
 var uncurryThis$d = functionUncurryThis;
@@ -3195,6 +3478,9 @@ var numberParseInt = FORCED$1 ? function parseInt(string, radix) {
   return $parseInt$1(S, (radix >>> 0) || (exec$1(hex, S) ? 16 : 10));
 } : $parseInt$1;
 
+var numberParseInt_default = /*@__PURE__*/getDefaultExportFromCjs(numberParseInt);
+
+'use strict';
 var $$7 = _export;
 var $parseInt = numberParseInt;
 
@@ -3204,6 +3490,9 @@ $$7({ global: true, forced: parseInt !== $parseInt }, {
   parseInt: $parseInt
 });
 
+var es_object_assign = {};
+
+'use strict';
 var internalObjectKeys = objectKeysInternal;
 var enumBugKeys$1 = enumBugKeys$3;
 
@@ -3214,6 +3503,9 @@ var objectKeys$2 = Object.keys || function keys(O) {
   return internalObjectKeys(O, enumBugKeys$1);
 };
 
+var objectKeys_default = /*@__PURE__*/getDefaultExportFromCjs(objectKeys$2);
+
+'use strict';
 var DESCRIPTORS$3 = descriptors;
 var uncurryThis$c = functionUncurryThis;
 var call$9 = functionCall;
@@ -3271,6 +3563,9 @@ var objectAssign = !$assign || fails$d(function () {
   } return T;
 } : $assign;
 
+var objectAssign_default = /*@__PURE__*/getDefaultExportFromCjs(objectAssign);
+
+'use strict';
 var $$6 = _export;
 var assign = objectAssign;
 
@@ -3281,6 +3576,9 @@ $$6({ target: 'Object', stat: true, arity: 2, forced: Object.assign !== assign }
   assign: assign
 });
 
+var es_array_filter = {};
+
+'use strict';
 var fails$c = fails$p;
 var wellKnownSymbol$a = wellKnownSymbol$f;
 var V8_VERSION = engineV8Version;
@@ -3301,6 +3599,9 @@ var arrayMethodHasSpeciesSupport$1 = function (METHOD_NAME) {
   });
 };
 
+var arrayMethodHasSpeciesSupport_default = /*@__PURE__*/getDefaultExportFromCjs(arrayMethodHasSpeciesSupport$1);
+
+'use strict';
 var $$5 = _export;
 var $filter = arrayIteration.filter;
 var arrayMethodHasSpeciesSupport = arrayMethodHasSpeciesSupport$1;
@@ -3318,6 +3619,7 @@ $$5({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT }, {
 
 var objectDefineProperties = {};
 
+'use strict';
 var DESCRIPTORS$2 = descriptors;
 var V8_PROTOTYPE_DEFINE_BUG = v8PrototypeDefineBug;
 var definePropertyModule = objectDefineProperty;
@@ -3328,7 +3630,7 @@ var objectKeys = objectKeys$2;
 // `Object.defineProperties` method
 // https://tc39.es/ecma262/#sec-object.defineproperties
 // eslint-disable-next-line es/no-object-defineproperties -- safe
-objectDefineProperties.f = DESCRIPTORS$2 && !V8_PROTOTYPE_DEFINE_BUG ? Object.defineProperties : function defineProperties(O, Properties) {
+var f$1 = objectDefineProperties.f = DESCRIPTORS$2 && !V8_PROTOTYPE_DEFINE_BUG ? Object.defineProperties : function defineProperties(O, Properties) {
   anObject$a(O);
   var props = toIndexedObject$2(Properties);
   var keys = objectKeys(Properties);
@@ -3339,10 +3641,14 @@ objectDefineProperties.f = DESCRIPTORS$2 && !V8_PROTOTYPE_DEFINE_BUG ? Object.de
   return O;
 };
 
+'use strict';
 var getBuiltIn = getBuiltIn$4;
 
 var html$1 = getBuiltIn('document', 'documentElement');
 
+var html_default = /*@__PURE__*/getDefaultExportFromCjs(html$1);
+
+'use strict';
 /* global ActiveXObject -- old IE, WSH */
 var anObject$9 = anObject$d;
 var definePropertiesModule = objectDefineProperties;
@@ -3427,8 +3733,11 @@ var objectCreate = Object.create || function create(O, Properties) {
   return Properties === undefined ? result : definePropertiesModule.f(result, Properties);
 };
 
+var objectCreate_default = /*@__PURE__*/getDefaultExportFromCjs(objectCreate);
+
+'use strict';
 var wellKnownSymbol$9 = wellKnownSymbol$f;
-var create$2 = objectCreate;
+var create$3 = objectCreate;
 var defineProperty$4 = objectDefineProperty.f;
 
 var UNSCOPABLES = wellKnownSymbol$9('unscopables');
@@ -3439,7 +3748,7 @@ var ArrayPrototype$1 = Array.prototype;
 if (ArrayPrototype$1[UNSCOPABLES] === undefined) {
   defineProperty$4(ArrayPrototype$1, UNSCOPABLES, {
     configurable: true,
-    value: create$2(null)
+    value: create$3(null)
   });
 }
 
@@ -3448,8 +3757,14 @@ var addToUnscopables$1 = function (key) {
   ArrayPrototype$1[UNSCOPABLES][key] = true;
 };
 
+var addToUnscopables_default = /*@__PURE__*/getDefaultExportFromCjs(addToUnscopables$1);
+
+'use strict';
 var iterators = {};
 
+var iterators_default = /*@__PURE__*/getDefaultExportFromCjs(iterators);
+
+'use strict';
 var fails$b = fails$p;
 
 var correctPrototypeGetter = !fails$b(function () {
@@ -3459,6 +3774,9 @@ var correctPrototypeGetter = !fails$b(function () {
   return Object.getPrototypeOf(new F()) !== F.prototype;
 });
 
+var correctPrototypeGetter_default = /*@__PURE__*/getDefaultExportFromCjs(correctPrototypeGetter);
+
+'use strict';
 var hasOwn$3 = hasOwnProperty_1;
 var isCallable$6 = isCallable$j;
 var toObject$2 = toObject$6;
@@ -3481,12 +3799,17 @@ var objectGetPrototypeOf = CORRECT_PROTOTYPE_GETTER ? $Object$1.getPrototypeOf :
   } return object instanceof $Object$1 ? ObjectPrototype : null;
 };
 
+var objectGetPrototypeOf_default = /*@__PURE__*/getDefaultExportFromCjs(objectGetPrototypeOf);
+
+'use strict';
 var fails$a = fails$p;
 var isCallable$5 = isCallable$j;
 var isObject$a = isObject$h;
+var create$2 = objectCreate;
 var getPrototypeOf$1 = objectGetPrototypeOf;
 var defineBuiltIn$4 = defineBuiltIn$7;
 var wellKnownSymbol$8 = wellKnownSymbol$f;
+var IS_PURE$2 = isPure;
 
 var ITERATOR$5 = wellKnownSymbol$8('iterator');
 var BUGGY_SAFARI_ITERATORS$1 = false;
@@ -3513,6 +3836,7 @@ var NEW_ITERATOR_PROTOTYPE = !isObject$a(IteratorPrototype$2) || fails$a(functio
 });
 
 if (NEW_ITERATOR_PROTOTYPE) IteratorPrototype$2 = {};
+else if (IS_PURE$2) IteratorPrototype$2 = create$2(IteratorPrototype$2);
 
 // `%IteratorPrototype%[@@iterator]()` method
 // https://tc39.es/ecma262/#sec-%iteratorprototype%-@@iterator
@@ -3527,6 +3851,9 @@ var iteratorsCore = {
   BUGGY_SAFARI_ITERATORS: BUGGY_SAFARI_ITERATORS$1
 };
 
+var iteratorsCore_default = /*@__PURE__*/getDefaultExportFromCjs(iteratorsCore);
+
+'use strict';
 var defineProperty$3 = objectDefineProperty.f;
 var hasOwn$2 = hasOwnProperty_1;
 var wellKnownSymbol$7 = wellKnownSymbol$f;
@@ -3540,6 +3867,9 @@ var setToStringTag$4 = function (target, TAG, STATIC) {
   }
 };
 
+var setToStringTag_default = /*@__PURE__*/getDefaultExportFromCjs(setToStringTag$4);
+
+'use strict';
 var IteratorPrototype$1 = iteratorsCore.IteratorPrototype;
 var create$1 = objectCreate;
 var createPropertyDescriptor = createPropertyDescriptor$3;
@@ -3551,11 +3881,14 @@ var returnThis$1 = function () { return this; };
 var iteratorCreateConstructor = function (IteratorConstructor, NAME, next, ENUMERABLE_NEXT) {
   var TO_STRING_TAG = NAME + ' Iterator';
   IteratorConstructor.prototype = create$1(IteratorPrototype$1, { next: createPropertyDescriptor(+!ENUMERABLE_NEXT, next) });
-  setToStringTag$3(IteratorConstructor, TO_STRING_TAG, false);
+  setToStringTag$3(IteratorConstructor, TO_STRING_TAG, false, true);
   Iterators$4[TO_STRING_TAG] = returnThis$1;
   return IteratorConstructor;
 };
 
+var iteratorCreateConstructor_default = /*@__PURE__*/getDefaultExportFromCjs(iteratorCreateConstructor);
+
+'use strict';
 var uncurryThis$b = functionUncurryThis;
 var aCallable$2 = aCallable$5;
 
@@ -3566,12 +3899,18 @@ var functionUncurryThisAccessor = function (object, key, method) {
   } catch (error) { /* empty */ }
 };
 
+var functionUncurryThisAccessor_default = /*@__PURE__*/getDefaultExportFromCjs(functionUncurryThisAccessor);
+
+'use strict';
 var isObject$9 = isObject$h;
 
 var isPossiblePrototype$1 = function (argument) {
   return isObject$9(argument) || argument === null;
 };
 
+var isPossiblePrototype_default = /*@__PURE__*/getDefaultExportFromCjs(isPossiblePrototype$1);
+
+'use strict';
 var isPossiblePrototype = isPossiblePrototype$1;
 
 var $String = String;
@@ -3582,6 +3921,9 @@ var aPossiblePrototype$1 = function (argument) {
   throw new $TypeError$5("Can't set " + $String(argument) + ' as a prototype');
 };
 
+var aPossiblePrototype_default = /*@__PURE__*/getDefaultExportFromCjs(aPossiblePrototype$1);
+
+'use strict';
 /* eslint-disable no-proto -- safe */
 var uncurryThisAccessor = functionUncurryThisAccessor;
 var anObject$8 = anObject$d;
@@ -3609,8 +3951,12 @@ var objectSetPrototypeOf = Object.setPrototypeOf || ('__proto__' in {} ? functio
   };
 }() : undefined);
 
+var objectSetPrototypeOf_default = /*@__PURE__*/getDefaultExportFromCjs(objectSetPrototypeOf);
+
+'use strict';
 var $$4 = _export;
 var call$8 = functionCall;
+var IS_PURE$1 = isPure;
 var FunctionName = functionName;
 var isCallable$4 = isCallable$j;
 var createIteratorConstructor = iteratorCreateConstructor;
@@ -3664,7 +4010,7 @@ var iteratorDefine = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
   if (anyNativeIterator) {
     CurrentIteratorPrototype = getPrototypeOf(anyNativeIterator.call(new Iterable()));
     if (CurrentIteratorPrototype !== Object.prototype && CurrentIteratorPrototype.next) {
-      if (getPrototypeOf(CurrentIteratorPrototype) !== IteratorPrototype) {
+      if (!IS_PURE$1 && getPrototypeOf(CurrentIteratorPrototype) !== IteratorPrototype) {
         if (setPrototypeOf$1) {
           setPrototypeOf$1(CurrentIteratorPrototype, IteratorPrototype);
         } else if (!isCallable$4(CurrentIteratorPrototype[ITERATOR$4])) {
@@ -3672,13 +4018,14 @@ var iteratorDefine = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
         }
       }
       // Set @@toStringTag to native iterators
-      setToStringTag$2(CurrentIteratorPrototype, TO_STRING_TAG, true);
+      setToStringTag$2(CurrentIteratorPrototype, TO_STRING_TAG, true, true);
+      if (IS_PURE$1) Iterators$3[TO_STRING_TAG] = returnThis;
     }
   }
 
   // fix Array.prototype.{ values, @@iterator }.name in V8 / FF
   if (PROPER_FUNCTION_NAME && DEFAULT === VALUES && nativeIterator && nativeIterator.name !== VALUES) {
-    if (CONFIGURABLE_FUNCTION_NAME) {
+    if (!IS_PURE$1 && CONFIGURABLE_FUNCTION_NAME) {
       createNonEnumerableProperty$2(IterablePrototype, 'name', VALUES);
     } else {
       INCORRECT_VALUES_NAME = true;
@@ -3701,7 +4048,7 @@ var iteratorDefine = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
   }
 
   // define iterator
-  if (IterablePrototype[ITERATOR$4] !== defaultIterator) {
+  if ((!IS_PURE$1 || FORCED) && IterablePrototype[ITERATOR$4] !== defaultIterator) {
     defineBuiltIn$3(IterablePrototype, ITERATOR$4, defaultIterator, { name: DEFAULT });
   }
   Iterators$3[NAME] = defaultIterator;
@@ -3709,12 +4056,18 @@ var iteratorDefine = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
   return methods;
 };
 
+var iteratorDefine_default = /*@__PURE__*/getDefaultExportFromCjs(iteratorDefine);
+
+'use strict';
 // `CreateIterResultObject` abstract operation
 // https://tc39.es/ecma262/#sec-createiterresultobject
 var createIterResultObject$2 = function (value, done) {
   return { value: value, done: done };
 };
 
+var createIterResultObject_default = /*@__PURE__*/getDefaultExportFromCjs(createIterResultObject$2);
+
+'use strict';
 var toIndexedObject$1 = toIndexedObject$6;
 var addToUnscopables = addToUnscopables$1;
 var Iterators$2 = iterators;
@@ -3722,6 +4075,7 @@ var InternalStateModule$2 = internalState;
 var defineProperty$2 = objectDefineProperty.f;
 var defineIterator$1 = iteratorDefine;
 var createIterResultObject$1 = createIterResultObject$2;
+var IS_PURE = isPure;
 var DESCRIPTORS$1 = descriptors;
 
 var ARRAY_ITERATOR = 'Array Iterator';
@@ -3772,10 +4126,15 @@ addToUnscopables('values');
 addToUnscopables('entries');
 
 // V8 ~ Chrome 45- bug
-if (DESCRIPTORS$1 && values.name !== 'values') try {
+if (!IS_PURE && DESCRIPTORS$1 && values.name !== 'values') try {
   defineProperty$2(values, 'name', { value: 'values' });
 } catch (error) { /* empty */ }
 
+var es_array_iterator_default = /*@__PURE__*/getDefaultExportFromCjs(es_array_iterator);
+
+var es_string_iterator = {};
+
+'use strict';
 var uncurryThis$a = functionUncurryThis;
 var toIntegerOrInfinity$1 = toIntegerOrInfinity$4;
 var toString$4 = toString$7;
@@ -3813,6 +4172,9 @@ var stringMultibyte = {
   charAt: createMethod$1(true)
 };
 
+var stringMultibyte_default = /*@__PURE__*/getDefaultExportFromCjs(stringMultibyte);
+
+'use strict';
 var charAt$3 = stringMultibyte.charAt;
 var toString$3 = toString$7;
 var InternalStateModule$1 = internalState;
@@ -3844,6 +4206,11 @@ defineIterator(String, 'String', function (iterated) {
   return createIterResultObject(point, false);
 });
 
+var es_weakMap = {};
+
+var es_weakMap_constructor = {};
+
+'use strict';
 var fails$9 = fails$p;
 
 var freezing = !fails$9(function () {
@@ -3851,6 +4218,9 @@ var freezing = !fails$9(function () {
   return Object.isExtensible(Object.preventExtensions({}));
 });
 
+var freezing_default = /*@__PURE__*/getDefaultExportFromCjs(freezing);
+
+'use strict';
 var defineBuiltIn$2 = defineBuiltIn$7;
 
 var defineBuiltIns$2 = function (target, src, options) {
@@ -3858,14 +4228,20 @@ var defineBuiltIns$2 = function (target, src, options) {
   return target;
 };
 
-var internalMetadata = {exports: {}};
+var defineBuiltIns_default = /*@__PURE__*/getDefaultExportFromCjs(defineBuiltIns$2);
+
+var internalMetadata$1 = {exports: {}};
 
 var objectGetOwnPropertyNamesExternal = {};
 
+'use strict';
 var uncurryThis$9 = functionUncurryThis;
 
 var arraySlice$1 = uncurryThis$9([].slice);
 
+var arraySlice_default = /*@__PURE__*/getDefaultExportFromCjs(arraySlice$1);
+
+'use strict';
 /* eslint-disable es/no-object-getownpropertynames -- safe */
 var classof$4 = classofRaw$2;
 var toIndexedObject = toIndexedObject$6;
@@ -3884,12 +4260,13 @@ var getWindowNames = function (it) {
 };
 
 // fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-objectGetOwnPropertyNamesExternal.f = function getOwnPropertyNames(it) {
+var f = objectGetOwnPropertyNamesExternal.f = function getOwnPropertyNames(it) {
   return windowNames && classof$4(it) === 'Window'
     ? getWindowNames(it)
     : $getOwnPropertyNames(toIndexedObject(it));
 };
 
+'use strict';
 // FF26- bug: ArrayBuffers are non-extensible, but Object.isExtensible does not report it
 var fails$8 = fails$p;
 
@@ -3901,6 +4278,9 @@ var arrayBufferNonExtensible = fails$8(function () {
   }
 });
 
+var arrayBufferNonExtensible_default = /*@__PURE__*/getDefaultExportFromCjs(arrayBufferNonExtensible);
+
+'use strict';
 var fails$7 = fails$p;
 var isObject$8 = isObject$h;
 var classof$3 = classofRaw$2;
@@ -3918,6 +4298,11 @@ var objectIsExtensible = (FAILS_ON_PRIMITIVES || ARRAY_BUFFER_NON_EXTENSIBLE) ? 
   return $isExtensible ? $isExtensible(it) : true;
 } : $isExtensible;
 
+var objectIsExtensible_default = /*@__PURE__*/getDefaultExportFromCjs(objectIsExtensible);
+
+var internalMetadata = internalMetadata$1.exports;
+
+'use strict';
 var $$3 = _export;
 var uncurryThis$8 = functionUncurryThis;
 var hiddenKeys = hiddenKeys$5;
@@ -3999,7 +4384,7 @@ var enable = function () {
   }
 };
 
-var meta = internalMetadata.exports = {
+var meta = internalMetadata$1.exports = {
   enable: enable,
   fastKey: fastKey,
   getWeakData: getWeakData$1,
@@ -4008,8 +4393,10 @@ var meta = internalMetadata.exports = {
 
 hiddenKeys[METADATA] = true;
 
-var internalMetadataExports = internalMetadata.exports;
+var internalMetadataExports = internalMetadata$1.exports;
+var internalMetadata_default = /*@__PURE__*/getDefaultExportFromCjs(internalMetadataExports);
 
+'use strict';
 var wellKnownSymbol$5 = wellKnownSymbol$f;
 var Iterators$1 = iterators;
 
@@ -4021,6 +4408,9 @@ var isArrayIteratorMethod$1 = function (it) {
   return it !== undefined && (Iterators$1.Array === it || ArrayPrototype[ITERATOR$3] === it);
 };
 
+var isArrayIteratorMethod_default = /*@__PURE__*/getDefaultExportFromCjs(isArrayIteratorMethod$1);
+
+'use strict';
 var classof$2 = classof$a;
 var getMethod$3 = getMethod$5;
 var isNullOrUndefined$4 = isNullOrUndefined$7;
@@ -4035,6 +4425,9 @@ var getIteratorMethod$2 = function (it) {
     || Iterators[classof$2(it)];
 };
 
+var getIteratorMethod_default = /*@__PURE__*/getDefaultExportFromCjs(getIteratorMethod$2);
+
+'use strict';
 var call$7 = functionCall;
 var aCallable$1 = aCallable$5;
 var anObject$7 = anObject$d;
@@ -4049,6 +4442,9 @@ var getIterator$1 = function (argument, usingIterator) {
   throw new $TypeError$4(tryToString$1(argument) + ' is not iterable');
 };
 
+var getIterator_default = /*@__PURE__*/getDefaultExportFromCjs(getIterator$1);
+
+'use strict';
 var call$6 = functionCall;
 var anObject$6 = anObject$d;
 var getMethod$2 = getMethod$5;
@@ -4073,6 +4469,9 @@ var iteratorClose$1 = function (iterator, kind, value) {
   return value;
 };
 
+var iteratorClose_default = /*@__PURE__*/getDefaultExportFromCjs(iteratorClose$1);
+
+'use strict';
 var bind = functionBindContext;
 var call$5 = functionCall;
 var anObject$5 = anObject$d;
@@ -4142,6 +4541,9 @@ var iterate$2 = function (iterable, unboundFunction, options) {
   } return new Result(false);
 };
 
+var iterate_default = /*@__PURE__*/getDefaultExportFromCjs(iterate$2);
+
+'use strict';
 var isPrototypeOf = objectIsPrototypeOf;
 
 var $TypeError$2 = TypeError;
@@ -4151,6 +4553,9 @@ var anInstance$2 = function (it, Prototype) {
   throw new $TypeError$2('Incorrect invocation');
 };
 
+var anInstance_default = /*@__PURE__*/getDefaultExportFromCjs(anInstance$2);
+
+'use strict';
 var wellKnownSymbol$3 = wellKnownSymbol$f;
 
 var ITERATOR$1 = wellKnownSymbol$3('iterator');
@@ -4192,6 +4597,9 @@ var checkCorrectnessOfIteration$1 = function (exec, SKIP_CLOSING) {
   return ITERATION_SUPPORT;
 };
 
+var checkCorrectnessOfIteration_default = /*@__PURE__*/getDefaultExportFromCjs(checkCorrectnessOfIteration$1);
+
+'use strict';
 var isCallable$3 = isCallable$j;
 var isObject$6 = isObject$h;
 var setPrototypeOf = objectSetPrototypeOf;
@@ -4211,6 +4619,9 @@ var inheritIfRequired$1 = function ($this, dummy, Wrapper) {
   return $this;
 };
 
+var inheritIfRequired_default = /*@__PURE__*/getDefaultExportFromCjs(inheritIfRequired$1);
+
+'use strict';
 var $$2 = _export;
 var global$8 = global$l;
 var uncurryThis$7 = functionUncurryThis;
@@ -4317,6 +4728,9 @@ var collection$1 = function (CONSTRUCTOR_NAME, wrapper, common) {
   return Constructor;
 };
 
+var collection_default = /*@__PURE__*/getDefaultExportFromCjs(collection$1);
+
+'use strict';
 var uncurryThis$6 = functionUncurryThis;
 var defineBuiltIns$1 = defineBuiltIns$2;
 var getWeakData = internalMetadataExports.getWeakData;
@@ -4448,6 +4862,9 @@ var collectionWeak$1 = {
   }
 };
 
+var collectionWeak_default = /*@__PURE__*/getDefaultExportFromCjs(collectionWeak$1);
+
+'use strict';
 var FREEZING = freezing;
 var global$7 = global$l;
 var uncurryThis$5 = functionUncurryThis;
@@ -4554,6 +4971,11 @@ if (NATIVE_WEAK_MAP) if (IS_IE11) {
   });
 }
 
+'use strict';
+
+var web_domCollections_iterator = {};
+
+'use strict';
 var global$6 = global$l;
 var DOMIterables = domIterables;
 var DOMTokenListPrototype = domTokenListPrototype;
@@ -6591,6 +7013,9 @@ var ResizeObserver = (function () {
     return ResizeObserver;
 }());
 
+var es_array_reduce = {};
+
+'use strict';
 var aCallable = aCallable$5;
 var toObject$1 = toObject$6;
 var IndexedObject = indexedObject;
@@ -6634,11 +7059,17 @@ var arrayReduce = {
   right: createMethod(true)
 };
 
+var arrayReduce_default = /*@__PURE__*/getDefaultExportFromCjs(arrayReduce);
+
+'use strict';
 var global$4 = global$l;
 var classof$1 = classofRaw$2;
 
 var engineIsNode = classof$1(global$4.process) === 'process';
 
+var engineIsNode_default = /*@__PURE__*/getDefaultExportFromCjs(engineIsNode);
+
+'use strict';
 var $$1 = _export;
 var $reduce = arrayReduce.left;
 var arrayMethodIsStrict = arrayMethodIsStrict$2;
@@ -6659,6 +7090,9 @@ $$1({ target: 'Array', proto: true, forced: FORCED }, {
   }
 });
 
+var es_regexp_exec = {};
+
+'use strict';
 var anObject$3 = anObject$d;
 
 // `RegExp.prototype.flags` getter implementation
@@ -6677,6 +7111,9 @@ var regexpFlags$1 = function () {
   return result;
 };
 
+var regexpFlags_default = /*@__PURE__*/getDefaultExportFromCjs(regexpFlags$1);
+
+'use strict';
 var fails$4 = fails$p;
 var global$3 = global$l;
 
@@ -6708,6 +7145,9 @@ var regexpStickyHelpers = {
   UNSUPPORTED_Y: UNSUPPORTED_Y$1
 };
 
+var regexpStickyHelpers_default = /*@__PURE__*/getDefaultExportFromCjs(regexpStickyHelpers);
+
+'use strict';
 var fails$3 = fails$p;
 var global$2 = global$l;
 
@@ -6719,6 +7159,9 @@ var regexpUnsupportedDotAll = fails$3(function () {
   return !(re.dotAll && re.test('\n') && re.flags === 's');
 });
 
+var regexpUnsupportedDotAll_default = /*@__PURE__*/getDefaultExportFromCjs(regexpUnsupportedDotAll);
+
+'use strict';
 var fails$2 = fails$p;
 var global$1 = global$l;
 
@@ -6731,6 +7174,9 @@ var regexpUnsupportedNcg = fails$2(function () {
     'b'.replace(re, '$<a>c') !== 'bc';
 });
 
+var regexpUnsupportedNcg_default = /*@__PURE__*/getDefaultExportFromCjs(regexpUnsupportedNcg);
+
+'use strict';
 /* eslint-disable regexp/no-empty-capturing-group, regexp/no-empty-group, regexp/no-lazy-ends -- testing */
 /* eslint-disable regexp/no-useless-quantifier -- testing */
 var call$4 = functionCall;
@@ -6848,6 +7294,9 @@ if (PATCH) {
 
 var regexpExec$2 = patchedExec;
 
+var regexpExec_default = /*@__PURE__*/getDefaultExportFromCjs(regexpExec$2);
+
+'use strict';
 var $ = _export;
 var exec = regexpExec$2;
 
@@ -6857,6 +7306,9 @@ $({ target: 'RegExp', proto: true, forced: /./.exec !== exec }, {
   exec: exec
 });
 
+var es_string_match = {};
+
+'use strict';
 // TODO: Remove from `core-js@4` since it's moved to entry points
 
 var uncurryThis$3 = functionUncurryThisClause;
@@ -6934,6 +7386,9 @@ var fixRegexpWellKnownSymbolLogic = function (KEY, exec, FORCED, SHAM) {
   if (SHAM) createNonEnumerableProperty(RegExpPrototype[SYMBOL], 'sham', true);
 };
 
+var fixRegexpWellKnownSymbolLogic_default = /*@__PURE__*/getDefaultExportFromCjs(fixRegexpWellKnownSymbolLogic);
+
+'use strict';
 var charAt$1 = stringMultibyte.charAt;
 
 // `AdvanceStringIndex` abstract operation
@@ -6942,6 +7397,9 @@ var advanceStringIndex$2 = function (S, index, unicode) {
   return index + (unicode ? charAt$1(S, index).length : 1);
 };
 
+var advanceStringIndex_default = /*@__PURE__*/getDefaultExportFromCjs(advanceStringIndex$2);
+
+'use strict';
 var call$3 = functionCall;
 var anObject$2 = anObject$d;
 var isCallable$1 = isCallable$j;
@@ -6963,6 +7421,9 @@ var regexpExecAbstract = function (R, S) {
   throw new $TypeError('RegExp#exec called on incompatible receiver');
 };
 
+var regexpExecAbstract_default = /*@__PURE__*/getDefaultExportFromCjs(regexpExecAbstract);
+
+'use strict';
 var call$2 = functionCall;
 var fixRegExpWellKnownSymbolLogic$1 = fixRegexpWellKnownSymbolLogic;
 var anObject$1 = anObject$d;
@@ -7011,6 +7472,9 @@ fixRegExpWellKnownSymbolLogic$1('match', function (MATCH, nativeMatch, maybeCall
   ];
 });
 
+var es_function_name = {};
+
+'use strict';
 var makeBuiltIn = makeBuiltInExports;
 var defineProperty = objectDefineProperty;
 
@@ -7020,6 +7484,9 @@ var defineBuiltInAccessor$1 = function (target, name, descriptor) {
   return defineProperty.f(target, name, descriptor);
 };
 
+var defineBuiltInAccessor_default = /*@__PURE__*/getDefaultExportFromCjs(defineBuiltInAccessor$1);
+
+'use strict';
 var DESCRIPTORS = descriptors;
 var FUNCTION_NAME_EXISTS = functionName.EXISTS;
 var uncurryThis$2 = functionUncurryThis;
@@ -7046,6 +7513,9 @@ if (DESCRIPTORS && !FUNCTION_NAME_EXISTS) {
   });
 }
 
+var es_string_replace = {};
+
+'use strict';
 var NATIVE_BIND = functionBindNative;
 
 var FunctionPrototype = Function.prototype;
@@ -7057,6 +7527,9 @@ var functionApply = typeof Reflect == 'object' && Reflect.apply || (NATIVE_BIND 
   return call$1.apply(apply$1, arguments);
 });
 
+var functionApply_default = /*@__PURE__*/getDefaultExportFromCjs(functionApply);
+
+'use strict';
 var uncurryThis$1 = functionUncurryThis;
 var toObject = toObject$6;
 
@@ -7103,6 +7576,9 @@ var getSubstitution$1 = function (matched, str, position, captures, namedCapture
   });
 };
 
+var getSubstitution_default = /*@__PURE__*/getDefaultExportFromCjs(getSubstitution$1);
+
+'use strict';
 var apply = functionApply;
 var call = functionCall;
 var uncurryThis = functionUncurryThis;
@@ -9779,7 +10255,7 @@ function expandOrCloneMode(mode) {
   return mode;
 }
 
-var version = "11.9.0";
+var version = "11.11.1";
 
 class HTMLInjectionError extends Error {
   constructor(reason, html) {
@@ -10306,6 +10782,7 @@ const HLJS = function(hljs) {
       // first handler (when ignoreIllegals is true)
       if (match.type === "illegal" && lexeme === "") {
         // advance so we aren't stuck in an infinite loop
+        modeBuffer += "\n";
         return 1;
       }
 
@@ -10599,24 +11076,23 @@ const HLJS = function(hljs) {
    * auto-highlights all pre>code elements on the page
    */
   function highlightAll() {
+    function boot() {
+      // if a highlight was requested before DOM was loaded, do now
+      highlightAll();
+    }
+
     // if we are called too early in the loading process
     if (document.readyState === "loading") {
+      // make sure the event listener is only added once
+      if (!wantsHighlight) {
+        window.addEventListener('DOMContentLoaded', boot, false);
+      }
       wantsHighlight = true;
       return;
     }
 
     const blocks = document.querySelectorAll(options.cssSelector);
     blocks.forEach(highlightElement);
-  }
-
-  function boot() {
-    // if a highlight was requested before DOM was loaded, do now
-    if (wantsHighlight) highlightAll();
-  }
-
-  // make sure we are in the browser environment
-  if (typeof window !== 'undefined' && window.addEventListener) {
-    window.addEventListener('DOMContentLoaded', boot, false);
   }
 
   /**
@@ -10824,6 +11300,8 @@ highlight.newInstance = () => HLJS({});
 var core = highlight;
 highlight.HighlightJS = highlight;
 highlight.default = highlight;
+
+var core_default = /*@__PURE__*/getDefaultExportFromCjs(core);
 
 /*
 Language: HTML, XML
@@ -11080,7 +11558,7 @@ Language: Bash
 Author: vah <vahtenberg@gmail.com>
 Contributrors: Benjamin Pannell <contact@sierrasoftworks.com>
 Website: https://www.gnu.org/software/bash/
-Category: common
+Category: common, scripting
 */
 
 var bash_1;
@@ -11121,6 +11599,18 @@ function requireBash () {
 	    end: /\)/,
 	    contains: [ hljs.BACKSLASH_ESCAPE ]
 	  };
+	  const COMMENT = hljs.inherit(
+	    hljs.COMMENT(),
+	    {
+	      match: [
+	        /(^|\s)/,
+	        /#.*$/
+	      ],
+	      scope: {
+	        2: 'comment'
+	      }
+	    }
+	  );
 	  const HERE_DOC = {
 	    begin: /<<-?\s*(?=\w+)/,
 	    starts: { contains: [
@@ -11194,6 +11684,7 @@ function requireBash () {
 	    "else",
 	    "elif",
 	    "fi",
+	    "time",
 	    "for",
 	    "while",
 	    "until",
@@ -11202,6 +11693,7 @@ function requireBash () {
 	    "done",
 	    "case",
 	    "esac",
+	    "coproc",
 	    "function",
 	    "select"
 	  ];
@@ -11254,6 +11746,7 @@ function requireBash () {
 	    "read",
 	    "readarray",
 	    "source",
+	    "sudo",
 	    "type",
 	    "typeset",
 	    "ulimit",
@@ -11439,7 +11932,10 @@ function requireBash () {
 
 	  return {
 	    name: 'Bash',
-	    aliases: [ 'sh' ],
+	    aliases: [
+	      'sh',
+	      'zsh'
+	    ],
 	    keywords: {
 	      $pattern: /\b[a-z][a-z0-9._-]+\b/,
 	      keyword: KEYWORDS,
@@ -11459,7 +11955,7 @@ function requireBash () {
 	      hljs.SHEBANG(), // to catch unknown shells but still highlight the shebang
 	      FUNCTION,
 	      ARITHMETIC,
-	      hljs.HASH_COMMENT_MODE,
+	      COMMENT,
 	      HERE_DOC,
 	      PATH_MODE,
 	      QUOTE_STRING,
@@ -11540,20 +12036,21 @@ function requireC () {
 	  const NUMBERS = {
 	    className: 'number',
 	    variants: [
-	      { begin: '\\b(0b[01\']+)' },
-	      { begin: '(-?)\\b([\\d\']+(\\.[\\d\']*)?|\\.[\\d\']+)((ll|LL|l|L)(u|U)?|(u|U)(ll|LL|l|L)?|f|F|b|B)' },
-	      { begin: '(-?)(\\b0[xX][a-fA-F0-9\']+|(\\b[\\d\']+(\\.[\\d\']*)?|\\.[\\d\']+)([eE][-+]?[\\d\']+)?)' }
-	    ],
+	      { match: /\b(0b[01']+)/ },  
+	      { match: /(-?)\b([\d']+(\.[\d']*)?|\.[\d']+)((ll|LL|l|L)(u|U)?|(u|U)(ll|LL|l|L)?|f|F|b|B)/ },  
+	      { match: /(-?)\b(0[xX][a-fA-F0-9]+(?:'[a-fA-F0-9]+)*(?:\.[a-fA-F0-9]*(?:'[a-fA-F0-9]*)*)?(?:[pP][-+]?[0-9]+)?(l|L)?(u|U)?)/ },  
+	      { match: /(-?)\b\d+(?:'\d+)*(?:\.\d*(?:'\d*)*)?(?:[eE][-+]?\d+)?/ }  
+	  ],
 	    relevance: 0
-	  };
-
+	  };  
+	  
 	  const PREPROCESSOR = {
 	    className: 'meta',
 	    begin: /#\s*[a-z]+\b/,
 	    end: /$/,
 	    keywords: { keyword:
 	        'if else elif endif define undef warning error line '
-	        + 'pragma _Pragma ifdef ifndef include' },
+	        + 'pragma _Pragma ifdef ifndef elifdef elifndef include' },
 	    contains: [
 	      {
 	        begin: /\\\n/,
@@ -11597,6 +12094,8 @@ function requireC () {
 	    "restrict",
 	    "return",
 	    "sizeof",
+	    "typeof",
+	    "typeof_unqual",
 	    "struct",
 	    "switch",
 	    "typedef",
@@ -11631,14 +12130,26 @@ function requireC () {
 	    "char",
 	    "void",
 	    "_Bool",
+	    "_BitInt",
 	    "_Complex",
 	    "_Imaginary",
 	    "_Decimal32",
 	    "_Decimal64",
+	    "_Decimal96",
 	    "_Decimal128",
+	    "_Decimal64x",
+	    "_Decimal128x",
+	    "_Float16",
+	    "_Float32",
+	    "_Float64",
+	    "_Float128",
+	    "_Float32x",
+	    "_Float64x",
+	    "_Float128x",
 	    // modifiers
 	    "const",
 	    "static",
+	    "constexpr",
 	    // aliases
 	    "complex",
 	    "bool",
@@ -11862,9 +12373,44 @@ function requireCpp () {
 	  const NUMBERS = {
 	    className: 'number',
 	    variants: [
-	      { begin: '\\b(0b[01\']+)' },
-	      { begin: '(-?)\\b([\\d\']+(\\.[\\d\']*)?|\\.[\\d\']+)((ll|LL|l|L)(u|U)?|(u|U)(ll|LL|l|L)?|f|F|b|B)' },
-	      { begin: '(-?)(\\b0[xX][a-fA-F0-9\']+|(\\b[\\d\']+(\\.[\\d\']*)?|\\.[\\d\']+)([eE][-+]?[\\d\']+)?)' }
+	      // Floating-point literal.
+	      { begin:
+	        "[+-]?(?:" // Leading sign.
+	          // Decimal.
+	          + "(?:"
+	            +"[0-9](?:'?[0-9])*\\.(?:[0-9](?:'?[0-9])*)?"
+	            + "|\\.[0-9](?:'?[0-9])*"
+	          + ")(?:[Ee][+-]?[0-9](?:'?[0-9])*)?"
+	          + "|[0-9](?:'?[0-9])*[Ee][+-]?[0-9](?:'?[0-9])*"
+	          // Hexadecimal.
+	          + "|0[Xx](?:"
+	            +"[0-9A-Fa-f](?:'?[0-9A-Fa-f])*(?:\\.(?:[0-9A-Fa-f](?:'?[0-9A-Fa-f])*)?)?"
+	            + "|\\.[0-9A-Fa-f](?:'?[0-9A-Fa-f])*"
+	          + ")[Pp][+-]?[0-9](?:'?[0-9])*"
+	        + ")(?:" // Literal suffixes.
+	          + "[Ff](?:16|32|64|128)?"
+	          + "|(BF|bf)16"
+	          + "|[Ll]"
+	          + "|" // Literal suffix is optional.
+	        + ")"
+	      },
+	      // Integer literal.
+	      { begin:
+	        "[+-]?\\b(?:" // Leading sign.
+	          + "0[Bb][01](?:'?[01])*" // Binary.
+	          + "|0[Xx][0-9A-Fa-f](?:'?[0-9A-Fa-f])*" // Hexadecimal.
+	          + "|0(?:'?[0-7])*" // Octal or just a lone zero.
+	          + "|[1-9](?:'?[0-9])*" // Decimal.
+	        + ")(?:" // Literal suffixes.
+	          + "[Uu](?:LL?|ll?)"
+	          + "|[Uu][Zz]?"
+	          + "|(?:LL?|ll?)[Uu]?"
+	          + "|[Zz][Uu]"
+	          + "|" // Literal suffix is optional.
+	        + ")"
+	        // Note: there are user-defined literal suffixes too, but perhaps having the custom suffix not part of the
+	        // literal highlight actually makes it stand out more.
+	      }
 	    ],
 	    relevance: 0
 	  };
@@ -12022,6 +12568,8 @@ function requireCpp () {
 	    'counting_semaphore',
 	    'deque',
 	    'false_type',
+	    'flat_map',
+	    'flat_set',
 	    'future',
 	    'imaginary',
 	    'initializer_list',
@@ -12347,7 +12895,7 @@ function requireCpp () {
 	      [
 	        PREPROCESSOR,
 	        { // containers: ie, `vector <int> rooms (9);`
-	          begin: '\\b(deque|list|queue|priority_queue|pair|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array|tuple|optional|variant|function)\\s*<(?!<)',
+	          begin: '\\b(deque|list|queue|priority_queue|pair|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array|tuple|optional|variant|function|flat_map|flat_set)\\s*<(?!<)',
 	          end: '>',
 	          keywords: CPP_KEYWORDS,
 	          contains: [
@@ -12504,11 +13052,14 @@ function requireCsharp () {
 	    'alias',
 	    'and',
 	    'ascending',
+	    'args',
 	    'async',
 	    'await',
 	    'by',
 	    'descending',
+	    'dynamic',
 	    'equals',
+	    'file',
 	    'from',
 	    'get',
 	    'global',
@@ -12524,7 +13075,10 @@ function requireCsharp () {
 	    'or',
 	    'orderby',
 	    'partial',
+	    'record',
 	    'remove',
+	    'required',
+	    'scoped',
 	    'select',
 	    'set',
 	    'unmanaged',
@@ -12550,6 +13104,11 @@ function requireCsharp () {
 	      { begin: '(-?)(\\b0[xX][a-fA-F0-9\']+|(\\b[\\d\']+(\\.[\\d\']*)?|\\.[\\d\']+)([eE][-+]?[\\d\']+)?)' }
 	    ],
 	    relevance: 0
+	  };
+	  const RAW_STRING = {
+	    className: 'string',
+	    begin: /"""("*)(?!")(.|\n)*?"""\1/,
+	    relevance: 1
 	  };
 	  const VERBATIM_STRING = {
 	    className: 'string',
@@ -12616,6 +13175,7 @@ function requireCsharp () {
 	    hljs.inherit(hljs.C_BLOCK_COMMENT_MODE, { illegal: /\n/ })
 	  ];
 	  const STRING = { variants: [
+	    RAW_STRING,
 	    INTERPOLATED_VERBATIM_STRING,
 	    INTERPOLATED_STRING,
 	    VERBATIM_STRING,
@@ -12839,7 +13399,7 @@ function requireCss () {
 	  };
 	};
 
-	const TAGS = [
+	const HTML_TAGS = [
 	  'a',
 	  'abbr',
 	  'address',
@@ -12891,11 +13451,16 @@ function requireCss () {
 	  'nav',
 	  'object',
 	  'ol',
+	  'optgroup',
+	  'option',
 	  'p',
+	  'picture',
 	  'q',
 	  'quote',
 	  'samp',
 	  'section',
+	  'select',
+	  'source',
 	  'span',
 	  'strong',
 	  'summary',
@@ -12913,6 +13478,58 @@ function requireCss () {
 	  'var',
 	  'video'
 	];
+
+	const SVG_TAGS = [
+	  'defs',
+	  'g',
+	  'marker',
+	  'mask',
+	  'pattern',
+	  'svg',
+	  'switch',
+	  'symbol',
+	  'feBlend',
+	  'feColorMatrix',
+	  'feComponentTransfer',
+	  'feComposite',
+	  'feConvolveMatrix',
+	  'feDiffuseLighting',
+	  'feDisplacementMap',
+	  'feFlood',
+	  'feGaussianBlur',
+	  'feImage',
+	  'feMerge',
+	  'feMorphology',
+	  'feOffset',
+	  'feSpecularLighting',
+	  'feTile',
+	  'feTurbulence',
+	  'linearGradient',
+	  'radialGradient',
+	  'stop',
+	  'circle',
+	  'ellipse',
+	  'image',
+	  'line',
+	  'path',
+	  'polygon',
+	  'polyline',
+	  'rect',
+	  'text',
+	  'use',
+	  'textPath',
+	  'tspan',
+	  'foreignObject',
+	  'clipPath'
+	];
+
+	const TAGS = [
+	  ...HTML_TAGS,
+	  ...SVG_TAGS,
+	];
+
+	// Sorting, then reversing makes sure longer attributes/elements like
+	// `font-weight` are matched fully instead of getting false positives on say `font`
 
 	const MEDIA_FEATURES = [
 	  'any-hover',
@@ -12949,7 +13566,7 @@ function requireCss () {
 	  'max-width',
 	  'min-height',
 	  'max-height'
-	];
+	].sort().reverse();
 
 	// https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes
 	const PSEUDO_CLASSES = [
@@ -13012,7 +13629,7 @@ function requireCss () {
 	  'valid',
 	  'visited',
 	  'where' // where()
-	];
+	].sort().reverse();
 
 	// https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements
 	const PSEUDO_ELEMENTS = [
@@ -13030,14 +13647,18 @@ function requireCss () {
 	  'selection',
 	  'slotted',
 	  'spelling-error'
-	];
+	].sort().reverse();
 
 	const ATTRIBUTES = [
+	  'accent-color',
 	  'align-content',
 	  'align-items',
 	  'align-self',
+	  'alignment-baseline',
 	  'all',
+	  'anchor-name',
 	  'animation',
+	  'animation-composition',
 	  'animation-delay',
 	  'animation-direction',
 	  'animation-duration',
@@ -13045,7 +13666,14 @@ function requireCss () {
 	  'animation-iteration-count',
 	  'animation-name',
 	  'animation-play-state',
+	  'animation-range',
+	  'animation-range-end',
+	  'animation-range-start',
+	  'animation-timeline',
 	  'animation-timing-function',
+	  'appearance',
+	  'aspect-ratio',
+	  'backdrop-filter',
 	  'backface-visibility',
 	  'background',
 	  'background-attachment',
@@ -13055,8 +13683,11 @@ function requireCss () {
 	  'background-image',
 	  'background-origin',
 	  'background-position',
+	  'background-position-x',
+	  'background-position-y',
 	  'background-repeat',
 	  'background-size',
+	  'baseline-shift',
 	  'block-size',
 	  'border',
 	  'border-block',
@@ -13079,6 +13710,8 @@ function requireCss () {
 	  'border-bottom-width',
 	  'border-collapse',
 	  'border-color',
+	  'border-end-end-radius',
+	  'border-end-start-radius',
 	  'border-image',
 	  'border-image-outset',
 	  'border-image-repeat',
@@ -13107,6 +13740,8 @@ function requireCss () {
 	  'border-right-style',
 	  'border-right-width',
 	  'border-spacing',
+	  'border-start-end-radius',
+	  'border-start-start-radius',
 	  'border-style',
 	  'border-top',
 	  'border-top-color',
@@ -13116,7 +13751,15 @@ function requireCss () {
 	  'border-top-width',
 	  'border-width',
 	  'bottom',
+	  'box-align',
 	  'box-decoration-break',
+	  'box-direction',
+	  'box-flex',
+	  'box-flex-group',
+	  'box-lines',
+	  'box-ordinal-group',
+	  'box-orient',
+	  'box-pack',
 	  'box-shadow',
 	  'box-sizing',
 	  'break-after',
@@ -13129,6 +13772,11 @@ function requireCss () {
 	  'clip-path',
 	  'clip-rule',
 	  'color',
+	  'color-interpolation',
+	  'color-interpolation-filters',
+	  'color-profile',
+	  'color-rendering',
+	  'color-scheme',
 	  'column-count',
 	  'column-fill',
 	  'column-gap',
@@ -13140,17 +13788,34 @@ function requireCss () {
 	  'column-width',
 	  'columns',
 	  'contain',
+	  'contain-intrinsic-block-size',
+	  'contain-intrinsic-height',
+	  'contain-intrinsic-inline-size',
+	  'contain-intrinsic-size',
+	  'contain-intrinsic-width',
+	  'container',
+	  'container-name',
+	  'container-type',
 	  'content',
 	  'content-visibility',
 	  'counter-increment',
 	  'counter-reset',
+	  'counter-set',
 	  'cue',
 	  'cue-after',
 	  'cue-before',
 	  'cursor',
+	  'cx',
+	  'cy',
 	  'direction',
 	  'display',
+	  'dominant-baseline',
 	  'empty-cells',
+	  'enable-background',
+	  'field-sizing',
+	  'fill',
+	  'fill-opacity',
+	  'fill-rule',
 	  'filter',
 	  'flex',
 	  'flex-basis',
@@ -13160,6 +13825,8 @@ function requireCss () {
 	  'flex-shrink',
 	  'flex-wrap',
 	  'float',
+	  'flood-color',
+	  'flood-opacity',
 	  'flow',
 	  'font',
 	  'font-display',
@@ -13167,21 +13834,32 @@ function requireCss () {
 	  'font-feature-settings',
 	  'font-kerning',
 	  'font-language-override',
+	  'font-optical-sizing',
+	  'font-palette',
 	  'font-size',
 	  'font-size-adjust',
+	  'font-smooth',
 	  'font-smoothing',
 	  'font-stretch',
 	  'font-style',
 	  'font-synthesis',
+	  'font-synthesis-position',
+	  'font-synthesis-small-caps',
+	  'font-synthesis-style',
+	  'font-synthesis-weight',
 	  'font-variant',
+	  'font-variant-alternates',
 	  'font-variant-caps',
 	  'font-variant-east-asian',
+	  'font-variant-emoji',
 	  'font-variant-ligatures',
 	  'font-variant-numeric',
 	  'font-variant-position',
 	  'font-variation-settings',
 	  'font-weight',
+	  'forced-color-adjust',
 	  'gap',
+	  'glyph-orientation-horizontal',
 	  'glyph-orientation-vertical',
 	  'grid',
 	  'grid-area',
@@ -13201,19 +13879,36 @@ function requireCss () {
 	  'grid-template-rows',
 	  'hanging-punctuation',
 	  'height',
+	  'hyphenate-character',
+	  'hyphenate-limit-chars',
 	  'hyphens',
 	  'icon',
 	  'image-orientation',
 	  'image-rendering',
 	  'image-resolution',
 	  'ime-mode',
+	  'initial-letter',
+	  'initial-letter-align',
 	  'inline-size',
+	  'inset',
+	  'inset-area',
+	  'inset-block',
+	  'inset-block-end',
+	  'inset-block-start',
+	  'inset-inline',
+	  'inset-inline-end',
+	  'inset-inline-start',
 	  'isolation',
 	  'justify-content',
+	  'justify-items',
+	  'justify-self',
+	  'kerning',
 	  'left',
 	  'letter-spacing',
+	  'lighting-color',
 	  'line-break',
 	  'line-height',
+	  'line-height-step',
 	  'list-style',
 	  'list-style-image',
 	  'list-style-position',
@@ -13229,6 +13924,11 @@ function requireCss () {
 	  'margin-left',
 	  'margin-right',
 	  'margin-top',
+	  'margin-trim',
+	  'marker',
+	  'marker-end',
+	  'marker-mid',
+	  'marker-start',
 	  'marks',
 	  'mask',
 	  'mask-border',
@@ -13247,6 +13947,10 @@ function requireCss () {
 	  'mask-repeat',
 	  'mask-size',
 	  'mask-type',
+	  'masonry-auto-flow',
+	  'math-depth',
+	  'math-shift',
+	  'math-style',
 	  'max-block-size',
 	  'max-height',
 	  'max-inline-size',
@@ -13265,6 +13969,12 @@ function requireCss () {
 	  'normal',
 	  'object-fit',
 	  'object-position',
+	  'offset',
+	  'offset-anchor',
+	  'offset-distance',
+	  'offset-path',
+	  'offset-position',
+	  'offset-rotate',
 	  'opacity',
 	  'order',
 	  'orphans',
@@ -13274,9 +13984,19 @@ function requireCss () {
 	  'outline-style',
 	  'outline-width',
 	  'overflow',
+	  'overflow-anchor',
+	  'overflow-block',
+	  'overflow-clip-margin',
+	  'overflow-inline',
 	  'overflow-wrap',
 	  'overflow-x',
 	  'overflow-y',
+	  'overlay',
+	  'overscroll-behavior',
+	  'overscroll-behavior-block',
+	  'overscroll-behavior-inline',
+	  'overscroll-behavior-x',
+	  'overscroll-behavior-y',
 	  'padding',
 	  'padding-block',
 	  'padding-block-end',
@@ -13288,23 +14008,37 @@ function requireCss () {
 	  'padding-left',
 	  'padding-right',
 	  'padding-top',
+	  'page',
 	  'page-break-after',
 	  'page-break-before',
 	  'page-break-inside',
+	  'paint-order',
 	  'pause',
 	  'pause-after',
 	  'pause-before',
 	  'perspective',
 	  'perspective-origin',
+	  'place-content',
+	  'place-items',
+	  'place-self',
 	  'pointer-events',
 	  'position',
+	  'position-anchor',
+	  'position-visibility',
+	  'print-color-adjust',
 	  'quotes',
+	  'r',
 	  'resize',
 	  'rest',
 	  'rest-after',
 	  'rest-before',
 	  'right',
+	  'rotate',
 	  'row-gap',
+	  'ruby-align',
+	  'ruby-position',
+	  'scale',
+	  'scroll-behavior',
 	  'scroll-margin',
 	  'scroll-margin-block',
 	  'scroll-margin-block-end',
@@ -13330,25 +14064,43 @@ function requireCss () {
 	  'scroll-snap-align',
 	  'scroll-snap-stop',
 	  'scroll-snap-type',
+	  'scroll-timeline',
+	  'scroll-timeline-axis',
+	  'scroll-timeline-name',
 	  'scrollbar-color',
 	  'scrollbar-gutter',
 	  'scrollbar-width',
 	  'shape-image-threshold',
 	  'shape-margin',
 	  'shape-outside',
+	  'shape-rendering',
 	  'speak',
 	  'speak-as',
 	  'src', // @font-face
+	  'stop-color',
+	  'stop-opacity',
+	  'stroke',
+	  'stroke-dasharray',
+	  'stroke-dashoffset',
+	  'stroke-linecap',
+	  'stroke-linejoin',
+	  'stroke-miterlimit',
+	  'stroke-opacity',
+	  'stroke-width',
 	  'tab-size',
 	  'table-layout',
 	  'text-align',
 	  'text-align-all',
 	  'text-align-last',
+	  'text-anchor',
 	  'text-combine-upright',
 	  'text-decoration',
 	  'text-decoration-color',
 	  'text-decoration-line',
+	  'text-decoration-skip',
+	  'text-decoration-skip-ink',
 	  'text-decoration-style',
+	  'text-decoration-thickness',
 	  'text-emphasis',
 	  'text-emphasis-color',
 	  'text-emphasis-position',
@@ -13359,20 +14111,37 @@ function requireCss () {
 	  'text-overflow',
 	  'text-rendering',
 	  'text-shadow',
+	  'text-size-adjust',
 	  'text-transform',
+	  'text-underline-offset',
 	  'text-underline-position',
+	  'text-wrap',
+	  'text-wrap-mode',
+	  'text-wrap-style',
+	  'timeline-scope',
 	  'top',
+	  'touch-action',
 	  'transform',
 	  'transform-box',
 	  'transform-origin',
 	  'transform-style',
 	  'transition',
+	  'transition-behavior',
 	  'transition-delay',
 	  'transition-duration',
 	  'transition-property',
 	  'transition-timing-function',
+	  'translate',
 	  'unicode-bidi',
+	  'user-modify',
+	  'user-select',
+	  'vector-effect',
 	  'vertical-align',
+	  'view-timeline',
+	  'view-timeline-axis',
+	  'view-timeline-inset',
+	  'view-timeline-name',
+	  'view-transition-name',
 	  'visibility',
 	  'voice-balance',
 	  'voice-duration',
@@ -13383,6 +14152,7 @@ function requireCss () {
 	  'voice-stress',
 	  'voice-volume',
 	  'white-space',
+	  'white-space-collapse',
 	  'widows',
 	  'width',
 	  'will-change',
@@ -13390,10 +14160,11 @@ function requireCss () {
 	  'word-spacing',
 	  'word-wrap',
 	  'writing-mode',
-	  'z-index'
-	  // reverse makes sure longer attributes `font-weight` are matched fully
-	  // instead of getting false positives on say `font`
-	].reverse();
+	  'x',
+	  'y',
+	  'z-index',
+	  'zoom'
+	].sort().reverse();
 
 	/*
 	Language: CSS
@@ -13759,6 +14530,12 @@ function requireMarkdown () {
 	    end: '$'
 	  };
 
+	  const ENTITY = {
+	    //https://spec.commonmark.org/0.31.2/#entity-references
+	    scope: 'literal',
+	    match: /&([a-zA-Z0-9]+|#[0-9]{1,7}|#[Xx][0-9a-fA-F]{1,6});/
+	  };
+
 	  return {
 	    name: 'Markdown',
 	    aliases: [
@@ -13776,7 +14553,8 @@ function requireMarkdown () {
 	      CODE,
 	      HORIZONTAL_RULE,
 	      LINK,
-	      LINK_REFERENCE
+	      LINK_REFERENCE,
+	      ENTITY
 	    ]
 	  };
 	}
@@ -13862,7 +14640,7 @@ Description: Ruby is a dynamic, open source programming language with a focus on
 Website: https://www.ruby-lang.org/
 Author: Anton Kovalyov <anton@kovalyov.net>
 Contributors: Peter Leonov <gojpeg@yandex.ru>, Vasily Polovnyov <vast@whiteants.net>, Loren Segal <lsegal@soen.ca>, Pascal Hurni <phi@ruby-reactive.org>, Cedric Sohrauer <sohrauer@googlemail.com>
-Category: common
+Category: common, scripting
 */
 
 var ruby_1;
@@ -14214,7 +14992,7 @@ function requireRuby () {
 	    },
 	    {
 	      className: 'params',
-	      begin: /\|/,
+	      begin: /\|(?!=)/,
 	      end: /\|/,
 	      excludeBegin: true,
 	      excludeEnd: true,
@@ -14430,10 +15208,25 @@ function requireGo () {
 	        className: 'number',
 	        variants: [
 	          {
-	            begin: hljs.C_NUMBER_RE + '[i]',
-	            relevance: 1
+	            match: /-?\b0[xX]\.[a-fA-F0-9](_?[a-fA-F0-9])*[pP][+-]?\d(_?\d)*i?/, // hex without a present digit before . (making a digit afterwards required)
+	            relevance: 0
 	          },
-	          hljs.C_NUMBER_MODE
+	          {
+	            match: /-?\b0[xX](_?[a-fA-F0-9])+((\.([a-fA-F0-9](_?[a-fA-F0-9])*)?)?[pP][+-]?\d(_?\d)*)?i?/, // hex with a present digit before . (making a digit afterwards optional)
+	            relevance: 0
+	          },
+	          {
+	            match: /-?\b0[oO](_?[0-7])*i?/, // leading 0o octal
+	            relevance: 0
+	          },
+	          {
+	            match: /-?\.\d(_?\d)*([eE][+-]?\d(_?\d)*)?i?/, // decimal without a present digit before . (making a digit afterwards required)
+	            relevance: 0
+	          },
+	          {
+	            match: /-?\b\d(_?\d)*(\.(\d(_?\d)*)?)?([eE][+-]?\d(_?\d)*)?i?/, // decimal with a present digit before . (making a digit afterwards optional)
+	            relevance: 0
+	          }
 	        ]
 	      },
 	      { begin: /:=/ // relevance booster
@@ -14796,7 +15589,9 @@ function requireJava () {
 	    'do',
 	    'sealed',
 	    'yield',
-	    'permits'
+	    'permits',
+	    'goto',
+	    'when'
 	  ];
 
 	  const BUILT_INS = [
@@ -15026,7 +15821,9 @@ function requireJavascript () {
 	  "import",
 	  "from",
 	  "export",
-	  "extends"
+	  "extends",
+	  // It's reached stage 3, which is "recommended for implementation":
+	  "using"
 	];
 	const LITERALS = [
 	  "true",
@@ -15276,7 +16073,7 @@ function requireJavascript () {
 	    contains: [] // defined later
 	  };
 	  const HTML_TEMPLATE = {
-	    begin: 'html`',
+	    begin: '\.?html`',
 	    end: '',
 	    starts: {
 	      end: '`',
@@ -15289,7 +16086,7 @@ function requireJavascript () {
 	    }
 	  };
 	  const CSS_TEMPLATE = {
-	    begin: 'css`',
+	    begin: '\.?css`',
 	    end: '',
 	    starts: {
 	      end: '`',
@@ -15302,7 +16099,7 @@ function requireJavascript () {
 	    }
 	  };
 	  const GRAPHQL_TEMPLATE = {
-	    begin: 'gql`',
+	    begin: '\.?gql`',
 	    end: '',
 	    starts: {
 	      end: '`',
@@ -15399,7 +16196,7 @@ function requireJavascript () {
 	  const PARAMS_CONTAINS = SUBST_AND_COMMENTS.concat([
 	    // eat recursive parens in sub expressions
 	    {
-	      begin: /\(/,
+	      begin: /(\s*)\(/,
 	      end: /\)/,
 	      keywords: KEYWORDS$1,
 	      contains: ["self"].concat(SUBST_AND_COMMENTS)
@@ -15407,7 +16204,8 @@ function requireJavascript () {
 	  ]);
 	  const PARAMS = {
 	    className: 'params',
-	    begin: /\(/,
+	    // convert this to negative lookbehind in v12
+	    begin: /(\s*)\(/, // to match the parms with
 	    end: /\)/,
 	    excludeBegin: true,
 	    excludeEnd: true,
@@ -15530,8 +16328,8 @@ function requireJavascript () {
 	        ...BUILT_IN_GLOBALS,
 	        "super",
 	        "import"
-	      ]),
-	      IDENT_RE$1, regex.lookahead(/\(/)),
+	      ].map(x => `${x}\\s*\\(`)),
+	      IDENT_RE$1, regex.lookahead(/\s*\(/)),
 	    className: "title.function",
 	    relevance: 0
 	  };
@@ -15618,8 +16416,8 @@ function requireJavascript () {
 	      NUMBER,
 	      CLASS_REFERENCE,
 	      {
-	        className: 'attr',
-	        begin: IDENT_RE$1 + regex.lookahead(':'),
+	        scope: 'attr',
+	        match: IDENT_RE$1 + regex.lookahead(':'),
 	        relevance: 0
 	      },
 	      FUNCTION_VARIABLE,
@@ -15652,7 +16450,7 @@ function requireJavascript () {
 	                    skip: true
 	                  },
 	                  {
-	                    begin: /\(/,
+	                    begin: /(\s*)\(/,
 	                    end: /\)/,
 	                    excludeBegin: true,
 	                    excludeEnd: true,
@@ -15795,6 +16593,7 @@ function requireJson () {
 
 	  return {
 	    name: 'JSON',
+	    aliases: ['jsonc'],
 	    keywords:{
 	      literal: LITERALS,
 	    },
@@ -16161,7 +16960,7 @@ function requireLess () {
 	  };
 	};
 
-	const TAGS = [
+	const HTML_TAGS = [
 	  'a',
 	  'abbr',
 	  'address',
@@ -16213,11 +17012,16 @@ function requireLess () {
 	  'nav',
 	  'object',
 	  'ol',
+	  'optgroup',
+	  'option',
 	  'p',
+	  'picture',
 	  'q',
 	  'quote',
 	  'samp',
 	  'section',
+	  'select',
+	  'source',
 	  'span',
 	  'strong',
 	  'summary',
@@ -16235,6 +17039,58 @@ function requireLess () {
 	  'var',
 	  'video'
 	];
+
+	const SVG_TAGS = [
+	  'defs',
+	  'g',
+	  'marker',
+	  'mask',
+	  'pattern',
+	  'svg',
+	  'switch',
+	  'symbol',
+	  'feBlend',
+	  'feColorMatrix',
+	  'feComponentTransfer',
+	  'feComposite',
+	  'feConvolveMatrix',
+	  'feDiffuseLighting',
+	  'feDisplacementMap',
+	  'feFlood',
+	  'feGaussianBlur',
+	  'feImage',
+	  'feMerge',
+	  'feMorphology',
+	  'feOffset',
+	  'feSpecularLighting',
+	  'feTile',
+	  'feTurbulence',
+	  'linearGradient',
+	  'radialGradient',
+	  'stop',
+	  'circle',
+	  'ellipse',
+	  'image',
+	  'line',
+	  'path',
+	  'polygon',
+	  'polyline',
+	  'rect',
+	  'text',
+	  'use',
+	  'textPath',
+	  'tspan',
+	  'foreignObject',
+	  'clipPath'
+	];
+
+	const TAGS = [
+	  ...HTML_TAGS,
+	  ...SVG_TAGS,
+	];
+
+	// Sorting, then reversing makes sure longer attributes/elements like
+	// `font-weight` are matched fully instead of getting false positives on say `font`
 
 	const MEDIA_FEATURES = [
 	  'any-hover',
@@ -16271,7 +17127,7 @@ function requireLess () {
 	  'max-width',
 	  'min-height',
 	  'max-height'
-	];
+	].sort().reverse();
 
 	// https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes
 	const PSEUDO_CLASSES = [
@@ -16334,7 +17190,7 @@ function requireLess () {
 	  'valid',
 	  'visited',
 	  'where' // where()
-	];
+	].sort().reverse();
 
 	// https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements
 	const PSEUDO_ELEMENTS = [
@@ -16352,14 +17208,18 @@ function requireLess () {
 	  'selection',
 	  'slotted',
 	  'spelling-error'
-	];
+	].sort().reverse();
 
 	const ATTRIBUTES = [
+	  'accent-color',
 	  'align-content',
 	  'align-items',
 	  'align-self',
+	  'alignment-baseline',
 	  'all',
+	  'anchor-name',
 	  'animation',
+	  'animation-composition',
 	  'animation-delay',
 	  'animation-direction',
 	  'animation-duration',
@@ -16367,7 +17227,14 @@ function requireLess () {
 	  'animation-iteration-count',
 	  'animation-name',
 	  'animation-play-state',
+	  'animation-range',
+	  'animation-range-end',
+	  'animation-range-start',
+	  'animation-timeline',
 	  'animation-timing-function',
+	  'appearance',
+	  'aspect-ratio',
+	  'backdrop-filter',
 	  'backface-visibility',
 	  'background',
 	  'background-attachment',
@@ -16377,8 +17244,11 @@ function requireLess () {
 	  'background-image',
 	  'background-origin',
 	  'background-position',
+	  'background-position-x',
+	  'background-position-y',
 	  'background-repeat',
 	  'background-size',
+	  'baseline-shift',
 	  'block-size',
 	  'border',
 	  'border-block',
@@ -16401,6 +17271,8 @@ function requireLess () {
 	  'border-bottom-width',
 	  'border-collapse',
 	  'border-color',
+	  'border-end-end-radius',
+	  'border-end-start-radius',
 	  'border-image',
 	  'border-image-outset',
 	  'border-image-repeat',
@@ -16429,6 +17301,8 @@ function requireLess () {
 	  'border-right-style',
 	  'border-right-width',
 	  'border-spacing',
+	  'border-start-end-radius',
+	  'border-start-start-radius',
 	  'border-style',
 	  'border-top',
 	  'border-top-color',
@@ -16438,7 +17312,15 @@ function requireLess () {
 	  'border-top-width',
 	  'border-width',
 	  'bottom',
+	  'box-align',
 	  'box-decoration-break',
+	  'box-direction',
+	  'box-flex',
+	  'box-flex-group',
+	  'box-lines',
+	  'box-ordinal-group',
+	  'box-orient',
+	  'box-pack',
 	  'box-shadow',
 	  'box-sizing',
 	  'break-after',
@@ -16451,6 +17333,11 @@ function requireLess () {
 	  'clip-path',
 	  'clip-rule',
 	  'color',
+	  'color-interpolation',
+	  'color-interpolation-filters',
+	  'color-profile',
+	  'color-rendering',
+	  'color-scheme',
 	  'column-count',
 	  'column-fill',
 	  'column-gap',
@@ -16462,17 +17349,34 @@ function requireLess () {
 	  'column-width',
 	  'columns',
 	  'contain',
+	  'contain-intrinsic-block-size',
+	  'contain-intrinsic-height',
+	  'contain-intrinsic-inline-size',
+	  'contain-intrinsic-size',
+	  'contain-intrinsic-width',
+	  'container',
+	  'container-name',
+	  'container-type',
 	  'content',
 	  'content-visibility',
 	  'counter-increment',
 	  'counter-reset',
+	  'counter-set',
 	  'cue',
 	  'cue-after',
 	  'cue-before',
 	  'cursor',
+	  'cx',
+	  'cy',
 	  'direction',
 	  'display',
+	  'dominant-baseline',
 	  'empty-cells',
+	  'enable-background',
+	  'field-sizing',
+	  'fill',
+	  'fill-opacity',
+	  'fill-rule',
 	  'filter',
 	  'flex',
 	  'flex-basis',
@@ -16482,6 +17386,8 @@ function requireLess () {
 	  'flex-shrink',
 	  'flex-wrap',
 	  'float',
+	  'flood-color',
+	  'flood-opacity',
 	  'flow',
 	  'font',
 	  'font-display',
@@ -16489,21 +17395,32 @@ function requireLess () {
 	  'font-feature-settings',
 	  'font-kerning',
 	  'font-language-override',
+	  'font-optical-sizing',
+	  'font-palette',
 	  'font-size',
 	  'font-size-adjust',
+	  'font-smooth',
 	  'font-smoothing',
 	  'font-stretch',
 	  'font-style',
 	  'font-synthesis',
+	  'font-synthesis-position',
+	  'font-synthesis-small-caps',
+	  'font-synthesis-style',
+	  'font-synthesis-weight',
 	  'font-variant',
+	  'font-variant-alternates',
 	  'font-variant-caps',
 	  'font-variant-east-asian',
+	  'font-variant-emoji',
 	  'font-variant-ligatures',
 	  'font-variant-numeric',
 	  'font-variant-position',
 	  'font-variation-settings',
 	  'font-weight',
+	  'forced-color-adjust',
 	  'gap',
+	  'glyph-orientation-horizontal',
 	  'glyph-orientation-vertical',
 	  'grid',
 	  'grid-area',
@@ -16523,19 +17440,36 @@ function requireLess () {
 	  'grid-template-rows',
 	  'hanging-punctuation',
 	  'height',
+	  'hyphenate-character',
+	  'hyphenate-limit-chars',
 	  'hyphens',
 	  'icon',
 	  'image-orientation',
 	  'image-rendering',
 	  'image-resolution',
 	  'ime-mode',
+	  'initial-letter',
+	  'initial-letter-align',
 	  'inline-size',
+	  'inset',
+	  'inset-area',
+	  'inset-block',
+	  'inset-block-end',
+	  'inset-block-start',
+	  'inset-inline',
+	  'inset-inline-end',
+	  'inset-inline-start',
 	  'isolation',
 	  'justify-content',
+	  'justify-items',
+	  'justify-self',
+	  'kerning',
 	  'left',
 	  'letter-spacing',
+	  'lighting-color',
 	  'line-break',
 	  'line-height',
+	  'line-height-step',
 	  'list-style',
 	  'list-style-image',
 	  'list-style-position',
@@ -16551,6 +17485,11 @@ function requireLess () {
 	  'margin-left',
 	  'margin-right',
 	  'margin-top',
+	  'margin-trim',
+	  'marker',
+	  'marker-end',
+	  'marker-mid',
+	  'marker-start',
 	  'marks',
 	  'mask',
 	  'mask-border',
@@ -16569,6 +17508,10 @@ function requireLess () {
 	  'mask-repeat',
 	  'mask-size',
 	  'mask-type',
+	  'masonry-auto-flow',
+	  'math-depth',
+	  'math-shift',
+	  'math-style',
 	  'max-block-size',
 	  'max-height',
 	  'max-inline-size',
@@ -16587,6 +17530,12 @@ function requireLess () {
 	  'normal',
 	  'object-fit',
 	  'object-position',
+	  'offset',
+	  'offset-anchor',
+	  'offset-distance',
+	  'offset-path',
+	  'offset-position',
+	  'offset-rotate',
 	  'opacity',
 	  'order',
 	  'orphans',
@@ -16596,9 +17545,19 @@ function requireLess () {
 	  'outline-style',
 	  'outline-width',
 	  'overflow',
+	  'overflow-anchor',
+	  'overflow-block',
+	  'overflow-clip-margin',
+	  'overflow-inline',
 	  'overflow-wrap',
 	  'overflow-x',
 	  'overflow-y',
+	  'overlay',
+	  'overscroll-behavior',
+	  'overscroll-behavior-block',
+	  'overscroll-behavior-inline',
+	  'overscroll-behavior-x',
+	  'overscroll-behavior-y',
 	  'padding',
 	  'padding-block',
 	  'padding-block-end',
@@ -16610,23 +17569,37 @@ function requireLess () {
 	  'padding-left',
 	  'padding-right',
 	  'padding-top',
+	  'page',
 	  'page-break-after',
 	  'page-break-before',
 	  'page-break-inside',
+	  'paint-order',
 	  'pause',
 	  'pause-after',
 	  'pause-before',
 	  'perspective',
 	  'perspective-origin',
+	  'place-content',
+	  'place-items',
+	  'place-self',
 	  'pointer-events',
 	  'position',
+	  'position-anchor',
+	  'position-visibility',
+	  'print-color-adjust',
 	  'quotes',
+	  'r',
 	  'resize',
 	  'rest',
 	  'rest-after',
 	  'rest-before',
 	  'right',
+	  'rotate',
 	  'row-gap',
+	  'ruby-align',
+	  'ruby-position',
+	  'scale',
+	  'scroll-behavior',
 	  'scroll-margin',
 	  'scroll-margin-block',
 	  'scroll-margin-block-end',
@@ -16652,25 +17625,43 @@ function requireLess () {
 	  'scroll-snap-align',
 	  'scroll-snap-stop',
 	  'scroll-snap-type',
+	  'scroll-timeline',
+	  'scroll-timeline-axis',
+	  'scroll-timeline-name',
 	  'scrollbar-color',
 	  'scrollbar-gutter',
 	  'scrollbar-width',
 	  'shape-image-threshold',
 	  'shape-margin',
 	  'shape-outside',
+	  'shape-rendering',
 	  'speak',
 	  'speak-as',
 	  'src', // @font-face
+	  'stop-color',
+	  'stop-opacity',
+	  'stroke',
+	  'stroke-dasharray',
+	  'stroke-dashoffset',
+	  'stroke-linecap',
+	  'stroke-linejoin',
+	  'stroke-miterlimit',
+	  'stroke-opacity',
+	  'stroke-width',
 	  'tab-size',
 	  'table-layout',
 	  'text-align',
 	  'text-align-all',
 	  'text-align-last',
+	  'text-anchor',
 	  'text-combine-upright',
 	  'text-decoration',
 	  'text-decoration-color',
 	  'text-decoration-line',
+	  'text-decoration-skip',
+	  'text-decoration-skip-ink',
 	  'text-decoration-style',
+	  'text-decoration-thickness',
 	  'text-emphasis',
 	  'text-emphasis-color',
 	  'text-emphasis-position',
@@ -16681,20 +17672,37 @@ function requireLess () {
 	  'text-overflow',
 	  'text-rendering',
 	  'text-shadow',
+	  'text-size-adjust',
 	  'text-transform',
+	  'text-underline-offset',
 	  'text-underline-position',
+	  'text-wrap',
+	  'text-wrap-mode',
+	  'text-wrap-style',
+	  'timeline-scope',
 	  'top',
+	  'touch-action',
 	  'transform',
 	  'transform-box',
 	  'transform-origin',
 	  'transform-style',
 	  'transition',
+	  'transition-behavior',
 	  'transition-delay',
 	  'transition-duration',
 	  'transition-property',
 	  'transition-timing-function',
+	  'translate',
 	  'unicode-bidi',
+	  'user-modify',
+	  'user-select',
+	  'vector-effect',
 	  'vertical-align',
+	  'view-timeline',
+	  'view-timeline-axis',
+	  'view-timeline-inset',
+	  'view-timeline-name',
+	  'view-transition-name',
 	  'visibility',
 	  'voice-balance',
 	  'voice-duration',
@@ -16705,6 +17713,7 @@ function requireLess () {
 	  'voice-stress',
 	  'voice-volume',
 	  'white-space',
+	  'white-space-collapse',
 	  'widows',
 	  'width',
 	  'will-change',
@@ -16712,13 +17721,14 @@ function requireLess () {
 	  'word-spacing',
 	  'word-wrap',
 	  'writing-mode',
-	  'z-index'
-	  // reverse makes sure longer attributes `font-weight` are matched fully
-	  // instead of getting false positives on say `font`
-	].reverse();
+	  'x',
+	  'y',
+	  'z-index',
+	  'zoom'
+	].sort().reverse();
 
 	// some grammars use them all as a single group
-	const PSEUDO_SELECTORS = PSEUDO_CLASSES.concat(PSEUDO_ELEMENTS);
+	const PSEUDO_SELECTORS = PSEUDO_CLASSES.concat(PSEUDO_ELEMENTS).sort().reverse();
 
 	/*
 	Language: Less
@@ -16962,7 +17972,7 @@ function requireLess () {
 Language: Lua
 Description: Lua is a powerful, efficient, lightweight, embeddable scripting language.
 Author: Andrew Fedorov <dmmdrs@mail.ru>
-Category: common, scripting
+Category: common, gaming, scripting
 Website: https://www.lua.org
 */
 
@@ -16993,6 +18003,7 @@ function requireLua () {
 	  ];
 	  return {
 	    name: 'Lua',
+	    aliases: ['pluto'],
 	    keywords: {
 	      $pattern: hljs.UNDERSCORE_IDENT_RE,
 	      literal: "true false nil",
@@ -17052,7 +18063,7 @@ Language: Makefile
 Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
 Contributors: Joël Porquet <joel@porquet.org>
 Website: https://www.gnu.org/software/make/manual/html_node/Introduction.html
-Category: common
+Category: common, build-system
 */
 
 var makefile_1;
@@ -17093,7 +18104,10 @@ function requireMakefile () {
 	        + 'word wordlist firstword lastword dir notdir suffix basename '
 	        + 'addsuffix addprefix join wildcard realpath abspath error warning '
 	        + 'shell origin flavor foreach if or and call eval file value' },
-	    contains: [ VARIABLE ]
+	    contains: [ 
+	      VARIABLE,
+	      QUOTE_STRING // Added QUOTE_STRING as they can be a part of functions
+	    ]
 	  };
 	  /* Variable assignment */
 	  const ASSIGNMENT = { begin: '^' + hljs.UNDERSCORE_IDENT_RE + '\\s*(?=[:+?]?=)' };
@@ -17176,6 +18190,7 @@ function requirePerl () {
 	    'chown',
 	    'chr',
 	    'chroot',
+	    'class',
 	    'close',
 	    'closedir',
 	    'connect',
@@ -17205,6 +18220,7 @@ function requirePerl () {
 	    'exit',
 	    'exp',
 	    'fcntl',
+	    'field',
 	    'fileno',
 	    'flock',
 	    'for',
@@ -17264,6 +18280,7 @@ function requirePerl () {
 	    'lt',
 	    'ma',
 	    'map',
+	    'method',
 	    'mkdir',
 	    'msgctl',
 	    'msgget',
@@ -17408,19 +18425,45 @@ function requirePerl () {
 	    end: /\}/
 	    // contains defined later
 	  };
-	  const VAR = { variants: [
-	    { begin: /\$\d/ },
-	    { begin: regex.concat(
-	      /[$%@](\^\w\b|#\w+(::\w+)*|\{\w+\}|\w+(::\w*)*)/,
-	      // negative look-ahead tries to avoid matching patterns that are not
-	      // Perl at all like $ident$, @ident@, etc.
-	      `(?![A-Za-z])(?![@$%])`
-	    ) },
-	    {
-	      begin: /[$%@][^\s\w{]/,
-	      relevance: 0
-	    }
-	  ] };
+	  const ATTR = {
+	    scope: 'attr',
+	    match: /\s+:\s*\w+(\s*\(.*?\))?/,
+	  };
+	  const VAR = {
+	    scope: 'variable',
+	    variants: [
+	      { begin: /\$\d/ },
+	      { begin: regex.concat(
+	        /[$%@](?!")(\^\w\b|#\w+(::\w+)*|\{\w+\}|\w+(::\w*)*)/,
+	        // negative look-ahead tries to avoid matching patterns that are not
+	        // Perl at all like $ident$, @ident@, etc.
+	        `(?![A-Za-z])(?![@$%])`
+	        )
+	      },
+	      {
+	        // Only $= is a special Perl variable and one can't declare @= or %=.
+	        begin: /[$%@](?!")[^\s\w{=]|\$=/,
+	        relevance: 0
+	      }
+	    ],
+	    contains: [ ATTR ],
+	  };
+	  const NUMBER = {
+	    className: 'number',
+	    variants: [
+	      // decimal numbers:
+	      // include the case where a number starts with a dot (eg. .9), and
+	      // the leading 0? avoids mixing the first and second match on 0.x cases
+	      { match: /0?\.[0-9][0-9_]+\b/ },
+	      // include the special versioned number (eg. v5.38)
+	      { match: /\bv?(0|[1-9][0-9_]*(\.[0-9_]+)?|[1-9][0-9_]*)\b/ },
+	      // non-decimal numbers:
+	      { match: /\b0[0-7][0-7_]*\b/ },
+	      { match: /\b0x[0-9a-fA-F][0-9a-fA-F_]*\b/ },
+	      { match: /\b0b[0-1][0-1_]*\b/ },
+	    ],
+	    relevance: 0
+	  };
 	  const STRING_CONTAINS = [
 	    hljs.BACKSLASH_ESCAPE,
 	    SUBST,
@@ -17535,11 +18578,7 @@ function requirePerl () {
 	        }
 	      ]
 	    },
-	    {
-	      className: 'number',
-	      begin: '(\\b0[0-7_]+)|(\\b0x[0-9a-fA-F_]+)|(\\b[1-9][0-9_]*(\\.[0-9_]+)?)|[0_]\\b',
-	      relevance: 0
-	    },
+	    NUMBER,
 	    { // regexp container
 	      begin: '(\\/\\/|' + hljs.RE_STARTERS_RE + '|\\b(split|return|print|reverse|grep)\\b)\\s*',
 	      keywords: 'split return print reverse grep',
@@ -17581,11 +18620,19 @@ function requirePerl () {
 	    },
 	    {
 	      className: 'function',
-	      beginKeywords: 'sub',
+	      beginKeywords: 'sub method',
 	      end: '(\\s*\\(.*?\\))?[;{]',
 	      excludeEnd: true,
 	      relevance: 5,
-	      contains: [ hljs.TITLE_MODE ]
+	      contains: [ hljs.TITLE_MODE, ATTR ]
+	    },
+	    {
+	      className: 'class',
+	      beginKeywords: 'class',
+	      end: '[;{]',
+	      excludeEnd: true,
+	      relevance: 5,
+	      contains: [ hljs.TITLE_MODE, ATTR, NUMBER ]
 	    },
 	    {
 	      begin: '-\\w\\b',
@@ -17914,12 +18961,15 @@ function requirePhp () {
 	  const PASCAL_CASE_CLASS_NAME_RE = regex.concat(
 	    /(\\?[A-Z][a-z0-9_\x7f-\xff]+|\\?[A-Z]+(?=[A-Z][a-z0-9_\x7f-\xff])){1,}/,
 	    NOT_PERL_ETC);
+	  const UPCASE_NAME_RE = regex.concat(
+	    /[A-Z]+/,
+	    NOT_PERL_ETC);
 	  const VARIABLE = {
 	    scope: 'variable',
 	    match: '\\$+' + IDENT_RE,
 	  };
 	  const PREPROCESSOR = {
-	    scope: 'meta',
+	    scope: "meta",
 	    variants: [
 	      { begin: /<\?php/, relevance: 10 }, // boost for obvious PHP
 	      { begin: /<\?=/ },
@@ -18333,7 +19383,12 @@ function requirePhp () {
 	  ];
 
 	  const ATTRIBUTES = {
-	    begin: regex.concat(/#\[\s*/, PASCAL_CASE_CLASS_NAME_RE),
+	    begin: regex.concat(/#\[\s*\\?/,
+	      regex.either(
+	        PASCAL_CASE_CLASS_NAME_RE,
+	        UPCASE_NAME_RE
+	      )
+	    ),
 	    beginScope: "meta",
 	    end: /]/,
 	    endScope: "meta",
@@ -18363,7 +19418,10 @@ function requirePhp () {
 	      ...ATTRIBUTE_CONTAINS,
 	      {
 	        scope: 'meta',
-	        match: PASCAL_CASE_CLASS_NAME_RE
+	        variants: [
+	          { match: PASCAL_CASE_CLASS_NAME_RE },
+	          { match: UPCASE_NAME_RE }
+	        ]
 	      }
 	    ]
 	  };
@@ -18443,6 +19501,7 @@ function requirePhp () {
 	            keywords: KEYWORDS,
 	            contains: [
 	              'self',
+	              ATTRIBUTES,
 	              VARIABLE,
 	              LEFT_AND_RIGHT_SIDE_OF_DOUBLE_COLON,
 	              hljs.C_BLOCK_COMMENT_MODE,
@@ -18978,7 +20037,8 @@ function requirePython () {
 	      NUMBER,
 	      {
 	        // very common convention
-	        begin: /\bself\b/
+	        scope: 'variable.language',
+	        match: /\bself\b/
 	      },
 	      {
 	        // eat "if" prior to string so that it won't accidentally be
@@ -18986,6 +20046,7 @@ function requirePython () {
 	        beginKeywords: "if",
 	        relevance: 0
 	      },
+	      { match: /\bor\b/, scope: "keyword" },
 	      STRING,
 	      COMMENT_TYPE,
 	      hljs.HASH_COMMENT_MODE,
@@ -19362,15 +20423,22 @@ function requireRust () {
 	if (hasRequiredRust) return rust_1;
 	hasRequiredRust = 1;
 	/** @type LanguageFn */
+
 	function rust(hljs) {
 	  const regex = hljs.regex;
+	  // ============================================
+	  // Added to support the r# keyword, which is a raw identifier in Rust.
+	  const RAW_IDENTIFIER = /(r#)?/;
+	  const UNDERSCORE_IDENT_RE = regex.concat(RAW_IDENTIFIER, hljs.UNDERSCORE_IDENT_RE);
+	  const IDENT_RE = regex.concat(RAW_IDENTIFIER, hljs.IDENT_RE);
+	  // ============================================
 	  const FUNCTION_INVOKE = {
 	    className: "title.function.invoke",
 	    relevance: 0,
 	    begin: regex.concat(
 	      /\b/,
 	      /(?!let|for|while|if|else|match\b)/,
-	      hljs.IDENT_RE,
+	      IDENT_RE,
 	      regex.lookahead(/\s*\(/))
 	  };
 	  const NUMBER_SUFFIX = '([ui](8|16|32|64|128|size)|f(32|64))\?';
@@ -19419,6 +20487,7 @@ function requireRust () {
 	    "try",
 	    "type",
 	    "typeof",
+	    "union",
 	    "unsafe",
 	    "unsized",
 	    "use",
@@ -19546,15 +20615,25 @@ function requireRust () {
 	        illegal: null
 	      }),
 	      {
-	        className: 'string',
-	        variants: [
-	          { begin: /b?r(#*)"(.|\n)*?"\1(?!#)/ },
-	          { begin: /b?'\\?(x\w{2}|u\w{4}|U\w{8}|.)'/ }
-	        ]
+	        className: 'symbol',
+	        // negative lookahead to avoid matching `'`
+	        begin: /'[a-zA-Z_][a-zA-Z0-9_]*(?!')/
 	      },
 	      {
-	        className: 'symbol',
-	        begin: /'[a-zA-Z_][a-zA-Z0-9_]*/
+	        scope: 'string',
+	        variants: [
+	          { begin: /b?r(#*)"(.|\n)*?"\1(?!#)/ },
+	          {
+	            begin: /b?'/,
+	            end: /'/,
+	            contains: [
+	              {
+	                scope: "char.escape",
+	                match: /\\('|\w|x\w{2}|u\w{4}|U\w{8})/
+	              }
+	            ]
+	          }
+	        ]
 	      },
 	      {
 	        className: 'number',
@@ -19571,7 +20650,7 @@ function requireRust () {
 	        begin: [
 	          /fn/,
 	          /\s+/,
-	          hljs.UNDERSCORE_IDENT_RE
+	          UNDERSCORE_IDENT_RE
 	        ],
 	        className: {
 	          1: "keyword",
@@ -19586,7 +20665,10 @@ function requireRust () {
 	          {
 	            className: 'string',
 	            begin: /"/,
-	            end: /"/
+	            end: /"/,
+	            contains: [
+	              hljs.BACKSLASH_ESCAPE
+	            ]
 	          }
 	        ]
 	      },
@@ -19595,7 +20677,7 @@ function requireRust () {
 	          /let/,
 	          /\s+/,
 	          /(?:mut\s+)?/,
-	          hljs.UNDERSCORE_IDENT_RE
+	          UNDERSCORE_IDENT_RE
 	        ],
 	        className: {
 	          1: "keyword",
@@ -19608,7 +20690,7 @@ function requireRust () {
 	        begin: [
 	          /for/,
 	          /\s+/,
-	          hljs.UNDERSCORE_IDENT_RE,
+	          UNDERSCORE_IDENT_RE,
 	          /\s+/,
 	          /in/
 	        ],
@@ -19622,7 +20704,7 @@ function requireRust () {
 	        begin: [
 	          /type/,
 	          /\s+/,
-	          hljs.UNDERSCORE_IDENT_RE
+	          UNDERSCORE_IDENT_RE
 	        ],
 	        className: {
 	          1: "keyword",
@@ -19633,7 +20715,7 @@ function requireRust () {
 	        begin: [
 	          /(?:trait|enum|struct|union|impl|for)/,
 	          /\s+/,
-	          hljs.UNDERSCORE_IDENT_RE
+	          UNDERSCORE_IDENT_RE
 	        ],
 	        className: {
 	          1: "keyword",
@@ -19712,7 +20794,7 @@ function requireScss () {
 	  };
 	};
 
-	const TAGS = [
+	const HTML_TAGS = [
 	  'a',
 	  'abbr',
 	  'address',
@@ -19764,11 +20846,16 @@ function requireScss () {
 	  'nav',
 	  'object',
 	  'ol',
+	  'optgroup',
+	  'option',
 	  'p',
+	  'picture',
 	  'q',
 	  'quote',
 	  'samp',
 	  'section',
+	  'select',
+	  'source',
 	  'span',
 	  'strong',
 	  'summary',
@@ -19786,6 +20873,58 @@ function requireScss () {
 	  'var',
 	  'video'
 	];
+
+	const SVG_TAGS = [
+	  'defs',
+	  'g',
+	  'marker',
+	  'mask',
+	  'pattern',
+	  'svg',
+	  'switch',
+	  'symbol',
+	  'feBlend',
+	  'feColorMatrix',
+	  'feComponentTransfer',
+	  'feComposite',
+	  'feConvolveMatrix',
+	  'feDiffuseLighting',
+	  'feDisplacementMap',
+	  'feFlood',
+	  'feGaussianBlur',
+	  'feImage',
+	  'feMerge',
+	  'feMorphology',
+	  'feOffset',
+	  'feSpecularLighting',
+	  'feTile',
+	  'feTurbulence',
+	  'linearGradient',
+	  'radialGradient',
+	  'stop',
+	  'circle',
+	  'ellipse',
+	  'image',
+	  'line',
+	  'path',
+	  'polygon',
+	  'polyline',
+	  'rect',
+	  'text',
+	  'use',
+	  'textPath',
+	  'tspan',
+	  'foreignObject',
+	  'clipPath'
+	];
+
+	const TAGS = [
+	  ...HTML_TAGS,
+	  ...SVG_TAGS,
+	];
+
+	// Sorting, then reversing makes sure longer attributes/elements like
+	// `font-weight` are matched fully instead of getting false positives on say `font`
 
 	const MEDIA_FEATURES = [
 	  'any-hover',
@@ -19822,7 +20961,7 @@ function requireScss () {
 	  'max-width',
 	  'min-height',
 	  'max-height'
-	];
+	].sort().reverse();
 
 	// https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes
 	const PSEUDO_CLASSES = [
@@ -19885,7 +21024,7 @@ function requireScss () {
 	  'valid',
 	  'visited',
 	  'where' // where()
-	];
+	].sort().reverse();
 
 	// https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements
 	const PSEUDO_ELEMENTS = [
@@ -19903,14 +21042,18 @@ function requireScss () {
 	  'selection',
 	  'slotted',
 	  'spelling-error'
-	];
+	].sort().reverse();
 
 	const ATTRIBUTES = [
+	  'accent-color',
 	  'align-content',
 	  'align-items',
 	  'align-self',
+	  'alignment-baseline',
 	  'all',
+	  'anchor-name',
 	  'animation',
+	  'animation-composition',
 	  'animation-delay',
 	  'animation-direction',
 	  'animation-duration',
@@ -19918,7 +21061,14 @@ function requireScss () {
 	  'animation-iteration-count',
 	  'animation-name',
 	  'animation-play-state',
+	  'animation-range',
+	  'animation-range-end',
+	  'animation-range-start',
+	  'animation-timeline',
 	  'animation-timing-function',
+	  'appearance',
+	  'aspect-ratio',
+	  'backdrop-filter',
 	  'backface-visibility',
 	  'background',
 	  'background-attachment',
@@ -19928,8 +21078,11 @@ function requireScss () {
 	  'background-image',
 	  'background-origin',
 	  'background-position',
+	  'background-position-x',
+	  'background-position-y',
 	  'background-repeat',
 	  'background-size',
+	  'baseline-shift',
 	  'block-size',
 	  'border',
 	  'border-block',
@@ -19952,6 +21105,8 @@ function requireScss () {
 	  'border-bottom-width',
 	  'border-collapse',
 	  'border-color',
+	  'border-end-end-radius',
+	  'border-end-start-radius',
 	  'border-image',
 	  'border-image-outset',
 	  'border-image-repeat',
@@ -19980,6 +21135,8 @@ function requireScss () {
 	  'border-right-style',
 	  'border-right-width',
 	  'border-spacing',
+	  'border-start-end-radius',
+	  'border-start-start-radius',
 	  'border-style',
 	  'border-top',
 	  'border-top-color',
@@ -19989,7 +21146,15 @@ function requireScss () {
 	  'border-top-width',
 	  'border-width',
 	  'bottom',
+	  'box-align',
 	  'box-decoration-break',
+	  'box-direction',
+	  'box-flex',
+	  'box-flex-group',
+	  'box-lines',
+	  'box-ordinal-group',
+	  'box-orient',
+	  'box-pack',
 	  'box-shadow',
 	  'box-sizing',
 	  'break-after',
@@ -20002,6 +21167,11 @@ function requireScss () {
 	  'clip-path',
 	  'clip-rule',
 	  'color',
+	  'color-interpolation',
+	  'color-interpolation-filters',
+	  'color-profile',
+	  'color-rendering',
+	  'color-scheme',
 	  'column-count',
 	  'column-fill',
 	  'column-gap',
@@ -20013,17 +21183,34 @@ function requireScss () {
 	  'column-width',
 	  'columns',
 	  'contain',
+	  'contain-intrinsic-block-size',
+	  'contain-intrinsic-height',
+	  'contain-intrinsic-inline-size',
+	  'contain-intrinsic-size',
+	  'contain-intrinsic-width',
+	  'container',
+	  'container-name',
+	  'container-type',
 	  'content',
 	  'content-visibility',
 	  'counter-increment',
 	  'counter-reset',
+	  'counter-set',
 	  'cue',
 	  'cue-after',
 	  'cue-before',
 	  'cursor',
+	  'cx',
+	  'cy',
 	  'direction',
 	  'display',
+	  'dominant-baseline',
 	  'empty-cells',
+	  'enable-background',
+	  'field-sizing',
+	  'fill',
+	  'fill-opacity',
+	  'fill-rule',
 	  'filter',
 	  'flex',
 	  'flex-basis',
@@ -20033,6 +21220,8 @@ function requireScss () {
 	  'flex-shrink',
 	  'flex-wrap',
 	  'float',
+	  'flood-color',
+	  'flood-opacity',
 	  'flow',
 	  'font',
 	  'font-display',
@@ -20040,21 +21229,32 @@ function requireScss () {
 	  'font-feature-settings',
 	  'font-kerning',
 	  'font-language-override',
+	  'font-optical-sizing',
+	  'font-palette',
 	  'font-size',
 	  'font-size-adjust',
+	  'font-smooth',
 	  'font-smoothing',
 	  'font-stretch',
 	  'font-style',
 	  'font-synthesis',
+	  'font-synthesis-position',
+	  'font-synthesis-small-caps',
+	  'font-synthesis-style',
+	  'font-synthesis-weight',
 	  'font-variant',
+	  'font-variant-alternates',
 	  'font-variant-caps',
 	  'font-variant-east-asian',
+	  'font-variant-emoji',
 	  'font-variant-ligatures',
 	  'font-variant-numeric',
 	  'font-variant-position',
 	  'font-variation-settings',
 	  'font-weight',
+	  'forced-color-adjust',
 	  'gap',
+	  'glyph-orientation-horizontal',
 	  'glyph-orientation-vertical',
 	  'grid',
 	  'grid-area',
@@ -20074,19 +21274,36 @@ function requireScss () {
 	  'grid-template-rows',
 	  'hanging-punctuation',
 	  'height',
+	  'hyphenate-character',
+	  'hyphenate-limit-chars',
 	  'hyphens',
 	  'icon',
 	  'image-orientation',
 	  'image-rendering',
 	  'image-resolution',
 	  'ime-mode',
+	  'initial-letter',
+	  'initial-letter-align',
 	  'inline-size',
+	  'inset',
+	  'inset-area',
+	  'inset-block',
+	  'inset-block-end',
+	  'inset-block-start',
+	  'inset-inline',
+	  'inset-inline-end',
+	  'inset-inline-start',
 	  'isolation',
 	  'justify-content',
+	  'justify-items',
+	  'justify-self',
+	  'kerning',
 	  'left',
 	  'letter-spacing',
+	  'lighting-color',
 	  'line-break',
 	  'line-height',
+	  'line-height-step',
 	  'list-style',
 	  'list-style-image',
 	  'list-style-position',
@@ -20102,6 +21319,11 @@ function requireScss () {
 	  'margin-left',
 	  'margin-right',
 	  'margin-top',
+	  'margin-trim',
+	  'marker',
+	  'marker-end',
+	  'marker-mid',
+	  'marker-start',
 	  'marks',
 	  'mask',
 	  'mask-border',
@@ -20120,6 +21342,10 @@ function requireScss () {
 	  'mask-repeat',
 	  'mask-size',
 	  'mask-type',
+	  'masonry-auto-flow',
+	  'math-depth',
+	  'math-shift',
+	  'math-style',
 	  'max-block-size',
 	  'max-height',
 	  'max-inline-size',
@@ -20138,6 +21364,12 @@ function requireScss () {
 	  'normal',
 	  'object-fit',
 	  'object-position',
+	  'offset',
+	  'offset-anchor',
+	  'offset-distance',
+	  'offset-path',
+	  'offset-position',
+	  'offset-rotate',
 	  'opacity',
 	  'order',
 	  'orphans',
@@ -20147,9 +21379,19 @@ function requireScss () {
 	  'outline-style',
 	  'outline-width',
 	  'overflow',
+	  'overflow-anchor',
+	  'overflow-block',
+	  'overflow-clip-margin',
+	  'overflow-inline',
 	  'overflow-wrap',
 	  'overflow-x',
 	  'overflow-y',
+	  'overlay',
+	  'overscroll-behavior',
+	  'overscroll-behavior-block',
+	  'overscroll-behavior-inline',
+	  'overscroll-behavior-x',
+	  'overscroll-behavior-y',
 	  'padding',
 	  'padding-block',
 	  'padding-block-end',
@@ -20161,23 +21403,37 @@ function requireScss () {
 	  'padding-left',
 	  'padding-right',
 	  'padding-top',
+	  'page',
 	  'page-break-after',
 	  'page-break-before',
 	  'page-break-inside',
+	  'paint-order',
 	  'pause',
 	  'pause-after',
 	  'pause-before',
 	  'perspective',
 	  'perspective-origin',
+	  'place-content',
+	  'place-items',
+	  'place-self',
 	  'pointer-events',
 	  'position',
+	  'position-anchor',
+	  'position-visibility',
+	  'print-color-adjust',
 	  'quotes',
+	  'r',
 	  'resize',
 	  'rest',
 	  'rest-after',
 	  'rest-before',
 	  'right',
+	  'rotate',
 	  'row-gap',
+	  'ruby-align',
+	  'ruby-position',
+	  'scale',
+	  'scroll-behavior',
 	  'scroll-margin',
 	  'scroll-margin-block',
 	  'scroll-margin-block-end',
@@ -20203,25 +21459,43 @@ function requireScss () {
 	  'scroll-snap-align',
 	  'scroll-snap-stop',
 	  'scroll-snap-type',
+	  'scroll-timeline',
+	  'scroll-timeline-axis',
+	  'scroll-timeline-name',
 	  'scrollbar-color',
 	  'scrollbar-gutter',
 	  'scrollbar-width',
 	  'shape-image-threshold',
 	  'shape-margin',
 	  'shape-outside',
+	  'shape-rendering',
 	  'speak',
 	  'speak-as',
 	  'src', // @font-face
+	  'stop-color',
+	  'stop-opacity',
+	  'stroke',
+	  'stroke-dasharray',
+	  'stroke-dashoffset',
+	  'stroke-linecap',
+	  'stroke-linejoin',
+	  'stroke-miterlimit',
+	  'stroke-opacity',
+	  'stroke-width',
 	  'tab-size',
 	  'table-layout',
 	  'text-align',
 	  'text-align-all',
 	  'text-align-last',
+	  'text-anchor',
 	  'text-combine-upright',
 	  'text-decoration',
 	  'text-decoration-color',
 	  'text-decoration-line',
+	  'text-decoration-skip',
+	  'text-decoration-skip-ink',
 	  'text-decoration-style',
+	  'text-decoration-thickness',
 	  'text-emphasis',
 	  'text-emphasis-color',
 	  'text-emphasis-position',
@@ -20232,20 +21506,37 @@ function requireScss () {
 	  'text-overflow',
 	  'text-rendering',
 	  'text-shadow',
+	  'text-size-adjust',
 	  'text-transform',
+	  'text-underline-offset',
 	  'text-underline-position',
+	  'text-wrap',
+	  'text-wrap-mode',
+	  'text-wrap-style',
+	  'timeline-scope',
 	  'top',
+	  'touch-action',
 	  'transform',
 	  'transform-box',
 	  'transform-origin',
 	  'transform-style',
 	  'transition',
+	  'transition-behavior',
 	  'transition-delay',
 	  'transition-duration',
 	  'transition-property',
 	  'transition-timing-function',
+	  'translate',
 	  'unicode-bidi',
+	  'user-modify',
+	  'user-select',
+	  'vector-effect',
 	  'vertical-align',
+	  'view-timeline',
+	  'view-timeline-axis',
+	  'view-timeline-inset',
+	  'view-timeline-name',
+	  'view-transition-name',
 	  'visibility',
 	  'voice-balance',
 	  'voice-duration',
@@ -20256,6 +21547,7 @@ function requireScss () {
 	  'voice-stress',
 	  'voice-volume',
 	  'white-space',
+	  'white-space-collapse',
 	  'widows',
 	  'width',
 	  'will-change',
@@ -20263,10 +21555,11 @@ function requireScss () {
 	  'word-spacing',
 	  'word-wrap',
 	  'writing-mode',
-	  'z-index'
-	  // reverse makes sure longer attributes `font-weight` are matched fully
-	  // instead of getting false positives on say `font`
-	].reverse();
+	  'x',
+	  'y',
+	  'z-index',
+	  'zoom'
+	].sort().reverse();
 
 	/*
 	Language: SCSS
@@ -20472,19 +21765,19 @@ function requireSql () {
 	  const regex = hljs.regex;
 	  const COMMENT_MODE = hljs.COMMENT('--', '$');
 	  const STRING = {
-	    className: 'string',
+	    scope: 'string',
 	    variants: [
 	      {
 	        begin: /'/,
 	        end: /'/,
-	        contains: [ { begin: /''/ } ]
+	        contains: [ { match: /''/ } ]
 	      }
 	    ]
 	  };
 	  const QUOTED_IDENTIFIER = {
 	    begin: /"/,
 	    end: /"/,
-	    contains: [ { begin: /""/ } ]
+	    contains: [ { match: /""/ } ]
 	  };
 
 	  const LITERALS = [
@@ -21054,20 +22347,40 @@ function requireSql () {
 	  });
 
 	  const VARIABLE = {
-	    className: "variable",
-	    begin: /@[a-z0-9][a-z0-9_]*/,
+	    scope: "variable",
+	    match: /@[a-z0-9][a-z0-9_]*/,
 	  };
 
 	  const OPERATOR = {
-	    className: "operator",
-	    begin: /[-+*/=%^~]|&&?|\|\|?|!=?|<(?:=>?|<|>)?|>[>=]?/,
+	    scope: "operator",
+	    match: /[-+*/=%^~]|&&?|\|\|?|!=?|<(?:=>?|<|>)?|>[>=]?/,
 	    relevance: 0,
 	  };
 
 	  const FUNCTION_CALL = {
-	    begin: regex.concat(/\b/, regex.either(...FUNCTIONS), /\s*\(/),
+	    match: regex.concat(/\b/, regex.either(...FUNCTIONS), /\s*\(/),
 	    relevance: 0,
 	    keywords: { built_in: FUNCTIONS }
+	  };
+
+	  // turns a multi-word keyword combo into a regex that doesn't
+	  // care about extra whitespace etc.
+	  // input: "START QUERY"
+	  // output: /\bSTART\s+QUERY\b/
+	  function kws_to_regex(list) {
+	    return regex.concat(
+	      /\b/,
+	      regex.either(...list.map((kw) => {
+	        return kw.replace(/\s+/, "\\s+")
+	      })),
+	      /\b/
+	    )
+	  }
+
+	  const MULTI_WORD_KEYWORDS = {
+	    scope: "keyword",
+	    match: kws_to_regex(COMBOS),
+	    relevance: 0,
 	  };
 
 	  // keywords with less than 3 letters are reduced in relevancy
@@ -21102,19 +22415,10 @@ function requireSql () {
 	    },
 	    contains: [
 	      {
-	        begin: regex.either(...COMBOS),
-	        relevance: 0,
-	        keywords: {
-	          $pattern: /[\w\.]+/,
-	          keyword: KEYWORDS.concat(COMBOS),
-	          literal: LITERALS,
-	          type: TYPES
-	        },
+	        scope: "type",
+	        match: kws_to_regex(MULTI_WORD_TYPES)
 	      },
-	      {
-	        className: "type",
-	        begin: regex.either(...MULTI_WORD_TYPES)
-	      },
+	      MULTI_WORD_KEYWORDS,
 	      FUNCTION_CALL,
 	      VARIABLE,
 	      STRING,
@@ -21292,6 +22596,7 @@ function requireSwift () {
 	  'operator',
 	  'optional', // contextual
 	  'override', // contextual
+	  'package',
 	  'postfix', // contextual
 	  'precedencegroup',
 	  'prefix', // contextual
@@ -21788,14 +23093,17 @@ function requireSwift () {
 	      }
 	    ] }
 	  };
+
 	  const KEYWORD_ATTRIBUTE = {
 	    scope: 'keyword',
-	    match: concat(/@/, either(...keywordAttributes))
+	    match: concat(/@/, either(...keywordAttributes), lookahead(either(/\(/, /\s+/))),
 	  };
+
 	  const USER_DEFINED_ATTRIBUTE = {
 	    scope: 'meta',
 	    match: concat(/@/, identifier)
 	  };
+
 	  const ATTRIBUTES = [
 	    AVAILABLE_ATTRIBUTE,
 	    KEYWORD_ATTRIBUTE,
@@ -21988,6 +23296,64 @@ function requireSwift () {
 	    end: /}/
 	  };
 
+	  const CLASS_FUNC_DECLARATION = {
+	    match: [
+	      /class\b/,          
+	      /\s+/,
+	      /func\b/,
+	      /\s+/,
+	      /\b[A-Za-z_][A-Za-z0-9_]*\b/ 
+	    ],
+	    scope: {
+	      1: "keyword",
+	      3: "keyword",
+	      5: "title.function"
+	    }
+	  };
+
+	  const CLASS_VAR_DECLARATION = {
+	    match: [
+	      /class\b/,
+	      /\s+/,          
+	      /var\b/, 
+	    ],
+	    scope: {
+	      1: "keyword",
+	      3: "keyword"
+	    }
+	  };
+
+	  const TYPE_DECLARATION = {
+	    begin: [
+	      /(struct|protocol|class|extension|enum|actor)/,
+	      /\s+/,
+	      identifier,
+	      /\s*/,
+	    ],
+	    beginScope: {
+	      1: "keyword",
+	      3: "title.class"
+	    },
+	    keywords: KEYWORDS,
+	    contains: [
+	      GENERIC_PARAMETERS,
+	      ...KEYWORD_MODES,
+	      {
+	        begin: /:/,
+	        end: /\{/,
+	        keywords: KEYWORDS,
+	        contains: [
+	          {
+	            scope: "title.class.inherited",
+	            match: typeIdentifier,
+	          },
+	          ...KEYWORD_MODES,
+	        ],
+	        relevance: 0,
+	      },
+	    ]
+	  };
+
 	  // Add supported submodes to string interpolation.
 	  for (const variant of STRING.variants) {
 	    const interpolation = variant.contains.find(mode => mode.label === "interpol");
@@ -22021,19 +23387,9 @@ function requireSwift () {
 	      ...COMMENTS,
 	      FUNCTION_OR_MACRO,
 	      INIT_SUBSCRIPT,
-	      {
-	        beginKeywords: 'struct protocol class extension enum actor',
-	        end: '\\{',
-	        excludeEnd: true,
-	        keywords: KEYWORDS,
-	        contains: [
-	          hljs.inherit(hljs.TITLE_MODE, {
-	            className: "title.class",
-	            begin: /[A-Za-z$_][\u00C0-\u02B80-9A-Za-z$_]*/
-	          }),
-	          ...KEYWORD_MODES
-	        ]
-	      },
+	      CLASS_FUNC_DECLARATION,
+	      CLASS_VAR_DECLARATION,
+	      TYPE_DECLARATION,
 	      OPERATOR_DECLARATION,
 	      PRECEDENCEGROUP,
 	      {
@@ -22089,14 +23445,15 @@ function requireYaml () {
 	  const KEY = {
 	    className: 'attr',
 	    variants: [
-	      { begin: '\\w[\\w :\\/.-]*:(?=[ \t]|$)' },
-	      { // double quoted keys
-	        begin: '"\\w[\\w :\\/.-]*":(?=[ \t]|$)' },
-	      { // single quoted keys
-	        begin: '\'\\w[\\w :\\/.-]*\':(?=[ \t]|$)' }
+	      // added brackets support and special char support
+	      { begin: /[\w*@][\w*@ :()\./-]*:(?=[ \t]|$)/ },
+	      { // double quoted keys - with brackets and special char support
+	        begin: /"[\w*@][\w*@ :()\./-]*":(?=[ \t]|$)/ },
+	      { // single quoted keys - with brackets and special char support
+	        begin: /'[\w*@][\w*@ :()\./-]*':(?=[ \t]|$)/ },
 	    ]
 	  };
-
+	  
 	  const TEMPLATE_VARIABLES = {
 	    className: 'template-variable',
 	    variants: [
@@ -22110,14 +23467,25 @@ function requireYaml () {
 	      }
 	    ]
 	  };
+
+	  const SINGLE_QUOTE_STRING = {
+	    className: 'string',
+	    relevance: 0,
+	    begin: /'/,
+	    end: /'/,
+	    contains: [
+	      {
+	        match: /''/,
+	        scope: 'char.escape',
+	        relevance: 0
+	      }
+	    ]
+	  };
+
 	  const STRING = {
 	    className: 'string',
 	    relevance: 0,
 	    variants: [
-	      {
-	        begin: /'/,
-	        end: /'/
-	      },
 	      {
 	        begin: /"/,
 	        end: /"/
@@ -22135,7 +23503,13 @@ function requireYaml () {
 	  const CONTAINER_STRING = hljs.inherit(STRING, { variants: [
 	    {
 	      begin: /'/,
-	      end: /'/
+	      end: /'/,
+	      contains: [
+	        {
+	          begin: /''/,
+	          relevance: 0
+	        }
+	      ]
 	    },
 	    {
 	      begin: /"/,
@@ -22244,6 +23618,7 @@ function requireYaml () {
 	    },
 	    OBJECT,
 	    ARRAY,
+	    SINGLE_QUOTE_STRING,
 	    STRING
 	  ];
 
@@ -22312,7 +23687,9 @@ function requireTypescript () {
 	  "import",
 	  "from",
 	  "export",
-	  "extends"
+	  "extends",
+	  // It's reached stage 3, which is "recommended for implementation":
+	  "using"
 	];
 	const LITERALS = [
 	  "true",
@@ -22562,7 +23939,7 @@ function requireTypescript () {
 	    contains: [] // defined later
 	  };
 	  const HTML_TEMPLATE = {
-	    begin: 'html`',
+	    begin: '\.?html`',
 	    end: '',
 	    starts: {
 	      end: '`',
@@ -22575,7 +23952,7 @@ function requireTypescript () {
 	    }
 	  };
 	  const CSS_TEMPLATE = {
-	    begin: 'css`',
+	    begin: '\.?css`',
 	    end: '',
 	    starts: {
 	      end: '`',
@@ -22588,7 +23965,7 @@ function requireTypescript () {
 	    }
 	  };
 	  const GRAPHQL_TEMPLATE = {
-	    begin: 'gql`',
+	    begin: '\.?gql`',
 	    end: '',
 	    starts: {
 	      end: '`',
@@ -22685,7 +24062,7 @@ function requireTypescript () {
 	  const PARAMS_CONTAINS = SUBST_AND_COMMENTS.concat([
 	    // eat recursive parens in sub expressions
 	    {
-	      begin: /\(/,
+	      begin: /(\s*)\(/,
 	      end: /\)/,
 	      keywords: KEYWORDS$1,
 	      contains: ["self"].concat(SUBST_AND_COMMENTS)
@@ -22693,7 +24070,8 @@ function requireTypescript () {
 	  ]);
 	  const PARAMS = {
 	    className: 'params',
-	    begin: /\(/,
+	    // convert this to negative lookbehind in v12
+	    begin: /(\s*)\(/, // to match the parms with
 	    end: /\)/,
 	    excludeBegin: true,
 	    excludeEnd: true,
@@ -22816,8 +24194,8 @@ function requireTypescript () {
 	        ...BUILT_IN_GLOBALS,
 	        "super",
 	        "import"
-	      ]),
-	      IDENT_RE$1, regex.lookahead(/\(/)),
+	      ].map(x => `${x}\\s*\\(`)),
+	      IDENT_RE$1, regex.lookahead(/\s*\(/)),
 	    className: "title.function",
 	    relevance: 0
 	  };
@@ -22904,8 +24282,8 @@ function requireTypescript () {
 	      NUMBER,
 	      CLASS_REFERENCE,
 	      {
-	        className: 'attr',
-	        begin: IDENT_RE$1 + regex.lookahead(':'),
+	        scope: 'attr',
+	        match: IDENT_RE$1 + regex.lookahead(':'),
 	        relevance: 0
 	      },
 	      FUNCTION_VARIABLE,
@@ -22938,7 +24316,7 @@ function requireTypescript () {
 	                    skip: true
 	                  },
 	                  {
-	                    begin: /\(/,
+	                    begin: /(\s*)\(/,
 	                    end: /\)/,
 	                    excludeBegin: true,
 	                    excludeEnd: true,
@@ -23047,6 +24425,7 @@ function requireTypescript () {
 
 	/** @type LanguageFn */
 	function typescript(hljs) {
+	  const regex = hljs.regex;
 	  const tsLanguage = javascript(hljs);
 
 	  const IDENT_RE$1 = IDENT_RE;
@@ -23063,10 +24442,15 @@ function requireTypescript () {
 	    "unknown"
 	  ];
 	  const NAMESPACE = {
-	    beginKeywords: 'namespace',
-	    end: /\{/,
-	    excludeEnd: true,
-	    contains: [ tsLanguage.exports.CLASS_REFERENCE ]
+	    begin: [
+	      /namespace/,
+	      /\s+/,
+	      hljs.IDENT_RE
+	    ],
+	    beginScope: {
+	      1: "keyword",
+	      3: "title.class"
+	    }
 	  };
 	  const INTERFACE = {
 	    beginKeywords: 'interface',
@@ -23085,7 +24469,7 @@ function requireTypescript () {
 	  };
 	  const TS_SPECIFIC_KEYWORDS = [
 	    "type",
-	    "namespace",
+	    // "namespace",
 	    "interface",
 	    "public",
 	    "private",
@@ -23095,8 +24479,14 @@ function requireTypescript () {
 	    "abstract",
 	    "readonly",
 	    "enum",
-	    "override"
+	    "override",
+	    "satisfies"
 	  ];
+	  /*
+	    namespace is a TS keyword but it's fine to use it as a variable name too.
+	    const message = 'foo';
+	    const namespace = 'bar';
+	  */
 	  const KEYWORDS$1 = {
 	    $pattern: IDENT_RE,
 	    keyword: KEYWORDS.concat(TS_SPECIFIC_KEYWORDS),
@@ -23104,6 +24494,7 @@ function requireTypescript () {
 	    built_in: BUILT_INS.concat(TYPES),
 	    "variable.language": BUILT_IN_VARIABLES
 	  };
+
 	  const DECORATOR = {
 	    className: 'meta',
 	    begin: '@' + IDENT_RE$1,
@@ -23122,10 +24513,27 @@ function requireTypescript () {
 	  Object.assign(tsLanguage.keywords, KEYWORDS$1);
 
 	  tsLanguage.exports.PARAMS_CONTAINS.push(DECORATOR);
+
+	  // highlight the function params
+	  const ATTRIBUTE_HIGHLIGHT = tsLanguage.contains.find(c => c.scope === "attr");
+
+	  // take default attr rule and extend it to support optionals
+	  const OPTIONAL_KEY_OR_ARGUMENT = Object.assign({},
+	    ATTRIBUTE_HIGHLIGHT,
+	    { match: regex.concat(IDENT_RE$1, regex.lookahead(/\s*\?:/)) }
+	  );
+	  tsLanguage.exports.PARAMS_CONTAINS.push([
+	    tsLanguage.exports.CLASS_REFERENCE, // class reference for highlighting the params types
+	    ATTRIBUTE_HIGHLIGHT, // highlight the params key
+	    OPTIONAL_KEY_OR_ARGUMENT, // Added for optional property assignment highlighting
+	  ]);
+
+	  // Add the optional property assignment highlighting for objects or classes
 	  tsLanguage.contains = tsLanguage.contains.concat([
 	    DECORATOR,
 	    NAMESPACE,
 	    INTERFACE,
+	    OPTIONAL_KEY_OR_ARGUMENT, // Added for optional property assignment highlighting
 	  ]);
 
 	  // TS gets a simpler shebang rule than JS
@@ -23512,6 +24920,81 @@ var common = hljs;
 
 var HighlightJS = /*@__PURE__*/getDefaultExportFromCjs(common);
 
+// https://nodejs.org/api/packages.html#packages_writing_dual_packages_while_avoiding_or_minimizing_hazards
+
+/**
+ * Debug utility.
+ * @author Satoshi Soma (amekusa.com)
+ * @license Apache-2.0
+ * Copyright 2020 Satoshi Soma
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+class Debugger {
+	/**
+	 * @param {string} [label] - Log label
+	 * @param {boolean} [enabled] - Whether to enable debugging
+	 */
+	constructor(label = '[DEBUG]', enabled = true) {
+		this.label = label;
+		this.enabled = enabled;
+	}
+	/**
+	 * Enables debugging.
+	 */
+	enable() {
+		this.enabled = true;
+	}
+	/**
+	 * Disables debugging.
+	 */
+	disable() {
+		this.enabled = false;
+	}
+	/**
+	 * Outputs logs to console.
+	 * @param {...any} args - Infos to log
+	 */
+	log(...args) {
+		if (!this.enabled) return false;
+		return console.debug(this.label, ...args);
+	}
+	/**
+	 * Calls the given function.
+	 * @param {function} fn - Function to call
+	 * @param {...any} args - Arguments to pass to `fn`
+	 * @return {any} Return of `fn`
+	 */
+	call(fn, ...args) {
+		if (!this.enabled) return false;
+		return fn(...args);
+	}
+	/**
+	 * Simulates a heavy computing operation.
+	 * @param {number} weight - How heavy
+	 */
+	slow(weight) {
+		if (!this.enabled) return false;
+		console.time(this.label + ' slow');
+		let r = 0;
+		for (let i = Math.pow(weight, 7); i >= 0; i--) r += Math.atan(i) * Math.tan(i);
+		console.timeEnd(this.label + ' slow');
+		return r;
+	}
+}
+
+const debug$1 = new Debugger('[DBG:SW]', true);
+
 /**
  * Scroll event watcher for smooth animation.
  * @author Satoshi Soma (amekusa.com)
@@ -23575,9 +25058,12 @@ class ScrollWatcher {
 		let request = false; // animation frame request id
 		let tick = time => {
 			c.set('time', time);
+			debug$1.log(`animation frame #${request} started @`, time);
+			debug$1.log(' - diff:', c.diff.time);
 			let tasks = this.tasks[c.event.type];
 			for (let i = 0; i < tasks.length; i++) tasks[i](c);
 			if (c.isFirst) c.isFirst = false;
+			debug$1.log(`animation frame #${request} done`);
 			request = false;
 		};
 		let propX, propY, propMX, propMY;
@@ -23593,14 +25079,18 @@ class ScrollWatcher {
 			propMY = 'scrollTopMax';
 		}
 		let handler = ev => {
+			debug$1.log(`--- ${ev.type} event ---`);
 			if (request) { // previous request is still in the queue
 				window.cancelAnimationFrame(request); // cancel the previous request
-			}			c.event = ev;
+				debug$1.log(`<BUSY!> canceled animation frame #${request}`);
+			};
+			c.event = ev;
 			c.set('x', this.target[propX]);
 			c.set('y', this.target[propY]);
 			c.set('mx', this.target[propMX]);
 			c.set('my', this.target[propMY]);
 			request = window.requestAnimationFrame(tick);
+			debug$1.log(`animation frame #${request} requested`);
 		};
 		for (let i = 0; i < ev.length; i++) {
 			switch (ev[i]) {
@@ -23845,6 +25335,7 @@ class ExceptionInfo extends Error {
 }
 
 const E = new Exception('[LightSwitch]');
+const debug = new Debugger('[DBG:LS]', true);
 
 /**
  * Color scheme switcher.
@@ -23900,11 +25391,13 @@ class LightSwitch {
 	 */
 	getPreference(update = false) {
 		if (this._pref === undefined || update) {
+			debug.log(`matching user preference...`);
 			let states = this.states.items;
 			for (let i = 0; i < states.length; i++) {
 				let state = states[i];
 				if (state == 'auto') continue;
 				if (matchMedia(`(prefers-color-scheme: ${state})`).matches) {
+					debug.log(`matched user preference:`, state);
 					this._pref = i;
 					return state;
 				}
@@ -23981,6 +25474,7 @@ class LightSwitch {
 	syncSwitch() {
 		if (this.switch) {
 			this.switch.elem.setAttribute(this.switch.attr, this.state);
+			debug.log(`synced switch`);
 		}
 	}
 	/**
@@ -23989,6 +25483,7 @@ class LightSwitch {
 	syncRoom() {
 		if (this.room) {
 			this.room.elem.setAttribute(this.room.attr, this.roomState);
+			debug.log(`synced room`);
 		}
 	}
 	/**
@@ -23998,18 +25493,24 @@ class LightSwitch {
 	load() {
 		// load saved state stored in the browser storage, if it exists
 		if (this.storage) {
+			debug.log(`loading state from storage...`);
+			debug.log(` - storage:`, this.storage);
 			let loaded = this.storage.obj.getItem(this.storage.key);
 			if (loaded) {
+				debug.log(`state loaded:`, loaded);
 				this.states.to(parseInt(loaded));
 				return;
 			}
+			debug.log(`state not found`);
 		}
 		// if saved state was not found, use DOM attribute instead
+		debug.log(`retrieving state from doms...`);
 		let { elem, attr } = this.switch || this.room;
 		let state = elem.getAttribute(attr);
 		if (!state) return E.error(`load(): cannot find state`);
 		let pos = this.states.indexOf(state);
 		if (pos < 0) return E.error(`load(): invalid state`, { state });
+		debug.log(`state found:`, state);
 		this.states.to(pos);
 	}
 	/**
@@ -24018,6 +25519,7 @@ class LightSwitch {
 	save() {
 		if (this.storage) {
 			this.storage.obj.setItem(this.storage.key, this.states.pos);
+			debug.log(`saved state`);
 		}
 	}
 }
@@ -24042,6 +25544,8 @@ class LightSwitch {
  */
 
 (() => {
+	const debug = new Debugger('[main]', true);
+	debug.log('script started');
 
 	// global namespace
 	const global = window.$docolatte = {};
@@ -24176,9 +25680,11 @@ class LightSwitch {
 
 	// DOM setup
 	document.addEventListener('DOMContentLoaded', () => {
+		debug.log('dom content loaded');
 
 		// docolatte config
 		const config = global.config;
+		debug.log('config:', config);
 
 		// current page path
 		const currentPage = location.pathname.substring(location.pathname.lastIndexOf('/')+1);
@@ -24211,6 +25717,7 @@ class LightSwitch {
 		// highlight TOC item that is pointing at the current page
 		find(toc, `a[href="${currentPage}"]`).forEach(a => {
 			a.setAttribute('data-current', 1);
+      a.closest('details').open = true;
 		});
 
 		// toggle switch for sidebar
@@ -24355,11 +25862,14 @@ class LightSwitch {
 			};
 			let idleTimer = null;
 			let onIdle = config.syncHash == 'scrollend' ? () => {
+				debug.log('scroll idled');
 				if (curr.hash == document.location.hash) return;
 				history.replaceState(null, null, curr.hash);
+				debug.log('sync hash:', curr.hash);
 			} : null;
 
 			sw.on(['init', 'scroll'], c => {
+				debug.log('toc update started');
 
 				if (onIdle) { // refresh idle timer
 					clearTimeout(idleTimer);
@@ -24373,15 +25883,21 @@ class LightSwitch {
 					// update location hash
 					if (!onIdle && curr.hash != document.location.hash) {
 						history.replaceState(null, null, curr.hash);
+						debug.log('sync hash:', curr.hash);
 					}
 					// update "current" state of TOC
 					let flag = 'data-current';
-					if (curr.i >= 0 && curr.link.length) curr.link.forEach(a => { a.removeAttribute(flag); });
+					if (curr.i >= 0 && curr.link.length) curr.link.forEach(a => {
+            a.removeAttribute(flag);
+            a.closest('details').open = false;
+          });
 					curr.i = i;
 					curr.link = find(toc, `a[href="${currentPage + curr.hash}"]`);
 					if (!curr.link.length) break;
-					curr.link.forEach(link => { link.setAttribute(flag, 1); });
-
+					curr.link.forEach(link => {
+            link.setAttribute(flag, 1);
+            link.closest('details').open = true;
+          });
 					// scroll sidebar if necessary
 					let link = curr.link[curr.link.length - 1];
 					if (!curr.wrap) curr.wrap = closest(link, ['ul', 'li']);
@@ -24402,6 +25918,7 @@ class LightSwitch {
 					}
 					break;
 				}
+				debug.log('toc update done');
 			});
 		}
 
@@ -24459,6 +25976,9 @@ class LightSwitch {
 
 	}); // DOM setup
 
+	debug.log('script done');
+
 })(); // END
 
 })();
+//# sourceMappingURL=docolatte.js.map

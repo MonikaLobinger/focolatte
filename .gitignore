@@ -1,2 +1,6 @@
 *.map
 .doc_rebuild
+node_modules/
+*.swp
+docs/src
+docs/src/

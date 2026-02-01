@@ -198,6 +198,7 @@ import Debugger from './Debugger.js';
 		// highlight TOC item that is pointing at the current page
 		find(toc, `a[href="${currentPage}"]`).forEach(a => {
 			a.setAttribute('data-current', 1);
+      a.closest('details').open = true;
 		});
 
 		// toggle switch for sidebar
@@ -367,12 +368,17 @@ import Debugger from './Debugger.js';
 					}
 					// update "current" state of TOC
 					let flag = 'data-current';
-					if (curr.i >= 0 && curr.link.length) curr.link.forEach(a => { a.removeAttribute(flag); });
+					if (curr.i >= 0 && curr.link.length) curr.link.forEach(a => {
+            a.removeAttribute(flag);
+            a.closest('details').open = false;
+          });
 					curr.i = i;
 					curr.link = find(toc, `a[href="${currentPage + curr.hash}"]`);
 					if (!curr.link.length) break;
-					curr.link.forEach(link => { link.setAttribute(flag, 1); });
-
+					curr.link.forEach(link => {
+            link.setAttribute(flag, 1);
+            link.closest('details').open = true;
+          });
 					// scroll sidebar if necessary
 					let link = curr.link[curr.link.length - 1];
 					if (!curr.wrap) curr.wrap = closest(link, ['ul', 'li']);

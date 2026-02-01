@@ -300,5 +300,19 @@ T.prod = $S(
 	T.build,
 	T.watch
 );
+T.stepone = $S(
+	t.env_dev,
+	$P(
+		T.js,
+		T.css
+	),
+	T.docs_clean,
+	T.docs_build,
+);
+T.steptwo = $S(
+	t.env_dev,
+	T.docs_serve,
+	T.watch
+);
 
 module.exports = T;
