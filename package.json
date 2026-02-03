@@ -58,6 +58,7 @@
     "feather-icons": "^4.29.2",
     "fuse.js": "^6.6.2",
     "highlight.js": "^11.11.1",
+    "htmlfy": "^1.0.1",
     "obj-digger": "^1.2.0",
     "simplebar": "^5.3.9"
   }

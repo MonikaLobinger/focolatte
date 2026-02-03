@@ -4,3 +4,4 @@ node_modules/
 *.swp
 docs/src
 docs/src/
+session.vim
