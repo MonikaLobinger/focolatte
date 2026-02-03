@@ -2,15 +2,15 @@
 'use strict';
 
 /**
- * Fuse.js v6.6.2 - Lightweight fuzzy-search (http://fusejs.io)
+ * Fuse.js v7.1.0 - Lightweight fuzzy-search (http://fusejs.io)
  *
- * Copyright (c) 2022 Kiro Risk (http://kiro.me)
+ * Copyright (c) 2025 Kiro Risk (http://kiro.me)
  * All Rights Reserved. Apache Software License 2.0
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-function isArray$3(value) {
+function isArray(value) {
   return !Array.isArray
     ? getTag(value) === '[object Array]'
     : Array.isArray(value)
@@ -27,7 +27,7 @@ function baseToString(value) {
   return result == '0' && 1 / value == -INFINITY ? '-0' : result
 }
 
-function toString$b(value) {
+function toString(value) {
   return value == null ? '' : baseToString(value)
 }
 
@@ -44,17 +44,17 @@ function isBoolean(value) {
   return (
     value === true ||
     value === false ||
-    (isObjectLike$2(value) && getTag(value) == '[object Boolean]')
+    (isObjectLike$1(value) && getTag(value) == '[object Boolean]')
   )
 }
 
-function isObject$i(value) {
+function isObject$1(value) {
   return typeof value === 'object'
 }
 
 // Checks if `value` is object-like.
-function isObjectLike$2(value) {
-  return isObject$i(value) && value !== null
+function isObjectLike$1(value) {
+  return isObject$1(value) && value !== null
 }
 
 function isDefined(value) {
@@ -90,7 +90,7 @@ const MISSING_KEY_PROPERTY = (name) => `Missing ${name} property in key`;
 const INVALID_KEY_WEIGHT_VALUE = (key) =>
   `Property 'weight' in key '${key}' must be a positive integer`;
 
-const hasOwn$b = Object.prototype.hasOwnProperty;
+const hasOwn = Object.prototype.hasOwnProperty;
 
 class KeyStore {
   constructor(keys) {
@@ -101,8 +101,6 @@ class KeyStore {
 
     keys.forEach((key) => {
       let obj = createKey(key);
-
-      totalWeight += obj.weight;
 
       this._keys.push(obj);
       this._keyMap[obj.id] = obj;
@@ -133,19 +131,19 @@ function createKey(key) {
   let weight = 1;
   let getFn = null;
 
-  if (isString(key) || isArray$3(key)) {
+  if (isString(key) || isArray(key)) {
     src = key;
     path = createKeyPath(key);
     id = createKeyId(key);
   } else {
-    if (!hasOwn$b.call(key, 'name')) {
+    if (!hasOwn.call(key, 'name')) {
       throw new Error(MISSING_KEY_PROPERTY('name'))
     }
 
     const name = key.name;
     src = name;
 
-    if (hasOwn$b.call(key, 'weight')) {
+    if (hasOwn.call(key, 'weight')) {
       weight = key.weight;
 
       if (weight <= 0) {
@@ -162,14 +160,14 @@ function createKey(key) {
 }
 
 function createKeyPath(key) {
-  return isArray$3(key) ? key : key.split('.')
+  return isArray(key) ? key : key.split('.')
 }
 
 function createKeyId(key) {
-  return isArray$3(key) ? key.join('.') : key
+  return isArray(key) ? key.join('.') : key
 }
 
-function get$1(obj, path) {
+function get(obj, path) {
   let list = [];
   let arr = false;
 
@@ -195,8 +193,8 @@ function get$1(obj, path) {
         index === path.length - 1 &&
         (isString(value) || isNumber(value) || isBoolean(value))
       ) {
-        list.push(toString$b(value));
-      } else if (isArray$3(value)) {
+        list.push(toString(value));
+      } else if (isArray(value)) {
         arr = true;
         // Search each item in the array.
         for (let i = 0, len = value.length; i < len; i += 1) {
@@ -231,6 +229,8 @@ const BasicOptions = {
   // When `true`, the algorithm continues searching to the end of the input even if a perfect
   // match is found before the end of the same input.
   isCaseSensitive: false,
+  // When `true`, the algorithm will ignore diacritics (accents) in comparisons
+  ignoreDiacritics: false,
   // When true, the matching function will continue to the end of a search pattern even if
   includeScore: false,
   // List of properties that will be searched. This also supports nested properties.
@@ -261,7 +261,7 @@ const AdvancedOptions = {
   useExtendedSearch: false,
   // The get function to use when fetching an object's properties.
   // The default will search nested paths *ie foo.bar.baz*
-  getFn: get$1,
+  getFn: get,
   // When `true`, search will ignore `location` and `distance`, so it won't matter
   // where in the string the pattern appears.
   // More info: https://fusejs.io/concepts/scoring-theory.html#fuzziness-score
@@ -407,7 +407,7 @@ class FuseIndex {
         return
       }
 
-      if (isArray$3(value)) {
+      if (isArray(value)) {
         let subRecords = [];
         const stack = [{ nestedArrIndex: -1, value }];
 
@@ -426,7 +426,7 @@ class FuseIndex {
             };
 
             subRecords.push(subRecord);
-          } else if (isArray$3(value)) {
+          } else if (isArray(value)) {
             value.forEach((item, k) => {
               stack.push({
                 nestedArrIndex: k,
@@ -732,6 +732,10 @@ function createPatternAlphabet(pattern) {
   return mask
 }
 
+const stripDiacritics = String.prototype.normalize
+    ? ((str) => str.normalize('NFD').replace(/[\u0300-\u036F\u0483-\u0489\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0711\u0730-\u074A\u07A6-\u07B0\u07EB-\u07F3\u07FD\u0816-\u0819\u081B-\u0823\u0825-\u0827\u0829-\u082D\u0859-\u085B\u08D3-\u08E1\u08E3-\u0903\u093A-\u093C\u093E-\u094F\u0951-\u0957\u0962\u0963\u0981-\u0983\u09BC\u09BE-\u09C4\u09C7\u09C8\u09CB-\u09CD\u09D7\u09E2\u09E3\u09FE\u0A01-\u0A03\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A70\u0A71\u0A75\u0A81-\u0A83\u0ABC\u0ABE-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AE2\u0AE3\u0AFA-\u0AFF\u0B01-\u0B03\u0B3C\u0B3E-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B62\u0B63\u0B82\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD7\u0C00-\u0C04\u0C3E-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C62\u0C63\u0C81-\u0C83\u0CBC\u0CBE-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CE2\u0CE3\u0D00-\u0D03\u0D3B\u0D3C\u0D3E-\u0D44\u0D46-\u0D48\u0D4A-\u0D4D\u0D57\u0D62\u0D63\u0D82\u0D83\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E31\u0E34-\u0E3A\u0E47-\u0E4E\u0EB1\u0EB4-\u0EB9\u0EBB\u0EBC\u0EC8-\u0ECD\u0F18\u0F19\u0F35\u0F37\u0F39\u0F3E\u0F3F\u0F71-\u0F84\u0F86\u0F87\u0F8D-\u0F97\u0F99-\u0FBC\u0FC6\u102B-\u103E\u1056-\u1059\u105E-\u1060\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A-\u109D\u135D-\u135F\u1712-\u1714\u1732-\u1734\u1752\u1753\u1772\u1773\u17B4-\u17D3\u17DD\u180B-\u180D\u1885\u1886\u18A9\u1920-\u192B\u1930-\u193B\u1A17-\u1A1B\u1A55-\u1A5E\u1A60-\u1A7C\u1A7F\u1AB0-\u1ABE\u1B00-\u1B04\u1B34-\u1B44\u1B6B-\u1B73\u1B80-\u1B82\u1BA1-\u1BAD\u1BE6-\u1BF3\u1C24-\u1C37\u1CD0-\u1CD2\u1CD4-\u1CE8\u1CED\u1CF2-\u1CF4\u1CF7-\u1CF9\u1DC0-\u1DF9\u1DFB-\u1DFF\u20D0-\u20F0\u2CEF-\u2CF1\u2D7F\u2DE0-\u2DFF\u302A-\u302F\u3099\u309A\uA66F-\uA672\uA674-\uA67D\uA69E\uA69F\uA6F0\uA6F1\uA802\uA806\uA80B\uA823-\uA827\uA880\uA881\uA8B4-\uA8C5\uA8E0-\uA8F1\uA8FF\uA926-\uA92D\uA947-\uA953\uA980-\uA983\uA9B3-\uA9C0\uA9E5\uAA29-\uAA36\uAA43\uAA4C\uAA4D\uAA7B-\uAA7D\uAAB0\uAAB2-\uAAB4\uAAB7\uAAB8\uAABE\uAABF\uAAC1\uAAEB-\uAAEF\uAAF5\uAAF6\uABE3-\uABEA\uABEC\uABED\uFB1E\uFE00-\uFE0F\uFE20-\uFE2F]/g, ''))
+    : ((str) => str);
+
 class BitapSearch {
   constructor(
     pattern,
@@ -743,6 +747,7 @@ class BitapSearch {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive,
+      ignoreDiacritics = Config.ignoreDiacritics,
       ignoreLocation = Config.ignoreLocation
     } = {}
   ) {
@@ -754,10 +759,13 @@ class BitapSearch {
       findAllMatches,
       minMatchCharLength,
       isCaseSensitive,
+      ignoreDiacritics,
       ignoreLocation
     };
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
+    this.pattern = pattern;
 
     this.chunks = [];
 
@@ -795,11 +803,10 @@ class BitapSearch {
   }
 
   searchIn(text) {
-    const { isCaseSensitive, includeMatches } = this.options;
+    const { isCaseSensitive, ignoreDiacritics, includeMatches } = this.options;
 
-    if (!isCaseSensitive) {
-      text = text.toLowerCase();
-    }
+    text = isCaseSensitive ? text : text.toLowerCase();
+    text = ignoreDiacritics ? stripDiacritics(text) : text;
 
     // Exact match
     if (this.pattern === text) {
@@ -1049,6 +1056,7 @@ class FuzzyMatch extends BaseMatch {
       findAllMatches = Config.findAllMatches,
       minMatchCharLength = Config.minMatchCharLength,
       isCaseSensitive = Config.isCaseSensitive,
+      ignoreDiacritics = Config.ignoreDiacritics,
       ignoreLocation = Config.ignoreLocation
     } = {}
   ) {
@@ -1061,6 +1069,7 @@ class FuzzyMatch extends BaseMatch {
       findAllMatches,
       minMatchCharLength,
       isCaseSensitive,
+      ignoreDiacritics,
       ignoreLocation
     });
   }
@@ -1217,6 +1226,7 @@ class ExtendedSearch {
     pattern,
     {
       isCaseSensitive = Config.isCaseSensitive,
+      ignoreDiacritics = Config.ignoreDiacritics,
       includeMatches = Config.includeMatches,
       minMatchCharLength = Config.minMatchCharLength,
       ignoreLocation = Config.ignoreLocation,
@@ -1229,6 +1239,7 @@ class ExtendedSearch {
     this.query = null;
     this.options = {
       isCaseSensitive,
+      ignoreDiacritics,
       includeMatches,
       minMatchCharLength,
       findAllMatches,
@@ -1238,7 +1249,9 @@ class ExtendedSearch {
       distance
     };
 
-    this.pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    pattern = isCaseSensitive ? pattern : pattern.toLowerCase();
+    pattern = ignoreDiacritics ? stripDiacritics(pattern) : pattern;
+    this.pattern = pattern;
     this.query = parseQuery(this.pattern, this.options);
   }
 
@@ -1256,9 +1269,10 @@ class ExtendedSearch {
       }
     }
 
-    const { includeMatches, isCaseSensitive } = this.options;
+    const { includeMatches, isCaseSensitive, ignoreDiacritics } = this.options;
 
     text = isCaseSensitive ? text : text.toLowerCase();
+    text = ignoreDiacritics ? stripDiacritics(text) : text;
 
     let numMatches = 0;
     let allIndices = [];
@@ -1352,7 +1366,7 @@ const isExpression = (query) =>
 const isPath = (query) => !!query[KeyType.PATH];
 
 const isLeaf = (query) =>
-  !isArray$3(query) && isObject$i(query) && !isExpression(query);
+  !isArray(query) && isObject$1(query) && !isExpression(query);
 
 const convertToExplicit = (query) => ({
   [LogicalOperator.AND]: Object.keys(query).map((key) => ({
@@ -1401,7 +1415,7 @@ function parse(query, options, { auto = true } = {}) {
     keys.forEach((key) => {
       const value = query[key];
 
-      if (isArray$3(value)) {
+      if (isArray(value)) {
         value.forEach((item) => {
           node.children.push(next(item));
         });
@@ -1734,7 +1748,7 @@ class Fuse {
 
     let matches = [];
 
-    if (isArray$3(value)) {
+    if (isArray(value)) {
       value.forEach(({ v: text, i: idx, n: norm }) => {
         if (!isDefined(text)) {
           return
@@ -1767,7 +1781,7 @@ class Fuse {
   }
 }
 
-Fuse.version = '6.6.2';
+Fuse.version = '7.1.0';
 Fuse.createIndex = createIndex;
 Fuse.parseIndex = parseIndex;
 Fuse.config = Config;
@@ -1778,3553 +1792,6 @@ Fuse.config = Config;
 
 {
   register(ExtendedSearch);
-}
-
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function getDefaultExportFromCjs (x) {
-	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
-
-function getDefaultExportFromNamespaceIfPresent (n) {
-	return n && Object.prototype.hasOwnProperty.call(n, 'default') ? n['default'] : n;
-}
-
-function getDefaultExportFromNamespaceIfNotNamed (n) {
-	return n && Object.prototype.hasOwnProperty.call(n, 'default') && Object.keys(n).length === 1 ? n['default'] : n;
-}
-
-function getAugmentedNamespace(n) {
-  if (n.__esModule) return n;
-  var f = n.default;
-	if (typeof f == "function") {
-		var a = function a () {
-			if (this instanceof a) {
-        return Reflect.construct(f, arguments, this.constructor);
-			}
-			return f.apply(this, arguments);
-		};
-		a.prototype = f.prototype;
-  } else a = {};
-  Object.defineProperty(a, '__esModule', {value: true});
-	Object.keys(n).forEach(function (k) {
-		var d = Object.getOwnPropertyDescriptor(n, k);
-		Object.defineProperty(a, k, d.get ? d : {
-			enumerable: true,
-			get: function () {
-				return n[k];
-			}
-		});
-	});
-	return a;
-}
-
-var es_object_toString = {};
-
-'use strict';
-var check = function (it) {
-  return it && it.Math === Math && it;
-};
-
-// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
-var global$l =
-  // eslint-disable-next-line es/no-global-this -- safe
-  check(typeof globalThis == 'object' && globalThis) ||
-  check(typeof window == 'object' && window) ||
-  // eslint-disable-next-line no-restricted-globals -- safe
-  check(typeof self == 'object' && self) ||
-  check(typeof commonjsGlobal == 'object' && commonjsGlobal) ||
-  check(typeof commonjsGlobal == 'object' && commonjsGlobal) ||
-  // eslint-disable-next-line no-new-func -- fallback
-  (function () { return this; })() || Function('return this')();
-
-var global_default = /*@__PURE__*/getDefaultExportFromCjs(global$l);
-
-var shared$5 = {exports: {}};
-
-'use strict';
-var isPure = false;
-
-var isPure_default = /*@__PURE__*/getDefaultExportFromCjs(isPure);
-
-'use strict';
-var global$k = global$l;
-
-// eslint-disable-next-line es/no-object-defineproperty -- safe
-var defineProperty$7 = Object.defineProperty;
-
-var defineGlobalProperty$3 = function (key, value) {
-  try {
-    defineProperty$7(global$k, key, { value: value, configurable: true, writable: true });
-  } catch (error) {
-    global$k[key] = value;
-  } return value;
-};
-
-var defineGlobalProperty_default = /*@__PURE__*/getDefaultExportFromCjs(defineGlobalProperty$3);
-
-'use strict';
-var global$j = global$l;
-var defineGlobalProperty$2 = defineGlobalProperty$3;
-
-var SHARED = '__core-js_shared__';
-var store$3 = global$j[SHARED] || defineGlobalProperty$2(SHARED, {});
-
-var sharedStore = store$3;
-
-var sharedStore_default = /*@__PURE__*/getDefaultExportFromCjs(sharedStore);
-
-var shared$4 = shared$5.exports;
-
-'use strict';
-var IS_PURE$3 = isPure;
-var store$2 = sharedStore;
-
-(shared$5.exports = function (key, value) {
-  return store$2[key] || (store$2[key] = value !== undefined ? value : {});
-})('versions', []).push({
-  version: '3.35.0',
-  mode: IS_PURE$3 ? 'pure' : 'global',
-  copyright: '© 2014-2023 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.35.0/LICENSE',
-  source: 'https://github.com/zloirock/core-js'
-});
-
-var sharedExports = shared$5.exports;
-var shared_default = /*@__PURE__*/getDefaultExportFromCjs(sharedExports);
-
-'use strict';
-var fails$p = function (exec) {
-  try {
-    return !!exec();
-  } catch (error) {
-    return true;
-  }
-};
-
-var fails_default = /*@__PURE__*/getDefaultExportFromCjs(fails$p);
-
-'use strict';
-var fails$o = fails$p;
-
-var functionBindNative = !fails$o(function () {
-  // eslint-disable-next-line es/no-function-prototype-bind -- safe
-  var test = (function () { /* empty */ }).bind();
-  // eslint-disable-next-line no-prototype-builtins -- safe
-  return typeof test != 'function' || test.hasOwnProperty('prototype');
-});
-
-var functionBindNative_default = /*@__PURE__*/getDefaultExportFromCjs(functionBindNative);
-
-'use strict';
-var NATIVE_BIND$3 = functionBindNative;
-
-var FunctionPrototype$3 = Function.prototype;
-var call$e = FunctionPrototype$3.call;
-var uncurryThisWithBind = NATIVE_BIND$3 && FunctionPrototype$3.bind.bind(call$e, call$e);
-
-var functionUncurryThis = NATIVE_BIND$3 ? uncurryThisWithBind : function (fn) {
-  return function () {
-    return call$e.apply(fn, arguments);
-  };
-};
-
-var functionUncurryThis_default = /*@__PURE__*/getDefaultExportFromCjs(functionUncurryThis);
-
-'use strict';
-// we can't use just `it == null` since of `document.all` special case
-// https://tc39.es/ecma262/#sec-IsHTMLDDA-internal-slot-aec
-var isNullOrUndefined$7 = function (it) {
-  return it === null || it === undefined;
-};
-
-var isNullOrUndefined_default = /*@__PURE__*/getDefaultExportFromCjs(isNullOrUndefined$7);
-
-'use strict';
-var isNullOrUndefined$6 = isNullOrUndefined$7;
-
-var $TypeError$b = TypeError;
-
-// `RequireObjectCoercible` abstract operation
-// https://tc39.es/ecma262/#sec-requireobjectcoercible
-var requireObjectCoercible$6 = function (it) {
-  if (isNullOrUndefined$6(it)) throw new $TypeError$b("Can't call method on " + it);
-  return it;
-};
-
-var requireObjectCoercible_default = /*@__PURE__*/getDefaultExportFromCjs(requireObjectCoercible$6);
-
-'use strict';
-var requireObjectCoercible$5 = requireObjectCoercible$6;
-
-var $Object$5 = Object;
-
-// `ToObject` abstract operation
-// https://tc39.es/ecma262/#sec-toobject
-var toObject$6 = function (argument) {
-  return $Object$5(requireObjectCoercible$5(argument));
-};
-
-var toObject_default = /*@__PURE__*/getDefaultExportFromCjs(toObject$6);
-
-'use strict';
-var uncurryThis$r = functionUncurryThis;
-var toObject$5 = toObject$6;
-
-var hasOwnProperty$1 = uncurryThis$r({}.hasOwnProperty);
-
-// `HasOwnProperty` abstract operation
-// https://tc39.es/ecma262/#sec-hasownproperty
-// eslint-disable-next-line es/no-object-hasown -- safe
-var hasOwnProperty_1 = Object.hasOwn || function hasOwn(it, key) {
-  return hasOwnProperty$1(toObject$5(it), key);
-};
-
-var hasOwnProperty_default = /*@__PURE__*/getDefaultExportFromCjs(hasOwnProperty_1);
-
-'use strict';
-var uncurryThis$q = functionUncurryThis;
-
-var id$2 = 0;
-var postfix = Math.random();
-var toString$a = uncurryThis$q(1.0.toString);
-
-var uid$3 = function (key) {
-  return 'Symbol(' + (key === undefined ? '' : key) + ')_' + toString$a(++id$2 + postfix, 36);
-};
-
-var uid_default = /*@__PURE__*/getDefaultExportFromCjs(uid$3);
-
-'use strict';
-var engineUserAgent = typeof navigator != 'undefined' && String(navigator.userAgent) || '';
-
-var engineUserAgent_default = /*@__PURE__*/getDefaultExportFromCjs(engineUserAgent);
-
-'use strict';
-var global$i = global$l;
-var userAgent = engineUserAgent;
-
-var process$1 = global$i.process;
-var Deno = global$i.Deno;
-var versions = process$1 && process$1.versions || Deno && Deno.version;
-var v8 = versions && versions.v8;
-var match, version$1;
-
-if (v8) {
-  match = v8.split('.');
-  // in old Chrome, versions of V8 isn't V8 = Chrome / 10
-  // but their correct versions are not interesting for us
-  version$1 = match[0] > 0 && match[0] < 4 ? 1 : +(match[0] + match[1]);
-}
-
-// BrowserFS NodeJS `process` polyfill incorrectly set `.v8` to `0.0`
-// so check `userAgent` even if `.v8` exists, but 0
-if (!version$1 && userAgent) {
-  match = userAgent.match(/Edge\/(\d+)/);
-  if (!match || match[1] >= 74) {
-    match = userAgent.match(/Chrome\/(\d+)/);
-    if (match) version$1 = +match[1];
-  }
-}
-
-var engineV8Version = version$1;
-
-var engineV8Version_default = /*@__PURE__*/getDefaultExportFromCjs(engineV8Version);
-
-'use strict';
-/* eslint-disable es/no-symbol -- required for testing */
-var V8_VERSION$1 = engineV8Version;
-var fails$n = fails$p;
-var global$h = global$l;
-
-var $String$5 = global$h.String;
-
-// eslint-disable-next-line es/no-object-getownpropertysymbols -- required for testing
-var symbolConstructorDetection = !!Object.getOwnPropertySymbols && !fails$n(function () {
-  var symbol = Symbol('symbol detection');
-  // Chrome 38 Symbol has incorrect toString conversion
-  // `get-own-property-symbols` polyfill symbols converted to object are not Symbol instances
-  // nb: Do not call `String` directly to avoid this being optimized out to `symbol+''` which will,
-  // of course, fail.
-  return !$String$5(symbol) || !(Object(symbol) instanceof Symbol) ||
-    // Chrome 38-40 symbols are not inherited from DOM collections prototypes to instances
-    !Symbol.sham && V8_VERSION$1 && V8_VERSION$1 < 41;
-});
-
-var symbolConstructorDetection_default = /*@__PURE__*/getDefaultExportFromCjs(symbolConstructorDetection);
-
-'use strict';
-/* eslint-disable es/no-symbol -- required for testing */
-var NATIVE_SYMBOL$1 = symbolConstructorDetection;
-
-var useSymbolAsUid = NATIVE_SYMBOL$1
-  && !Symbol.sham
-  && typeof Symbol.iterator == 'symbol';
-
-var useSymbolAsUid_default = /*@__PURE__*/getDefaultExportFromCjs(useSymbolAsUid);
-
-'use strict';
-var global$g = global$l;
-var shared$3 = sharedExports;
-var hasOwn$a = hasOwnProperty_1;
-var uid$2 = uid$3;
-var NATIVE_SYMBOL = symbolConstructorDetection;
-var USE_SYMBOL_AS_UID$1 = useSymbolAsUid;
-
-var Symbol$2 = global$g.Symbol;
-var WellKnownSymbolsStore = shared$3('wks');
-var createWellKnownSymbol = USE_SYMBOL_AS_UID$1 ? Symbol$2['for'] || Symbol$2 : Symbol$2 && Symbol$2.withoutSetter || uid$2;
-
-var wellKnownSymbol$f = function (name) {
-  if (!hasOwn$a(WellKnownSymbolsStore, name)) {
-    WellKnownSymbolsStore[name] = NATIVE_SYMBOL && hasOwn$a(Symbol$2, name)
-      ? Symbol$2[name]
-      : createWellKnownSymbol('Symbol.' + name);
-  } return WellKnownSymbolsStore[name];
-};
-
-var wellKnownSymbol_default = /*@__PURE__*/getDefaultExportFromCjs(wellKnownSymbol$f);
-
-'use strict';
-var wellKnownSymbol$e = wellKnownSymbol$f;
-
-var TO_STRING_TAG$2 = wellKnownSymbol$e('toStringTag');
-var test = {};
-
-test[TO_STRING_TAG$2] = 'z';
-
-var toStringTagSupport = String(test) === '[object z]';
-
-var toStringTagSupport_default = /*@__PURE__*/getDefaultExportFromCjs(toStringTagSupport);
-
-'use strict';
-// https://tc39.es/ecma262/#sec-IsHTMLDDA-internal-slot
-var documentAll = typeof document == 'object' && document.all;
-
-// `IsCallable` abstract operation
-// https://tc39.es/ecma262/#sec-iscallable
-// eslint-disable-next-line unicorn/no-typeof-undefined -- required for testing
-var isCallable$j = typeof documentAll == 'undefined' && documentAll !== undefined ? function (argument) {
-  return typeof argument == 'function' || argument === documentAll;
-} : function (argument) {
-  return typeof argument == 'function';
-};
-
-var isCallable_default = /*@__PURE__*/getDefaultExportFromCjs(isCallable$j);
-
-var objectDefineProperty = {};
-
-'use strict';
-var fails$m = fails$p;
-
-// Detect IE8's incomplete defineProperty implementation
-var descriptors = !fails$m(function () {
-  // eslint-disable-next-line es/no-object-defineproperty -- required for testing
-  return Object.defineProperty({}, 1, { get: function () { return 7; } })[1] !== 7;
-});
-
-var descriptors_default = /*@__PURE__*/getDefaultExportFromCjs(descriptors);
-
-'use strict';
-var isCallable$i = isCallable$j;
-
-var isObject$h = function (it) {
-  return typeof it == 'object' ? it !== null : isCallable$i(it);
-};
-
-var isObject_default = /*@__PURE__*/getDefaultExportFromCjs(isObject$h);
-
-'use strict';
-var global$f = global$l;
-var isObject$g = isObject$h;
-
-var document$1 = global$f.document;
-// typeof document.createElement is 'object' in old IE
-var EXISTS$1 = isObject$g(document$1) && isObject$g(document$1.createElement);
-
-var documentCreateElement$2 = function (it) {
-  return EXISTS$1 ? document$1.createElement(it) : {};
-};
-
-var documentCreateElement_default = /*@__PURE__*/getDefaultExportFromCjs(documentCreateElement$2);
-
-'use strict';
-var DESCRIPTORS$a = descriptors;
-var fails$l = fails$p;
-var createElement = documentCreateElement$2;
-
-// Thanks to IE8 for its funny defineProperty
-var ie8DomDefine = !DESCRIPTORS$a && !fails$l(function () {
-  // eslint-disable-next-line es/no-object-defineproperty -- required for testing
-  return Object.defineProperty(createElement('div'), 'a', {
-    get: function () { return 7; }
-  }).a !== 7;
-});
-
-var ie8DomDefine_default = /*@__PURE__*/getDefaultExportFromCjs(ie8DomDefine);
-
-'use strict';
-var DESCRIPTORS$9 = descriptors;
-var fails$k = fails$p;
-
-// V8 ~ Chrome 36-
-// https://bugs.chromium.org/p/v8/issues/detail?id=3334
-var v8PrototypeDefineBug = DESCRIPTORS$9 && fails$k(function () {
-  // eslint-disable-next-line es/no-object-defineproperty -- required for testing
-  return Object.defineProperty(function () { /* empty */ }, 'prototype', {
-    value: 42,
-    writable: false
-  }).prototype !== 42;
-});
-
-var v8PrototypeDefineBug_default = /*@__PURE__*/getDefaultExportFromCjs(v8PrototypeDefineBug);
-
-'use strict';
-var isObject$f = isObject$h;
-
-var $String$4 = String;
-var $TypeError$a = TypeError;
-
-// `Assert: Type(argument) is Object`
-var anObject$d = function (argument) {
-  if (isObject$f(argument)) return argument;
-  throw new $TypeError$a($String$4(argument) + ' is not an object');
-};
-
-var anObject_default = /*@__PURE__*/getDefaultExportFromCjs(anObject$d);
-
-'use strict';
-var NATIVE_BIND$2 = functionBindNative;
-
-var call$d = Function.prototype.call;
-
-var functionCall = NATIVE_BIND$2 ? call$d.bind(call$d) : function () {
-  return call$d.apply(call$d, arguments);
-};
-
-var functionCall_default = /*@__PURE__*/getDefaultExportFromCjs(functionCall);
-
-'use strict';
-var global$e = global$l;
-var isCallable$h = isCallable$j;
-
-var aFunction = function (argument) {
-  return isCallable$h(argument) ? argument : undefined;
-};
-
-var getBuiltIn$4 = function (namespace, method) {
-  return arguments.length < 2 ? aFunction(global$e[namespace]) : global$e[namespace] && global$e[namespace][method];
-};
-
-var getBuiltIn_default = /*@__PURE__*/getDefaultExportFromCjs(getBuiltIn$4);
-
-'use strict';
-var uncurryThis$p = functionUncurryThis;
-
-var objectIsPrototypeOf = uncurryThis$p({}.isPrototypeOf);
-
-var objectIsPrototypeOf_default = /*@__PURE__*/getDefaultExportFromCjs(objectIsPrototypeOf);
-
-'use strict';
-var getBuiltIn$3 = getBuiltIn$4;
-var isCallable$g = isCallable$j;
-var isPrototypeOf$2 = objectIsPrototypeOf;
-var USE_SYMBOL_AS_UID = useSymbolAsUid;
-
-var $Object$4 = Object;
-
-var isSymbol$4 = USE_SYMBOL_AS_UID ? function (it) {
-  return typeof it == 'symbol';
-} : function (it) {
-  var $Symbol = getBuiltIn$3('Symbol');
-  return isCallable$g($Symbol) && isPrototypeOf$2($Symbol.prototype, $Object$4(it));
-};
-
-var isSymbol_default = /*@__PURE__*/getDefaultExportFromCjs(isSymbol$4);
-
-'use strict';
-var $String$3 = String;
-
-var tryToString$3 = function (argument) {
-  try {
-    return $String$3(argument);
-  } catch (error) {
-    return 'Object';
-  }
-};
-
-var tryToString_default = /*@__PURE__*/getDefaultExportFromCjs(tryToString$3);
-
-'use strict';
-var isCallable$f = isCallable$j;
-var tryToString$2 = tryToString$3;
-
-var $TypeError$9 = TypeError;
-
-// `Assert: IsCallable(argument) is true`
-var aCallable$5 = function (argument) {
-  if (isCallable$f(argument)) return argument;
-  throw new $TypeError$9(tryToString$2(argument) + ' is not a function');
-};
-
-var aCallable_default = /*@__PURE__*/getDefaultExportFromCjs(aCallable$5);
-
-'use strict';
-var aCallable$4 = aCallable$5;
-var isNullOrUndefined$5 = isNullOrUndefined$7;
-
-// `GetMethod` abstract operation
-// https://tc39.es/ecma262/#sec-getmethod
-var getMethod$5 = function (V, P) {
-  var func = V[P];
-  return isNullOrUndefined$5(func) ? undefined : aCallable$4(func);
-};
-
-var getMethod_default = /*@__PURE__*/getDefaultExportFromCjs(getMethod$5);
-
-'use strict';
-var call$c = functionCall;
-var isCallable$e = isCallable$j;
-var isObject$e = isObject$h;
-
-var $TypeError$8 = TypeError;
-
-// `OrdinaryToPrimitive` abstract operation
-// https://tc39.es/ecma262/#sec-ordinarytoprimitive
-var ordinaryToPrimitive$1 = function (input, pref) {
-  var fn, val;
-  if (pref === 'string' && isCallable$e(fn = input.toString) && !isObject$e(val = call$c(fn, input))) return val;
-  if (isCallable$e(fn = input.valueOf) && !isObject$e(val = call$c(fn, input))) return val;
-  if (pref !== 'string' && isCallable$e(fn = input.toString) && !isObject$e(val = call$c(fn, input))) return val;
-  throw new $TypeError$8("Can't convert object to primitive value");
-};
-
-var ordinaryToPrimitive_default = /*@__PURE__*/getDefaultExportFromCjs(ordinaryToPrimitive$1);
-
-'use strict';
-var call$b = functionCall;
-var isObject$d = isObject$h;
-var isSymbol$3 = isSymbol$4;
-var getMethod$4 = getMethod$5;
-var ordinaryToPrimitive = ordinaryToPrimitive$1;
-var wellKnownSymbol$d = wellKnownSymbol$f;
-
-var $TypeError$7 = TypeError;
-var TO_PRIMITIVE = wellKnownSymbol$d('toPrimitive');
-
-// `ToPrimitive` abstract operation
-// https://tc39.es/ecma262/#sec-toprimitive
-var toPrimitive$1 = function (input, pref) {
-  if (!isObject$d(input) || isSymbol$3(input)) return input;
-  var exoticToPrim = getMethod$4(input, TO_PRIMITIVE);
-  var result;
-  if (exoticToPrim) {
-    if (pref === undefined) pref = 'default';
-    result = call$b(exoticToPrim, input, pref);
-    if (!isObject$d(result) || isSymbol$3(result)) return result;
-    throw new $TypeError$7("Can't convert object to primitive value");
-  }
-  if (pref === undefined) pref = 'number';
-  return ordinaryToPrimitive(input, pref);
-};
-
-var toPrimitive_default = /*@__PURE__*/getDefaultExportFromCjs(toPrimitive$1);
-
-'use strict';
-var toPrimitive = toPrimitive$1;
-var isSymbol$2 = isSymbol$4;
-
-// `ToPropertyKey` abstract operation
-// https://tc39.es/ecma262/#sec-topropertykey
-var toPropertyKey$2 = function (argument) {
-  var key = toPrimitive(argument, 'string');
-  return isSymbol$2(key) ? key : key + '';
-};
-
-var toPropertyKey_default = /*@__PURE__*/getDefaultExportFromCjs(toPropertyKey$2);
-
-'use strict';
-var DESCRIPTORS$8 = descriptors;
-var IE8_DOM_DEFINE$1 = ie8DomDefine;
-var V8_PROTOTYPE_DEFINE_BUG$1 = v8PrototypeDefineBug;
-var anObject$c = anObject$d;
-var toPropertyKey$1 = toPropertyKey$2;
-
-var $TypeError$6 = TypeError;
-// eslint-disable-next-line es/no-object-defineproperty -- safe
-var $defineProperty = Object.defineProperty;
-// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
-var $getOwnPropertyDescriptor$1 = Object.getOwnPropertyDescriptor;
-var ENUMERABLE = 'enumerable';
-var CONFIGURABLE$1 = 'configurable';
-var WRITABLE = 'writable';
-
-// `Object.defineProperty` method
-// https://tc39.es/ecma262/#sec-object.defineproperty
-var f$6 = objectDefineProperty.f = DESCRIPTORS$8 ? V8_PROTOTYPE_DEFINE_BUG$1 ? function defineProperty(O, P, Attributes) {
-  anObject$c(O);
-  P = toPropertyKey$1(P);
-  anObject$c(Attributes);
-  if (typeof O === 'function' && P === 'prototype' && 'value' in Attributes && WRITABLE in Attributes && !Attributes[WRITABLE]) {
-    var current = $getOwnPropertyDescriptor$1(O, P);
-    if (current && current[WRITABLE]) {
-      O[P] = Attributes.value;
-      Attributes = {
-        configurable: CONFIGURABLE$1 in Attributes ? Attributes[CONFIGURABLE$1] : current[CONFIGURABLE$1],
-        enumerable: ENUMERABLE in Attributes ? Attributes[ENUMERABLE] : current[ENUMERABLE],
-        writable: false
-      };
-    }
-  } return $defineProperty(O, P, Attributes);
-} : $defineProperty : function defineProperty(O, P, Attributes) {
-  anObject$c(O);
-  P = toPropertyKey$1(P);
-  anObject$c(Attributes);
-  if (IE8_DOM_DEFINE$1) try {
-    return $defineProperty(O, P, Attributes);
-  } catch (error) { /* empty */ }
-  if ('get' in Attributes || 'set' in Attributes) throw new $TypeError$6('Accessors not supported');
-  if ('value' in Attributes) O[P] = Attributes.value;
-  return O;
-};
-
-var makeBuiltIn$3 = {exports: {}};
-
-'use strict';
-var DESCRIPTORS$7 = descriptors;
-var hasOwn$9 = hasOwnProperty_1;
-
-var FunctionPrototype$2 = Function.prototype;
-// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
-var getDescriptor = DESCRIPTORS$7 && Object.getOwnPropertyDescriptor;
-
-var EXISTS = hasOwn$9(FunctionPrototype$2, 'name');
-// additional protection from minified / mangled / dropped function names
-var PROPER = EXISTS && (function something() { /* empty */ }).name === 'something';
-var CONFIGURABLE = EXISTS && (!DESCRIPTORS$7 || (DESCRIPTORS$7 && getDescriptor(FunctionPrototype$2, 'name').configurable));
-
-var functionName = {
-  EXISTS: EXISTS,
-  PROPER: PROPER,
-  CONFIGURABLE: CONFIGURABLE
-};
-
-var functionName_default = /*@__PURE__*/getDefaultExportFromCjs(functionName);
-
-'use strict';
-var uncurryThis$o = functionUncurryThis;
-var isCallable$d = isCallable$j;
-var store$1 = sharedStore;
-
-var functionToString$1 = uncurryThis$o(Function.toString);
-
-// this helper broken in `core-js@3.4.1-3.4.4`, so we can't use `shared` helper
-if (!isCallable$d(store$1.inspectSource)) {
-  store$1.inspectSource = function (it) {
-    return functionToString$1(it);
-  };
-}
-
-var inspectSource$2 = store$1.inspectSource;
-
-var inspectSource_default = /*@__PURE__*/getDefaultExportFromCjs(inspectSource$2);
-
-'use strict';
-var global$d = global$l;
-var isCallable$c = isCallable$j;
-
-var WeakMap$2 = global$d.WeakMap;
-
-var weakMapBasicDetection = isCallable$c(WeakMap$2) && /native code/.test(String(WeakMap$2));
-
-var weakMapBasicDetection_default = /*@__PURE__*/getDefaultExportFromCjs(weakMapBasicDetection);
-
-'use strict';
-var createPropertyDescriptor$3 = function (bitmap, value) {
-  return {
-    enumerable: !(bitmap & 1),
-    configurable: !(bitmap & 2),
-    writable: !(bitmap & 4),
-    value: value
-  };
-};
-
-var createPropertyDescriptor_default = /*@__PURE__*/getDefaultExportFromCjs(createPropertyDescriptor$3);
-
-'use strict';
-var DESCRIPTORS$6 = descriptors;
-var definePropertyModule$3 = objectDefineProperty;
-var createPropertyDescriptor$2 = createPropertyDescriptor$3;
-
-var createNonEnumerableProperty$6 = DESCRIPTORS$6 ? function (object, key, value) {
-  return definePropertyModule$3.f(object, key, createPropertyDescriptor$2(1, value));
-} : function (object, key, value) {
-  object[key] = value;
-  return object;
-};
-
-var createNonEnumerableProperty_default = /*@__PURE__*/getDefaultExportFromCjs(createNonEnumerableProperty$6);
-
-'use strict';
-var shared$2 = sharedExports;
-var uid$1 = uid$3;
-
-var keys = shared$2('keys');
-
-var sharedKey$3 = function (key) {
-  return keys[key] || (keys[key] = uid$1(key));
-};
-
-var sharedKey_default = /*@__PURE__*/getDefaultExportFromCjs(sharedKey$3);
-
-'use strict';
-var hiddenKeys$5 = {};
-
-var hiddenKeys_default = /*@__PURE__*/getDefaultExportFromCjs(hiddenKeys$5);
-
-'use strict';
-var NATIVE_WEAK_MAP$1 = weakMapBasicDetection;
-var global$c = global$l;
-var isObject$c = isObject$h;
-var createNonEnumerableProperty$5 = createNonEnumerableProperty$6;
-var hasOwn$8 = hasOwnProperty_1;
-var shared$1 = sharedStore;
-var sharedKey$2 = sharedKey$3;
-var hiddenKeys$4 = hiddenKeys$5;
-
-var OBJECT_ALREADY_INITIALIZED = 'Object already initialized';
-var TypeError$1 = global$c.TypeError;
-var WeakMap$1 = global$c.WeakMap;
-var set, get, has;
-
-var enforce = function (it) {
-  return has(it) ? get(it) : set(it, {});
-};
-
-var getterFor = function (TYPE) {
-  return function (it) {
-    var state;
-    if (!isObject$c(it) || (state = get(it)).type !== TYPE) {
-      throw new TypeError$1('Incompatible receiver, ' + TYPE + ' required');
-    } return state;
-  };
-};
-
-if (NATIVE_WEAK_MAP$1 || shared$1.state) {
-  var store = shared$1.state || (shared$1.state = new WeakMap$1());
-  /* eslint-disable no-self-assign -- prototype methods protection */
-  store.get = store.get;
-  store.has = store.has;
-  store.set = store.set;
-  /* eslint-enable no-self-assign -- prototype methods protection */
-  set = function (it, metadata) {
-    if (store.has(it)) throw new TypeError$1(OBJECT_ALREADY_INITIALIZED);
-    metadata.facade = it;
-    store.set(it, metadata);
-    return metadata;
-  };
-  get = function (it) {
-    return store.get(it) || {};
-  };
-  has = function (it) {
-    return store.has(it);
-  };
-} else {
-  var STATE = sharedKey$2('state');
-  hiddenKeys$4[STATE] = true;
-  set = function (it, metadata) {
-    if (hasOwn$8(it, STATE)) throw new TypeError$1(OBJECT_ALREADY_INITIALIZED);
-    metadata.facade = it;
-    createNonEnumerableProperty$5(it, STATE, metadata);
-    return metadata;
-  };
-  get = function (it) {
-    return hasOwn$8(it, STATE) ? it[STATE] : {};
-  };
-  has = function (it) {
-    return hasOwn$8(it, STATE);
-  };
-}
-
-var internalState = {
-  set: set,
-  get: get,
-  has: has,
-  enforce: enforce,
-  getterFor: getterFor
-};
-
-var internalState_default = /*@__PURE__*/getDefaultExportFromCjs(internalState);
-
-var makeBuiltIn_1 = makeBuiltIn$3.exports;
-
-'use strict';
-var uncurryThis$n = functionUncurryThis;
-var fails$j = fails$p;
-var isCallable$b = isCallable$j;
-var hasOwn$7 = hasOwnProperty_1;
-var DESCRIPTORS$5 = descriptors;
-var CONFIGURABLE_FUNCTION_NAME$1 = functionName.CONFIGURABLE;
-var inspectSource$1 = inspectSource$2;
-var InternalStateModule$3 = internalState;
-
-var enforceInternalState$1 = InternalStateModule$3.enforce;
-var getInternalState$3 = InternalStateModule$3.get;
-var $String$2 = String;
-// eslint-disable-next-line es/no-object-defineproperty -- safe
-var defineProperty$6 = Object.defineProperty;
-var stringSlice$5 = uncurryThis$n(''.slice);
-var replace$3 = uncurryThis$n(''.replace);
-var join = uncurryThis$n([].join);
-
-var CONFIGURABLE_LENGTH = DESCRIPTORS$5 && !fails$j(function () {
-  return defineProperty$6(function () { /* empty */ }, 'length', { value: 8 }).length !== 8;
-});
-
-var TEMPLATE = String(String).split('String');
-
-var makeBuiltIn$2 = makeBuiltIn$3.exports = function (value, name, options) {
-  if (stringSlice$5($String$2(name), 0, 7) === 'Symbol(') {
-    name = '[' + replace$3($String$2(name), /^Symbol\(([^)]*)\)/, '$1') + ']';
-  }
-  if (options && options.getter) name = 'get ' + name;
-  if (options && options.setter) name = 'set ' + name;
-  if (!hasOwn$7(value, 'name') || (CONFIGURABLE_FUNCTION_NAME$1 && value.name !== name)) {
-    if (DESCRIPTORS$5) defineProperty$6(value, 'name', { value: name, configurable: true });
-    else value.name = name;
-  }
-  if (CONFIGURABLE_LENGTH && options && hasOwn$7(options, 'arity') && value.length !== options.arity) {
-    defineProperty$6(value, 'length', { value: options.arity });
-  }
-  try {
-    if (options && hasOwn$7(options, 'constructor') && options.constructor) {
-      if (DESCRIPTORS$5) defineProperty$6(value, 'prototype', { writable: false });
-    // in V8 ~ Chrome 53, prototypes of some methods, like `Array.prototype.values`, are non-writable
-    } else if (value.prototype) value.prototype = undefined;
-  } catch (error) { /* empty */ }
-  var state = enforceInternalState$1(value);
-  if (!hasOwn$7(state, 'source')) {
-    state.source = join(TEMPLATE, typeof name == 'string' ? name : '');
-  } return value;
-};
-
-// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
-// eslint-disable-next-line no-extend-native -- required
-Function.prototype.toString = makeBuiltIn$2(function toString() {
-  return isCallable$b(this) && getInternalState$3(this).source || inspectSource$1(this);
-}, 'toString');
-
-var makeBuiltInExports = makeBuiltIn$3.exports;
-var makeBuiltIn_default = /*@__PURE__*/getDefaultExportFromCjs(makeBuiltInExports);
-
-'use strict';
-var isCallable$a = isCallable$j;
-var definePropertyModule$2 = objectDefineProperty;
-var makeBuiltIn$1 = makeBuiltInExports;
-var defineGlobalProperty$1 = defineGlobalProperty$3;
-
-var defineBuiltIn$7 = function (O, key, value, options) {
-  if (!options) options = {};
-  var simple = options.enumerable;
-  var name = options.name !== undefined ? options.name : key;
-  if (isCallable$a(value)) makeBuiltIn$1(value, name, options);
-  if (options.global) {
-    if (simple) O[key] = value;
-    else defineGlobalProperty$1(key, value);
-  } else {
-    try {
-      if (!options.unsafe) delete O[key];
-      else if (O[key]) simple = true;
-    } catch (error) { /* empty */ }
-    if (simple) O[key] = value;
-    else definePropertyModule$2.f(O, key, {
-      value: value,
-      enumerable: false,
-      configurable: !options.nonConfigurable,
-      writable: !options.nonWritable
-    });
-  } return O;
-};
-
-var defineBuiltIn_default = /*@__PURE__*/getDefaultExportFromCjs(defineBuiltIn$7);
-
-'use strict';
-var uncurryThis$m = functionUncurryThis;
-
-var toString$9 = uncurryThis$m({}.toString);
-var stringSlice$4 = uncurryThis$m(''.slice);
-
-var classofRaw$2 = function (it) {
-  return stringSlice$4(toString$9(it), 8, -1);
-};
-
-var classofRaw_default = /*@__PURE__*/getDefaultExportFromCjs(classofRaw$2);
-
-'use strict';
-var TO_STRING_TAG_SUPPORT$2 = toStringTagSupport;
-var isCallable$9 = isCallable$j;
-var classofRaw$1 = classofRaw$2;
-var wellKnownSymbol$c = wellKnownSymbol$f;
-
-var TO_STRING_TAG$1 = wellKnownSymbol$c('toStringTag');
-var $Object$3 = Object;
-
-// ES3 wrong here
-var CORRECT_ARGUMENTS = classofRaw$1(function () { return arguments; }()) === 'Arguments';
-
-// fallback for IE11 Script Access Denied error
-var tryGet = function (it, key) {
-  try {
-    return it[key];
-  } catch (error) { /* empty */ }
-};
-
-// getting tag from ES6+ `Object.prototype.toString`
-var classof$a = TO_STRING_TAG_SUPPORT$2 ? classofRaw$1 : function (it) {
-  var O, tag, result;
-  return it === undefined ? 'Undefined' : it === null ? 'Null'
-    // @@toStringTag case
-    : typeof (tag = tryGet(O = $Object$3(it), TO_STRING_TAG$1)) == 'string' ? tag
-    // builtinTag case
-    : CORRECT_ARGUMENTS ? classofRaw$1(O)
-    // ES3 arguments fallback
-    : (result = classofRaw$1(O)) === 'Object' && isCallable$9(O.callee) ? 'Arguments' : result;
-};
-
-var classof_default = /*@__PURE__*/getDefaultExportFromCjs(classof$a);
-
-'use strict';
-var TO_STRING_TAG_SUPPORT$1 = toStringTagSupport;
-var classof$9 = classof$a;
-
-// `Object.prototype.toString` method implementation
-// https://tc39.es/ecma262/#sec-object.prototype.tostring
-var objectToString$3 = TO_STRING_TAG_SUPPORT$1 ? {}.toString : function toString() {
-  return '[object ' + classof$9(this) + ']';
-};
-
-var objectToString_default = /*@__PURE__*/getDefaultExportFromCjs(objectToString$3);
-
-'use strict';
-var TO_STRING_TAG_SUPPORT = toStringTagSupport;
-var defineBuiltIn$6 = defineBuiltIn$7;
-var toString$8 = objectToString$3;
-
-// `Object.prototype.toString` method
-// https://tc39.es/ecma262/#sec-object.prototype.tostring
-if (!TO_STRING_TAG_SUPPORT) {
-  defineBuiltIn$6(Object.prototype, 'toString', toString$8, { unsafe: true });
-}
-
-var web_domCollections_forEach = {};
-
-'use strict';
-// iterable DOM collections
-// flag - `iterable` interface - 'entries', 'keys', 'values', 'forEach' methods
-var domIterables = {
-  CSSRuleList: 0,
-  CSSStyleDeclaration: 0,
-  CSSValueList: 0,
-  ClientRectList: 0,
-  DOMRectList: 0,
-  DOMStringList: 0,
-  DOMTokenList: 1,
-  DataTransferItemList: 0,
-  FileList: 0,
-  HTMLAllCollection: 0,
-  HTMLCollection: 0,
-  HTMLFormElement: 0,
-  HTMLSelectElement: 0,
-  MediaList: 0,
-  MimeTypeArray: 0,
-  NamedNodeMap: 0,
-  NodeList: 1,
-  PaintRequestList: 0,
-  Plugin: 0,
-  PluginArray: 0,
-  SVGLengthList: 0,
-  SVGNumberList: 0,
-  SVGPathSegList: 0,
-  SVGPointList: 0,
-  SVGStringList: 0,
-  SVGTransformList: 0,
-  SourceBufferList: 0,
-  StyleSheetList: 0,
-  TextTrackCueList: 0,
-  TextTrackList: 0,
-  TouchList: 0
-};
-
-var domIterables_default = /*@__PURE__*/getDefaultExportFromCjs(domIterables);
-
-'use strict';
-// in old WebKit versions, `element.classList` is not an instance of global `DOMTokenList`
-var documentCreateElement$1 = documentCreateElement$2;
-
-var classList = documentCreateElement$1('span').classList;
-var DOMTokenListPrototype$2 = classList && classList.constructor && classList.constructor.prototype;
-
-var domTokenListPrototype = DOMTokenListPrototype$2 === Object.prototype ? undefined : DOMTokenListPrototype$2;
-
-var domTokenListPrototype_default = /*@__PURE__*/getDefaultExportFromCjs(domTokenListPrototype);
-
-'use strict';
-var classofRaw = classofRaw$2;
-var uncurryThis$l = functionUncurryThis;
-
-var functionUncurryThisClause = function (fn) {
-  // Nashorn bug:
-  //   https://github.com/zloirock/core-js/issues/1128
-  //   https://github.com/zloirock/core-js/issues/1130
-  if (classofRaw(fn) === 'Function') return uncurryThis$l(fn);
-};
-
-var functionUncurryThisClause_default = /*@__PURE__*/getDefaultExportFromCjs(functionUncurryThisClause);
-
-'use strict';
-var uncurryThis$k = functionUncurryThisClause;
-var aCallable$3 = aCallable$5;
-var NATIVE_BIND$1 = functionBindNative;
-
-var bind$2 = uncurryThis$k(uncurryThis$k.bind);
-
-// optional / simple context binding
-var functionBindContext = function (fn, that) {
-  aCallable$3(fn);
-  return that === undefined ? fn : NATIVE_BIND$1 ? bind$2(fn, that) : function (/* ...args */) {
-    return fn.apply(that, arguments);
-  };
-};
-
-var functionBindContext_default = /*@__PURE__*/getDefaultExportFromCjs(functionBindContext);
-
-'use strict';
-var uncurryThis$j = functionUncurryThis;
-var fails$i = fails$p;
-var classof$8 = classofRaw$2;
-
-var $Object$2 = Object;
-var split = uncurryThis$j(''.split);
-
-// fallback for non-array-like ES3 and non-enumerable old V8 strings
-var indexedObject = fails$i(function () {
-  // throws an error in rhino, see https://github.com/mozilla/rhino/issues/346
-  // eslint-disable-next-line no-prototype-builtins -- safe
-  return !$Object$2('z').propertyIsEnumerable(0);
-}) ? function (it) {
-  return classof$8(it) === 'String' ? split(it, '') : $Object$2(it);
-} : $Object$2;
-
-var indexedObject_default = /*@__PURE__*/getDefaultExportFromCjs(indexedObject);
-
-'use strict';
-var ceil = Math.ceil;
-var floor$1 = Math.floor;
-
-// `Math.trunc` method
-// https://tc39.es/ecma262/#sec-math.trunc
-// eslint-disable-next-line es/no-math-trunc -- safe
-var mathTrunc = Math.trunc || function trunc(x) {
-  var n = +x;
-  return (n > 0 ? floor$1 : ceil)(n);
-};
-
-var mathTrunc_default = /*@__PURE__*/getDefaultExportFromCjs(mathTrunc);
-
-'use strict';
-var trunc = mathTrunc;
-
-// `ToIntegerOrInfinity` abstract operation
-// https://tc39.es/ecma262/#sec-tointegerorinfinity
-var toIntegerOrInfinity$4 = function (argument) {
-  var number = +argument;
-  // eslint-disable-next-line no-self-compare -- NaN check
-  return number !== number || number === 0 ? 0 : trunc(number);
-};
-
-var toIntegerOrInfinity_default = /*@__PURE__*/getDefaultExportFromCjs(toIntegerOrInfinity$4);
-
-'use strict';
-var toIntegerOrInfinity$3 = toIntegerOrInfinity$4;
-
-var min$2 = Math.min;
-
-// `ToLength` abstract operation
-// https://tc39.es/ecma262/#sec-tolength
-var toLength$3 = function (argument) {
-  return argument > 0 ? min$2(toIntegerOrInfinity$3(argument), 0x1FFFFFFFFFFFFF) : 0; // 2 ** 53 - 1 == 9007199254740991
-};
-
-var toLength_default = /*@__PURE__*/getDefaultExportFromCjs(toLength$3);
-
-'use strict';
-var toLength$2 = toLength$3;
-
-// `LengthOfArrayLike` abstract operation
-// https://tc39.es/ecma262/#sec-lengthofarraylike
-var lengthOfArrayLike$4 = function (obj) {
-  return toLength$2(obj.length);
-};
-
-var lengthOfArrayLike_default = /*@__PURE__*/getDefaultExportFromCjs(lengthOfArrayLike$4);
-
-'use strict';
-var classof$7 = classofRaw$2;
-
-// `IsArray` abstract operation
-// https://tc39.es/ecma262/#sec-isarray
-// eslint-disable-next-line es/no-array-isarray -- safe
-var isArray$2 = Array.isArray || function isArray(argument) {
-  return classof$7(argument) === 'Array';
-};
-
-var isArray_default = /*@__PURE__*/getDefaultExportFromCjs(isArray$2);
-
-'use strict';
-var uncurryThis$i = functionUncurryThis;
-var fails$h = fails$p;
-var isCallable$8 = isCallable$j;
-var classof$6 = classof$a;
-var getBuiltIn$2 = getBuiltIn$4;
-var inspectSource = inspectSource$2;
-
-var noop = function () { /* empty */ };
-var empty = [];
-var construct = getBuiltIn$2('Reflect', 'construct');
-var constructorRegExp = /^\s*(?:class|function)\b/;
-var exec$2 = uncurryThis$i(constructorRegExp.exec);
-var INCORRECT_TO_STRING = !constructorRegExp.test(noop);
-
-var isConstructorModern = function isConstructor(argument) {
-  if (!isCallable$8(argument)) return false;
-  try {
-    construct(noop, empty, argument);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
-var isConstructorLegacy = function isConstructor(argument) {
-  if (!isCallable$8(argument)) return false;
-  switch (classof$6(argument)) {
-    case 'AsyncFunction':
-    case 'GeneratorFunction':
-    case 'AsyncGeneratorFunction': return false;
-  }
-  try {
-    // we can't check .prototype since constructors produced by .bind haven't it
-    // `Function#toString` throws on some built-it function in some legacy engines
-    // (for example, `DOMQuad` and similar in FF41-)
-    return INCORRECT_TO_STRING || !!exec$2(constructorRegExp, inspectSource(argument));
-  } catch (error) {
-    return true;
-  }
-};
-
-isConstructorLegacy.sham = true;
-
-// `IsConstructor` abstract operation
-// https://tc39.es/ecma262/#sec-isconstructor
-var isConstructor$1 = !construct || fails$h(function () {
-  var called;
-  return isConstructorModern(isConstructorModern.call)
-    || !isConstructorModern(Object)
-    || !isConstructorModern(function () { called = true; })
-    || called;
-}) ? isConstructorLegacy : isConstructorModern;
-
-var isConstructor_default = /*@__PURE__*/getDefaultExportFromCjs(isConstructor$1);
-
-'use strict';
-var isArray$1 = isArray$2;
-var isConstructor = isConstructor$1;
-var isObject$b = isObject$h;
-var wellKnownSymbol$b = wellKnownSymbol$f;
-
-var SPECIES$2 = wellKnownSymbol$b('species');
-var $Array = Array;
-
-// a part of `ArraySpeciesCreate` abstract operation
-// https://tc39.es/ecma262/#sec-arrayspeciescreate
-var arraySpeciesConstructor$1 = function (originalArray) {
-  var C;
-  if (isArray$1(originalArray)) {
-    C = originalArray.constructor;
-    // cross-realm fallback
-    if (isConstructor(C) && (C === $Array || isArray$1(C.prototype))) C = undefined;
-    else if (isObject$b(C)) {
-      C = C[SPECIES$2];
-      if (C === null) C = undefined;
-    }
-  } return C === undefined ? $Array : C;
-};
-
-var arraySpeciesConstructor_default = /*@__PURE__*/getDefaultExportFromCjs(arraySpeciesConstructor$1);
-
-'use strict';
-var arraySpeciesConstructor = arraySpeciesConstructor$1;
-
-// `ArraySpeciesCreate` abstract operation
-// https://tc39.es/ecma262/#sec-arrayspeciescreate
-var arraySpeciesCreate$1 = function (originalArray, length) {
-  return new (arraySpeciesConstructor(originalArray))(length === 0 ? 0 : length);
-};
-
-var arraySpeciesCreate_default = /*@__PURE__*/getDefaultExportFromCjs(arraySpeciesCreate$1);
-
-'use strict';
-var bind$1 = functionBindContext;
-var uncurryThis$h = functionUncurryThis;
-var IndexedObject$3 = indexedObject;
-var toObject$4 = toObject$6;
-var lengthOfArrayLike$3 = lengthOfArrayLike$4;
-var arraySpeciesCreate = arraySpeciesCreate$1;
-
-var push$2 = uncurryThis$h([].push);
-
-// `Array.prototype.{ forEach, map, filter, some, every, find, findIndex, filterReject }` methods implementation
-var createMethod$4 = function (TYPE) {
-  var IS_MAP = TYPE === 1;
-  var IS_FILTER = TYPE === 2;
-  var IS_SOME = TYPE === 3;
-  var IS_EVERY = TYPE === 4;
-  var IS_FIND_INDEX = TYPE === 6;
-  var IS_FILTER_REJECT = TYPE === 7;
-  var NO_HOLES = TYPE === 5 || IS_FIND_INDEX;
-  return function ($this, callbackfn, that, specificCreate) {
-    var O = toObject$4($this);
-    var self = IndexedObject$3(O);
-    var length = lengthOfArrayLike$3(self);
-    var boundFunction = bind$1(callbackfn, that);
-    var index = 0;
-    var create = specificCreate || arraySpeciesCreate;
-    var target = IS_MAP ? create($this, length) : IS_FILTER || IS_FILTER_REJECT ? create($this, 0) : undefined;
-    var value, result;
-    for (;length > index; index++) if (NO_HOLES || index in self) {
-      value = self[index];
-      result = boundFunction(value, index, O);
-      if (TYPE) {
-        if (IS_MAP) target[index] = result; // map
-        else if (result) switch (TYPE) {
-          case 3: return true;              // some
-          case 5: return value;             // find
-          case 6: return index;             // findIndex
-          case 2: push$2(target, value);      // filter
-        } else switch (TYPE) {
-          case 4: return false;             // every
-          case 7: push$2(target, value);      // filterReject
-        }
-      }
-    }
-    return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : target;
-  };
-};
-
-var arrayIteration = {
-  // `Array.prototype.forEach` method
-  // https://tc39.es/ecma262/#sec-array.prototype.foreach
-  forEach: createMethod$4(0),
-  // `Array.prototype.map` method
-  // https://tc39.es/ecma262/#sec-array.prototype.map
-  map: createMethod$4(1),
-  // `Array.prototype.filter` method
-  // https://tc39.es/ecma262/#sec-array.prototype.filter
-  filter: createMethod$4(2),
-  // `Array.prototype.some` method
-  // https://tc39.es/ecma262/#sec-array.prototype.some
-  some: createMethod$4(3),
-  // `Array.prototype.every` method
-  // https://tc39.es/ecma262/#sec-array.prototype.every
-  every: createMethod$4(4),
-  // `Array.prototype.find` method
-  // https://tc39.es/ecma262/#sec-array.prototype.find
-  find: createMethod$4(5),
-  // `Array.prototype.findIndex` method
-  // https://tc39.es/ecma262/#sec-array.prototype.findIndex
-  findIndex: createMethod$4(6),
-  // `Array.prototype.filterReject` method
-  // https://github.com/tc39/proposal-array-filtering
-  filterReject: createMethod$4(7)
-};
-
-var arrayIteration_default = /*@__PURE__*/getDefaultExportFromCjs(arrayIteration);
-
-'use strict';
-var fails$g = fails$p;
-
-var arrayMethodIsStrict$2 = function (METHOD_NAME, argument) {
-  var method = [][METHOD_NAME];
-  return !!method && fails$g(function () {
-    // eslint-disable-next-line no-useless-call -- required for testing
-    method.call(null, argument || function () { return 1; }, 1);
-  });
-};
-
-var arrayMethodIsStrict_default = /*@__PURE__*/getDefaultExportFromCjs(arrayMethodIsStrict$2);
-
-'use strict';
-var $forEach = arrayIteration.forEach;
-var arrayMethodIsStrict$1 = arrayMethodIsStrict$2;
-
-var STRICT_METHOD = arrayMethodIsStrict$1('forEach');
-
-// `Array.prototype.forEach` method implementation
-// https://tc39.es/ecma262/#sec-array.prototype.foreach
-var arrayForEach = !STRICT_METHOD ? function forEach(callbackfn /* , thisArg */) {
-  return $forEach(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-// eslint-disable-next-line es/no-array-prototype-foreach -- safe
-} : [].forEach;
-
-var arrayForEach_default = /*@__PURE__*/getDefaultExportFromCjs(arrayForEach);
-
-'use strict';
-var global$b = global$l;
-var DOMIterables$1 = domIterables;
-var DOMTokenListPrototype$1 = domTokenListPrototype;
-var forEach = arrayForEach;
-var createNonEnumerableProperty$4 = createNonEnumerableProperty$6;
-
-var handlePrototype$1 = function (CollectionPrototype) {
-  // some Chrome versions have non-configurable methods on DOMTokenList
-  if (CollectionPrototype && CollectionPrototype.forEach !== forEach) try {
-    createNonEnumerableProperty$4(CollectionPrototype, 'forEach', forEach);
-  } catch (error) {
-    CollectionPrototype.forEach = forEach;
-  }
-};
-
-for (var COLLECTION_NAME$1 in DOMIterables$1) {
-  if (DOMIterables$1[COLLECTION_NAME$1]) {
-    handlePrototype$1(global$b[COLLECTION_NAME$1] && global$b[COLLECTION_NAME$1].prototype);
-  }
-}
-
-handlePrototype$1(DOMTokenListPrototype$1);
-
-var canUseDOM = !!(
-  typeof window !== 'undefined' &&
-  window.document &&
-  window.document.createElement
-);
-
-var canUseDom = canUseDOM;
-
-var canUseDOM$1 = /*@__PURE__*/getDefaultExportFromCjs(canUseDom);
-
-var es_parseInt = {};
-
-var objectGetOwnPropertyDescriptor = {};
-
-var objectPropertyIsEnumerable = {};
-
-'use strict';
-var $propertyIsEnumerable = {}.propertyIsEnumerable;
-// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
-var getOwnPropertyDescriptor$1 = Object.getOwnPropertyDescriptor;
-
-// Nashorn ~ JDK8 bug
-var NASHORN_BUG = getOwnPropertyDescriptor$1 && !$propertyIsEnumerable.call({ 1: 2 }, 1);
-
-// `Object.prototype.propertyIsEnumerable` method implementation
-// https://tc39.es/ecma262/#sec-object.prototype.propertyisenumerable
-var f$5 = objectPropertyIsEnumerable.f = NASHORN_BUG ? function propertyIsEnumerable(V) {
-  var descriptor = getOwnPropertyDescriptor$1(this, V);
-  return !!descriptor && descriptor.enumerable;
-} : $propertyIsEnumerable;
-
-'use strict';
-// toObject with fallback for non-array-like ES3 strings
-var IndexedObject$2 = indexedObject;
-var requireObjectCoercible$4 = requireObjectCoercible$6;
-
-var toIndexedObject$6 = function (it) {
-  return IndexedObject$2(requireObjectCoercible$4(it));
-};
-
-var toIndexedObject_default = /*@__PURE__*/getDefaultExportFromCjs(toIndexedObject$6);
-
-'use strict';
-var DESCRIPTORS$4 = descriptors;
-var call$a = functionCall;
-var propertyIsEnumerableModule$1 = objectPropertyIsEnumerable;
-var createPropertyDescriptor$1 = createPropertyDescriptor$3;
-var toIndexedObject$5 = toIndexedObject$6;
-var toPropertyKey = toPropertyKey$2;
-var hasOwn$6 = hasOwnProperty_1;
-var IE8_DOM_DEFINE = ie8DomDefine;
-
-// eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
-var $getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-
-// `Object.getOwnPropertyDescriptor` method
-// https://tc39.es/ecma262/#sec-object.getownpropertydescriptor
-var f$4 = objectGetOwnPropertyDescriptor.f = DESCRIPTORS$4 ? $getOwnPropertyDescriptor : function getOwnPropertyDescriptor(O, P) {
-  O = toIndexedObject$5(O);
-  P = toPropertyKey(P);
-  if (IE8_DOM_DEFINE) try {
-    return $getOwnPropertyDescriptor(O, P);
-  } catch (error) { /* empty */ }
-  if (hasOwn$6(O, P)) return createPropertyDescriptor$1(!call$a(propertyIsEnumerableModule$1.f, O, P), O[P]);
-};
-
-var objectGetOwnPropertyNames = {};
-
-'use strict';
-var toIntegerOrInfinity$2 = toIntegerOrInfinity$4;
-
-var max$1 = Math.max;
-var min$1 = Math.min;
-
-// Helper for a popular repeating case of the spec:
-// Let integer be ? ToInteger(index).
-// If integer < 0, let result be max((length + integer), 0); else let result be min(integer, length).
-var toAbsoluteIndex$1 = function (index, length) {
-  var integer = toIntegerOrInfinity$2(index);
-  return integer < 0 ? max$1(integer + length, 0) : min$1(integer, length);
-};
-
-var toAbsoluteIndex_default = /*@__PURE__*/getDefaultExportFromCjs(toAbsoluteIndex$1);
-
-'use strict';
-var toIndexedObject$4 = toIndexedObject$6;
-var toAbsoluteIndex = toAbsoluteIndex$1;
-var lengthOfArrayLike$2 = lengthOfArrayLike$4;
-
-// `Array.prototype.{ indexOf, includes }` methods implementation
-var createMethod$3 = function (IS_INCLUDES) {
-  return function ($this, el, fromIndex) {
-    var O = toIndexedObject$4($this);
-    var length = lengthOfArrayLike$2(O);
-    var index = toAbsoluteIndex(fromIndex, length);
-    var value;
-    // Array#includes uses SameValueZero equality algorithm
-    // eslint-disable-next-line no-self-compare -- NaN check
-    if (IS_INCLUDES && el !== el) while (length > index) {
-      value = O[index++];
-      // eslint-disable-next-line no-self-compare -- NaN check
-      if (value !== value) return true;
-    // Array#indexOf ignores holes, Array#includes - not
-    } else for (;length > index; index++) {
-      if ((IS_INCLUDES || index in O) && O[index] === el) return IS_INCLUDES || index || 0;
-    } return !IS_INCLUDES && -1;
-  };
-};
-
-var arrayIncludes = {
-  // `Array.prototype.includes` method
-  // https://tc39.es/ecma262/#sec-array.prototype.includes
-  includes: createMethod$3(true),
-  // `Array.prototype.indexOf` method
-  // https://tc39.es/ecma262/#sec-array.prototype.indexof
-  indexOf: createMethod$3(false)
-};
-
-var arrayIncludes_default = /*@__PURE__*/getDefaultExportFromCjs(arrayIncludes);
-
-'use strict';
-var uncurryThis$g = functionUncurryThis;
-var hasOwn$5 = hasOwnProperty_1;
-var toIndexedObject$3 = toIndexedObject$6;
-var indexOf$1 = arrayIncludes.indexOf;
-var hiddenKeys$3 = hiddenKeys$5;
-
-var push$1 = uncurryThis$g([].push);
-
-var objectKeysInternal = function (object, names) {
-  var O = toIndexedObject$3(object);
-  var i = 0;
-  var result = [];
-  var key;
-  for (key in O) !hasOwn$5(hiddenKeys$3, key) && hasOwn$5(O, key) && push$1(result, key);
-  // Don't enum bug & hidden keys
-  while (names.length > i) if (hasOwn$5(O, key = names[i++])) {
-    ~indexOf$1(result, key) || push$1(result, key);
-  }
-  return result;
-};
-
-var objectKeysInternal_default = /*@__PURE__*/getDefaultExportFromCjs(objectKeysInternal);
-
-'use strict';
-// IE8- don't enum bug keys
-var enumBugKeys$3 = [
-  'constructor',
-  'hasOwnProperty',
-  'isPrototypeOf',
-  'propertyIsEnumerable',
-  'toLocaleString',
-  'toString',
-  'valueOf'
-];
-
-var enumBugKeys_default = /*@__PURE__*/getDefaultExportFromCjs(enumBugKeys$3);
-
-'use strict';
-var internalObjectKeys$1 = objectKeysInternal;
-var enumBugKeys$2 = enumBugKeys$3;
-
-var hiddenKeys$2 = enumBugKeys$2.concat('length', 'prototype');
-
-// `Object.getOwnPropertyNames` method
-// https://tc39.es/ecma262/#sec-object.getownpropertynames
-// eslint-disable-next-line es/no-object-getownpropertynames -- safe
-var f$3 = objectGetOwnPropertyNames.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O) {
-  return internalObjectKeys$1(O, hiddenKeys$2);
-};
-
-var objectGetOwnPropertySymbols = {};
-
-'use strict';
-// eslint-disable-next-line es/no-object-getownpropertysymbols -- safe
-var f$2 = objectGetOwnPropertySymbols.f = Object.getOwnPropertySymbols;
-
-'use strict';
-var getBuiltIn$1 = getBuiltIn$4;
-var uncurryThis$f = functionUncurryThis;
-var getOwnPropertyNamesModule$1 = objectGetOwnPropertyNames;
-var getOwnPropertySymbolsModule$1 = objectGetOwnPropertySymbols;
-var anObject$b = anObject$d;
-
-var concat$3 = uncurryThis$f([].concat);
-
-// all object keys, includes non-enumerable and symbols
-var ownKeys$1 = getBuiltIn$1('Reflect', 'ownKeys') || function ownKeys(it) {
-  var keys = getOwnPropertyNamesModule$1.f(anObject$b(it));
-  var getOwnPropertySymbols = getOwnPropertySymbolsModule$1.f;
-  return getOwnPropertySymbols ? concat$3(keys, getOwnPropertySymbols(it)) : keys;
-};
-
-var ownKeys_default = /*@__PURE__*/getDefaultExportFromCjs(ownKeys$1);
-
-'use strict';
-var hasOwn$4 = hasOwnProperty_1;
-var ownKeys = ownKeys$1;
-var getOwnPropertyDescriptorModule = objectGetOwnPropertyDescriptor;
-var definePropertyModule$1 = objectDefineProperty;
-
-var copyConstructorProperties$1 = function (target, source, exceptions) {
-  var keys = ownKeys(source);
-  var defineProperty = definePropertyModule$1.f;
-  var getOwnPropertyDescriptor = getOwnPropertyDescriptorModule.f;
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    if (!hasOwn$4(target, key) && !(exceptions && hasOwn$4(exceptions, key))) {
-      defineProperty(target, key, getOwnPropertyDescriptor(source, key));
-    }
-  }
-};
-
-var copyConstructorProperties_default = /*@__PURE__*/getDefaultExportFromCjs(copyConstructorProperties$1);
-
-'use strict';
-var fails$f = fails$p;
-var isCallable$7 = isCallable$j;
-
-var replacement = /#|\.prototype\./;
-
-var isForced$2 = function (feature, detection) {
-  var value = data[normalize(feature)];
-  return value === POLYFILL ? true
-    : value === NATIVE ? false
-    : isCallable$7(detection) ? fails$f(detection)
-    : !!detection;
-};
-
-var normalize = isForced$2.normalize = function (string) {
-  return String(string).replace(replacement, '.').toLowerCase();
-};
-
-var data = isForced$2.data = {};
-var NATIVE = isForced$2.NATIVE = 'N';
-var POLYFILL = isForced$2.POLYFILL = 'P';
-
-var isForced_1 = isForced$2;
-
-var isForced_default = /*@__PURE__*/getDefaultExportFromCjs(isForced_1);
-
-'use strict';
-var global$a = global$l;
-var getOwnPropertyDescriptor = objectGetOwnPropertyDescriptor.f;
-var createNonEnumerableProperty$3 = createNonEnumerableProperty$6;
-var defineBuiltIn$5 = defineBuiltIn$7;
-var defineGlobalProperty = defineGlobalProperty$3;
-var copyConstructorProperties = copyConstructorProperties$1;
-var isForced$1 = isForced_1;
-
-/*
-  options.target         - name of the target object
-  options.global         - target is the global object
-  options.stat           - export as static methods of target
-  options.proto          - export as prototype methods of target
-  options.real           - real prototype method for the `pure` version
-  options.forced         - export even if the native feature is available
-  options.bind           - bind methods to the target, required for the `pure` version
-  options.wrap           - wrap constructors to preventing global pollution, required for the `pure` version
-  options.unsafe         - use the simple assignment of property instead of delete + defineProperty
-  options.sham           - add a flag to not completely full polyfills
-  options.enumerable     - export as enumerable property
-  options.dontCallGetSet - prevent calling a getter on target
-  options.name           - the .name of the function if it does not match the key
-*/
-var _export = function (options, source) {
-  var TARGET = options.target;
-  var GLOBAL = options.global;
-  var STATIC = options.stat;
-  var FORCED, target, key, targetProperty, sourceProperty, descriptor;
-  if (GLOBAL) {
-    target = global$a;
-  } else if (STATIC) {
-    target = global$a[TARGET] || defineGlobalProperty(TARGET, {});
-  } else {
-    target = (global$a[TARGET] || {}).prototype;
-  }
-  if (target) for (key in source) {
-    sourceProperty = source[key];
-    if (options.dontCallGetSet) {
-      descriptor = getOwnPropertyDescriptor(target, key);
-      targetProperty = descriptor && descriptor.value;
-    } else targetProperty = target[key];
-    FORCED = isForced$1(GLOBAL ? key : TARGET + (STATIC ? '.' : '#') + key, options.forced);
-    // contained in target
-    if (!FORCED && targetProperty !== undefined) {
-      if (typeof sourceProperty == typeof targetProperty) continue;
-      copyConstructorProperties(sourceProperty, targetProperty);
-    }
-    // add a flag to not completely full polyfills
-    if (options.sham || (targetProperty && targetProperty.sham)) {
-      createNonEnumerableProperty$3(sourceProperty, 'sham', true);
-    }
-    defineBuiltIn$5(target, key, sourceProperty, options);
-  }
-};
-
-var _export_default = /*@__PURE__*/getDefaultExportFromCjs(_export);
-
-'use strict';
-var classof$5 = classof$a;
-
-var $String$1 = String;
-
-var toString$7 = function (argument) {
-  if (classof$5(argument) === 'Symbol') throw new TypeError('Cannot convert a Symbol value to a string');
-  return $String$1(argument);
-};
-
-var toString_default = /*@__PURE__*/getDefaultExportFromCjs(toString$7);
-
-'use strict';
-// a string of all valid unicode whitespaces
-var whitespaces$2 = '\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u2000\u2001\u2002' +
-  '\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF';
-
-var whitespaces_default = /*@__PURE__*/getDefaultExportFromCjs(whitespaces$2);
-
-'use strict';
-var uncurryThis$e = functionUncurryThis;
-var requireObjectCoercible$3 = requireObjectCoercible$6;
-var toString$6 = toString$7;
-var whitespaces$1 = whitespaces$2;
-
-var replace$2 = uncurryThis$e(''.replace);
-var ltrim = RegExp('^[' + whitespaces$1 + ']+');
-var rtrim = RegExp('(^|[^' + whitespaces$1 + '])[' + whitespaces$1 + ']+$');
-
-// `String.prototype.{ trim, trimStart, trimEnd, trimLeft, trimRight }` methods implementation
-var createMethod$2 = function (TYPE) {
-  return function ($this) {
-    var string = toString$6(requireObjectCoercible$3($this));
-    if (TYPE & 1) string = replace$2(string, ltrim, '');
-    if (TYPE & 2) string = replace$2(string, rtrim, '$1');
-    return string;
-  };
-};
-
-var stringTrim = {
-  // `String.prototype.{ trimLeft, trimStart }` methods
-  // https://tc39.es/ecma262/#sec-string.prototype.trimstart
-  start: createMethod$2(1),
-  // `String.prototype.{ trimRight, trimEnd }` methods
-  // https://tc39.es/ecma262/#sec-string.prototype.trimend
-  end: createMethod$2(2),
-  // `String.prototype.trim` method
-  // https://tc39.es/ecma262/#sec-string.prototype.trim
-  trim: createMethod$2(3)
-};
-
-var stringTrim_default = /*@__PURE__*/getDefaultExportFromCjs(stringTrim);
-
-'use strict';
-var global$9 = global$l;
-var fails$e = fails$p;
-var uncurryThis$d = functionUncurryThis;
-var toString$5 = toString$7;
-var trim = stringTrim.trim;
-var whitespaces = whitespaces$2;
-
-var $parseInt$1 = global$9.parseInt;
-var Symbol$1 = global$9.Symbol;
-var ITERATOR$6 = Symbol$1 && Symbol$1.iterator;
-var hex = /^[+-]?0x/i;
-var exec$1 = uncurryThis$d(hex.exec);
-var FORCED$1 = $parseInt$1(whitespaces + '08') !== 8 || $parseInt$1(whitespaces + '0x16') !== 22
-  // MS Edge 18- broken with boxed symbols
-  || (ITERATOR$6 && !fails$e(function () { $parseInt$1(Object(ITERATOR$6)); }));
-
-// `parseInt` method
-// https://tc39.es/ecma262/#sec-parseint-string-radix
-var numberParseInt = FORCED$1 ? function parseInt(string, radix) {
-  var S = trim(toString$5(string));
-  return $parseInt$1(S, (radix >>> 0) || (exec$1(hex, S) ? 16 : 10));
-} : $parseInt$1;
-
-var numberParseInt_default = /*@__PURE__*/getDefaultExportFromCjs(numberParseInt);
-
-'use strict';
-var $$7 = _export;
-var $parseInt = numberParseInt;
-
-// `parseInt` method
-// https://tc39.es/ecma262/#sec-parseint-string-radix
-$$7({ global: true, forced: parseInt !== $parseInt }, {
-  parseInt: $parseInt
-});
-
-var es_object_assign = {};
-
-'use strict';
-var internalObjectKeys = objectKeysInternal;
-var enumBugKeys$1 = enumBugKeys$3;
-
-// `Object.keys` method
-// https://tc39.es/ecma262/#sec-object.keys
-// eslint-disable-next-line es/no-object-keys -- safe
-var objectKeys$2 = Object.keys || function keys(O) {
-  return internalObjectKeys(O, enumBugKeys$1);
-};
-
-var objectKeys_default = /*@__PURE__*/getDefaultExportFromCjs(objectKeys$2);
-
-'use strict';
-var DESCRIPTORS$3 = descriptors;
-var uncurryThis$c = functionUncurryThis;
-var call$9 = functionCall;
-var fails$d = fails$p;
-var objectKeys$1 = objectKeys$2;
-var getOwnPropertySymbolsModule = objectGetOwnPropertySymbols;
-var propertyIsEnumerableModule = objectPropertyIsEnumerable;
-var toObject$3 = toObject$6;
-var IndexedObject$1 = indexedObject;
-
-// eslint-disable-next-line es/no-object-assign -- safe
-var $assign = Object.assign;
-// eslint-disable-next-line es/no-object-defineproperty -- required for testing
-var defineProperty$5 = Object.defineProperty;
-var concat$2 = uncurryThis$c([].concat);
-
-// `Object.assign` method
-// https://tc39.es/ecma262/#sec-object.assign
-var objectAssign = !$assign || fails$d(function () {
-  // should have correct order of operations (Edge bug)
-  if (DESCRIPTORS$3 && $assign({ b: 1 }, $assign(defineProperty$5({}, 'a', {
-    enumerable: true,
-    get: function () {
-      defineProperty$5(this, 'b', {
-        value: 3,
-        enumerable: false
-      });
-    }
-  }), { b: 2 })).b !== 1) return true;
-  // should work with symbols and should have deterministic property order (V8 bug)
-  var A = {};
-  var B = {};
-  // eslint-disable-next-line es/no-symbol -- safe
-  var symbol = Symbol('assign detection');
-  var alphabet = 'abcdefghijklmnopqrst';
-  A[symbol] = 7;
-  alphabet.split('').forEach(function (chr) { B[chr] = chr; });
-  return $assign({}, A)[symbol] !== 7 || objectKeys$1($assign({}, B)).join('') !== alphabet;
-}) ? function assign(target, source) { // eslint-disable-line no-unused-vars -- required for `.length`
-  var T = toObject$3(target);
-  var argumentsLength = arguments.length;
-  var index = 1;
-  var getOwnPropertySymbols = getOwnPropertySymbolsModule.f;
-  var propertyIsEnumerable = propertyIsEnumerableModule.f;
-  while (argumentsLength > index) {
-    var S = IndexedObject$1(arguments[index++]);
-    var keys = getOwnPropertySymbols ? concat$2(objectKeys$1(S), getOwnPropertySymbols(S)) : objectKeys$1(S);
-    var length = keys.length;
-    var j = 0;
-    var key;
-    while (length > j) {
-      key = keys[j++];
-      if (!DESCRIPTORS$3 || call$9(propertyIsEnumerable, S, key)) T[key] = S[key];
-    }
-  } return T;
-} : $assign;
-
-var objectAssign_default = /*@__PURE__*/getDefaultExportFromCjs(objectAssign);
-
-'use strict';
-var $$6 = _export;
-var assign = objectAssign;
-
-// `Object.assign` method
-// https://tc39.es/ecma262/#sec-object.assign
-// eslint-disable-next-line es/no-object-assign -- required for testing
-$$6({ target: 'Object', stat: true, arity: 2, forced: Object.assign !== assign }, {
-  assign: assign
-});
-
-var es_array_filter = {};
-
-'use strict';
-var fails$c = fails$p;
-var wellKnownSymbol$a = wellKnownSymbol$f;
-var V8_VERSION = engineV8Version;
-
-var SPECIES$1 = wellKnownSymbol$a('species');
-
-var arrayMethodHasSpeciesSupport$1 = function (METHOD_NAME) {
-  // We can't use this feature detection in V8 since it causes
-  // deoptimization and serious performance degradation
-  // https://github.com/zloirock/core-js/issues/677
-  return V8_VERSION >= 51 || !fails$c(function () {
-    var array = [];
-    var constructor = array.constructor = {};
-    constructor[SPECIES$1] = function () {
-      return { foo: 1 };
-    };
-    return array[METHOD_NAME](Boolean).foo !== 1;
-  });
-};
-
-var arrayMethodHasSpeciesSupport_default = /*@__PURE__*/getDefaultExportFromCjs(arrayMethodHasSpeciesSupport$1);
-
-'use strict';
-var $$5 = _export;
-var $filter = arrayIteration.filter;
-var arrayMethodHasSpeciesSupport = arrayMethodHasSpeciesSupport$1;
-
-var HAS_SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('filter');
-
-// `Array.prototype.filter` method
-// https://tc39.es/ecma262/#sec-array.prototype.filter
-// with adding support of @@species
-$$5({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT }, {
-  filter: function filter(callbackfn /* , thisArg */) {
-    return $filter(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-  }
-});
-
-var objectDefineProperties = {};
-
-'use strict';
-var DESCRIPTORS$2 = descriptors;
-var V8_PROTOTYPE_DEFINE_BUG = v8PrototypeDefineBug;
-var definePropertyModule = objectDefineProperty;
-var anObject$a = anObject$d;
-var toIndexedObject$2 = toIndexedObject$6;
-var objectKeys = objectKeys$2;
-
-// `Object.defineProperties` method
-// https://tc39.es/ecma262/#sec-object.defineproperties
-// eslint-disable-next-line es/no-object-defineproperties -- safe
-var f$1 = objectDefineProperties.f = DESCRIPTORS$2 && !V8_PROTOTYPE_DEFINE_BUG ? Object.defineProperties : function defineProperties(O, Properties) {
-  anObject$a(O);
-  var props = toIndexedObject$2(Properties);
-  var keys = objectKeys(Properties);
-  var length = keys.length;
-  var index = 0;
-  var key;
-  while (length > index) definePropertyModule.f(O, key = keys[index++], props[key]);
-  return O;
-};
-
-'use strict';
-var getBuiltIn = getBuiltIn$4;
-
-var html$1 = getBuiltIn('document', 'documentElement');
-
-var html_default = /*@__PURE__*/getDefaultExportFromCjs(html$1);
-
-'use strict';
-/* global ActiveXObject -- old IE, WSH */
-var anObject$9 = anObject$d;
-var definePropertiesModule = objectDefineProperties;
-var enumBugKeys = enumBugKeys$3;
-var hiddenKeys$1 = hiddenKeys$5;
-var html = html$1;
-var documentCreateElement = documentCreateElement$2;
-var sharedKey$1 = sharedKey$3;
-
-var GT = '>';
-var LT = '<';
-var PROTOTYPE = 'prototype';
-var SCRIPT = 'script';
-var IE_PROTO$1 = sharedKey$1('IE_PROTO');
-
-var EmptyConstructor = function () { /* empty */ };
-
-var scriptTag = function (content) {
-  return LT + SCRIPT + GT + content + LT + '/' + SCRIPT + GT;
-};
-
-// Create object with fake `null` prototype: use ActiveX Object with cleared prototype
-var NullProtoObjectViaActiveX = function (activeXDocument) {
-  activeXDocument.write(scriptTag(''));
-  activeXDocument.close();
-  var temp = activeXDocument.parentWindow.Object;
-  activeXDocument = null; // avoid memory leak
-  return temp;
-};
-
-// Create object with fake `null` prototype: use iframe Object with cleared prototype
-var NullProtoObjectViaIFrame = function () {
-  // Thrash, waste and sodomy: IE GC bug
-  var iframe = documentCreateElement('iframe');
-  var JS = 'java' + SCRIPT + ':';
-  var iframeDocument;
-  iframe.style.display = 'none';
-  html.appendChild(iframe);
-  // https://github.com/zloirock/core-js/issues/475
-  iframe.src = String(JS);
-  iframeDocument = iframe.contentWindow.document;
-  iframeDocument.open();
-  iframeDocument.write(scriptTag('document.F=Object'));
-  iframeDocument.close();
-  return iframeDocument.F;
-};
-
-// Check for document.domain and active x support
-// No need to use active x approach when document.domain is not set
-// see https://github.com/es-shims/es5-shim/issues/150
-// variation of https://github.com/kitcambridge/es5-shim/commit/4f738ac066346
-// avoid IE GC bug
-var activeXDocument;
-var NullProtoObject = function () {
-  try {
-    activeXDocument = new ActiveXObject('htmlfile');
-  } catch (error) { /* ignore */ }
-  NullProtoObject = typeof document != 'undefined'
-    ? document.domain && activeXDocument
-      ? NullProtoObjectViaActiveX(activeXDocument) // old IE
-      : NullProtoObjectViaIFrame()
-    : NullProtoObjectViaActiveX(activeXDocument); // WSH
-  var length = enumBugKeys.length;
-  while (length--) delete NullProtoObject[PROTOTYPE][enumBugKeys[length]];
-  return NullProtoObject();
-};
-
-hiddenKeys$1[IE_PROTO$1] = true;
-
-// `Object.create` method
-// https://tc39.es/ecma262/#sec-object.create
-// eslint-disable-next-line es/no-object-create -- safe
-var objectCreate = Object.create || function create(O, Properties) {
-  var result;
-  if (O !== null) {
-    EmptyConstructor[PROTOTYPE] = anObject$9(O);
-    result = new EmptyConstructor();
-    EmptyConstructor[PROTOTYPE] = null;
-    // add "__proto__" for Object.getPrototypeOf polyfill
-    result[IE_PROTO$1] = O;
-  } else result = NullProtoObject();
-  return Properties === undefined ? result : definePropertiesModule.f(result, Properties);
-};
-
-var objectCreate_default = /*@__PURE__*/getDefaultExportFromCjs(objectCreate);
-
-'use strict';
-var wellKnownSymbol$9 = wellKnownSymbol$f;
-var create$3 = objectCreate;
-var defineProperty$4 = objectDefineProperty.f;
-
-var UNSCOPABLES = wellKnownSymbol$9('unscopables');
-var ArrayPrototype$1 = Array.prototype;
-
-// Array.prototype[@@unscopables]
-// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
-if (ArrayPrototype$1[UNSCOPABLES] === undefined) {
-  defineProperty$4(ArrayPrototype$1, UNSCOPABLES, {
-    configurable: true,
-    value: create$3(null)
-  });
-}
-
-// add a key to Array.prototype[@@unscopables]
-var addToUnscopables$1 = function (key) {
-  ArrayPrototype$1[UNSCOPABLES][key] = true;
-};
-
-var addToUnscopables_default = /*@__PURE__*/getDefaultExportFromCjs(addToUnscopables$1);
-
-'use strict';
-var iterators = {};
-
-var iterators_default = /*@__PURE__*/getDefaultExportFromCjs(iterators);
-
-'use strict';
-var fails$b = fails$p;
-
-var correctPrototypeGetter = !fails$b(function () {
-  function F() { /* empty */ }
-  F.prototype.constructor = null;
-  // eslint-disable-next-line es/no-object-getprototypeof -- required for testing
-  return Object.getPrototypeOf(new F()) !== F.prototype;
-});
-
-var correctPrototypeGetter_default = /*@__PURE__*/getDefaultExportFromCjs(correctPrototypeGetter);
-
-'use strict';
-var hasOwn$3 = hasOwnProperty_1;
-var isCallable$6 = isCallable$j;
-var toObject$2 = toObject$6;
-var sharedKey = sharedKey$3;
-var CORRECT_PROTOTYPE_GETTER = correctPrototypeGetter;
-
-var IE_PROTO = sharedKey('IE_PROTO');
-var $Object$1 = Object;
-var ObjectPrototype = $Object$1.prototype;
-
-// `Object.getPrototypeOf` method
-// https://tc39.es/ecma262/#sec-object.getprototypeof
-// eslint-disable-next-line es/no-object-getprototypeof -- safe
-var objectGetPrototypeOf = CORRECT_PROTOTYPE_GETTER ? $Object$1.getPrototypeOf : function (O) {
-  var object = toObject$2(O);
-  if (hasOwn$3(object, IE_PROTO)) return object[IE_PROTO];
-  var constructor = object.constructor;
-  if (isCallable$6(constructor) && object instanceof constructor) {
-    return constructor.prototype;
-  } return object instanceof $Object$1 ? ObjectPrototype : null;
-};
-
-var objectGetPrototypeOf_default = /*@__PURE__*/getDefaultExportFromCjs(objectGetPrototypeOf);
-
-'use strict';
-var fails$a = fails$p;
-var isCallable$5 = isCallable$j;
-var isObject$a = isObject$h;
-var create$2 = objectCreate;
-var getPrototypeOf$1 = objectGetPrototypeOf;
-var defineBuiltIn$4 = defineBuiltIn$7;
-var wellKnownSymbol$8 = wellKnownSymbol$f;
-var IS_PURE$2 = isPure;
-
-var ITERATOR$5 = wellKnownSymbol$8('iterator');
-var BUGGY_SAFARI_ITERATORS$1 = false;
-
-// `%IteratorPrototype%` object
-// https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-var IteratorPrototype$2, PrototypeOfArrayIteratorPrototype, arrayIterator;
-
-/* eslint-disable es/no-array-prototype-keys -- safe */
-if ([].keys) {
-  arrayIterator = [].keys();
-  // Safari 8 has buggy iterators w/o `next`
-  if (!('next' in arrayIterator)) BUGGY_SAFARI_ITERATORS$1 = true;
-  else {
-    PrototypeOfArrayIteratorPrototype = getPrototypeOf$1(getPrototypeOf$1(arrayIterator));
-    if (PrototypeOfArrayIteratorPrototype !== Object.prototype) IteratorPrototype$2 = PrototypeOfArrayIteratorPrototype;
-  }
-}
-
-var NEW_ITERATOR_PROTOTYPE = !isObject$a(IteratorPrototype$2) || fails$a(function () {
-  var test = {};
-  // FF44- legacy iterators case
-  return IteratorPrototype$2[ITERATOR$5].call(test) !== test;
-});
-
-if (NEW_ITERATOR_PROTOTYPE) IteratorPrototype$2 = {};
-else if (IS_PURE$2) IteratorPrototype$2 = create$2(IteratorPrototype$2);
-
-// `%IteratorPrototype%[@@iterator]()` method
-// https://tc39.es/ecma262/#sec-%iteratorprototype%-@@iterator
-if (!isCallable$5(IteratorPrototype$2[ITERATOR$5])) {
-  defineBuiltIn$4(IteratorPrototype$2, ITERATOR$5, function () {
-    return this;
-  });
-}
-
-var iteratorsCore = {
-  IteratorPrototype: IteratorPrototype$2,
-  BUGGY_SAFARI_ITERATORS: BUGGY_SAFARI_ITERATORS$1
-};
-
-var iteratorsCore_default = /*@__PURE__*/getDefaultExportFromCjs(iteratorsCore);
-
-'use strict';
-var defineProperty$3 = objectDefineProperty.f;
-var hasOwn$2 = hasOwnProperty_1;
-var wellKnownSymbol$7 = wellKnownSymbol$f;
-
-var TO_STRING_TAG = wellKnownSymbol$7('toStringTag');
-
-var setToStringTag$4 = function (target, TAG, STATIC) {
-  if (target && !STATIC) target = target.prototype;
-  if (target && !hasOwn$2(target, TO_STRING_TAG)) {
-    defineProperty$3(target, TO_STRING_TAG, { configurable: true, value: TAG });
-  }
-};
-
-var setToStringTag_default = /*@__PURE__*/getDefaultExportFromCjs(setToStringTag$4);
-
-'use strict';
-var IteratorPrototype$1 = iteratorsCore.IteratorPrototype;
-var create$1 = objectCreate;
-var createPropertyDescriptor = createPropertyDescriptor$3;
-var setToStringTag$3 = setToStringTag$4;
-var Iterators$4 = iterators;
-
-var returnThis$1 = function () { return this; };
-
-var iteratorCreateConstructor = function (IteratorConstructor, NAME, next, ENUMERABLE_NEXT) {
-  var TO_STRING_TAG = NAME + ' Iterator';
-  IteratorConstructor.prototype = create$1(IteratorPrototype$1, { next: createPropertyDescriptor(+!ENUMERABLE_NEXT, next) });
-  setToStringTag$3(IteratorConstructor, TO_STRING_TAG, false, true);
-  Iterators$4[TO_STRING_TAG] = returnThis$1;
-  return IteratorConstructor;
-};
-
-var iteratorCreateConstructor_default = /*@__PURE__*/getDefaultExportFromCjs(iteratorCreateConstructor);
-
-'use strict';
-var uncurryThis$b = functionUncurryThis;
-var aCallable$2 = aCallable$5;
-
-var functionUncurryThisAccessor = function (object, key, method) {
-  try {
-    // eslint-disable-next-line es/no-object-getownpropertydescriptor -- safe
-    return uncurryThis$b(aCallable$2(Object.getOwnPropertyDescriptor(object, key)[method]));
-  } catch (error) { /* empty */ }
-};
-
-var functionUncurryThisAccessor_default = /*@__PURE__*/getDefaultExportFromCjs(functionUncurryThisAccessor);
-
-'use strict';
-var isObject$9 = isObject$h;
-
-var isPossiblePrototype$1 = function (argument) {
-  return isObject$9(argument) || argument === null;
-};
-
-var isPossiblePrototype_default = /*@__PURE__*/getDefaultExportFromCjs(isPossiblePrototype$1);
-
-'use strict';
-var isPossiblePrototype = isPossiblePrototype$1;
-
-var $String = String;
-var $TypeError$5 = TypeError;
-
-var aPossiblePrototype$1 = function (argument) {
-  if (isPossiblePrototype(argument)) return argument;
-  throw new $TypeError$5("Can't set " + $String(argument) + ' as a prototype');
-};
-
-var aPossiblePrototype_default = /*@__PURE__*/getDefaultExportFromCjs(aPossiblePrototype$1);
-
-'use strict';
-/* eslint-disable no-proto -- safe */
-var uncurryThisAccessor = functionUncurryThisAccessor;
-var anObject$8 = anObject$d;
-var aPossiblePrototype = aPossiblePrototype$1;
-
-// `Object.setPrototypeOf` method
-// https://tc39.es/ecma262/#sec-object.setprototypeof
-// Works with __proto__ only. Old v8 can't work with null proto objects.
-// eslint-disable-next-line es/no-object-setprototypeof -- safe
-var objectSetPrototypeOf = Object.setPrototypeOf || ('__proto__' in {} ? function () {
-  var CORRECT_SETTER = false;
-  var test = {};
-  var setter;
-  try {
-    setter = uncurryThisAccessor(Object.prototype, '__proto__', 'set');
-    setter(test, []);
-    CORRECT_SETTER = test instanceof Array;
-  } catch (error) { /* empty */ }
-  return function setPrototypeOf(O, proto) {
-    anObject$8(O);
-    aPossiblePrototype(proto);
-    if (CORRECT_SETTER) setter(O, proto);
-    else O.__proto__ = proto;
-    return O;
-  };
-}() : undefined);
-
-var objectSetPrototypeOf_default = /*@__PURE__*/getDefaultExportFromCjs(objectSetPrototypeOf);
-
-'use strict';
-var $$4 = _export;
-var call$8 = functionCall;
-var IS_PURE$1 = isPure;
-var FunctionName = functionName;
-var isCallable$4 = isCallable$j;
-var createIteratorConstructor = iteratorCreateConstructor;
-var getPrototypeOf = objectGetPrototypeOf;
-var setPrototypeOf$1 = objectSetPrototypeOf;
-var setToStringTag$2 = setToStringTag$4;
-var createNonEnumerableProperty$2 = createNonEnumerableProperty$6;
-var defineBuiltIn$3 = defineBuiltIn$7;
-var wellKnownSymbol$6 = wellKnownSymbol$f;
-var Iterators$3 = iterators;
-var IteratorsCore = iteratorsCore;
-
-var PROPER_FUNCTION_NAME = FunctionName.PROPER;
-var CONFIGURABLE_FUNCTION_NAME = FunctionName.CONFIGURABLE;
-var IteratorPrototype = IteratorsCore.IteratorPrototype;
-var BUGGY_SAFARI_ITERATORS = IteratorsCore.BUGGY_SAFARI_ITERATORS;
-var ITERATOR$4 = wellKnownSymbol$6('iterator');
-var KEYS = 'keys';
-var VALUES = 'values';
-var ENTRIES = 'entries';
-
-var returnThis = function () { return this; };
-
-var iteratorDefine = function (Iterable, NAME, IteratorConstructor, next, DEFAULT, IS_SET, FORCED) {
-  createIteratorConstructor(IteratorConstructor, NAME, next);
-
-  var getIterationMethod = function (KIND) {
-    if (KIND === DEFAULT && defaultIterator) return defaultIterator;
-    if (!BUGGY_SAFARI_ITERATORS && KIND && KIND in IterablePrototype) return IterablePrototype[KIND];
-
-    switch (KIND) {
-      case KEYS: return function keys() { return new IteratorConstructor(this, KIND); };
-      case VALUES: return function values() { return new IteratorConstructor(this, KIND); };
-      case ENTRIES: return function entries() { return new IteratorConstructor(this, KIND); };
-    }
-
-    return function () { return new IteratorConstructor(this); };
-  };
-
-  var TO_STRING_TAG = NAME + ' Iterator';
-  var INCORRECT_VALUES_NAME = false;
-  var IterablePrototype = Iterable.prototype;
-  var nativeIterator = IterablePrototype[ITERATOR$4]
-    || IterablePrototype['@@iterator']
-    || DEFAULT && IterablePrototype[DEFAULT];
-  var defaultIterator = !BUGGY_SAFARI_ITERATORS && nativeIterator || getIterationMethod(DEFAULT);
-  var anyNativeIterator = NAME === 'Array' ? IterablePrototype.entries || nativeIterator : nativeIterator;
-  var CurrentIteratorPrototype, methods, KEY;
-
-  // fix native
-  if (anyNativeIterator) {
-    CurrentIteratorPrototype = getPrototypeOf(anyNativeIterator.call(new Iterable()));
-    if (CurrentIteratorPrototype !== Object.prototype && CurrentIteratorPrototype.next) {
-      if (!IS_PURE$1 && getPrototypeOf(CurrentIteratorPrototype) !== IteratorPrototype) {
-        if (setPrototypeOf$1) {
-          setPrototypeOf$1(CurrentIteratorPrototype, IteratorPrototype);
-        } else if (!isCallable$4(CurrentIteratorPrototype[ITERATOR$4])) {
-          defineBuiltIn$3(CurrentIteratorPrototype, ITERATOR$4, returnThis);
-        }
-      }
-      // Set @@toStringTag to native iterators
-      setToStringTag$2(CurrentIteratorPrototype, TO_STRING_TAG, true, true);
-      if (IS_PURE$1) Iterators$3[TO_STRING_TAG] = returnThis;
-    }
-  }
-
-  // fix Array.prototype.{ values, @@iterator }.name in V8 / FF
-  if (PROPER_FUNCTION_NAME && DEFAULT === VALUES && nativeIterator && nativeIterator.name !== VALUES) {
-    if (!IS_PURE$1 && CONFIGURABLE_FUNCTION_NAME) {
-      createNonEnumerableProperty$2(IterablePrototype, 'name', VALUES);
-    } else {
-      INCORRECT_VALUES_NAME = true;
-      defaultIterator = function values() { return call$8(nativeIterator, this); };
-    }
-  }
-
-  // export additional methods
-  if (DEFAULT) {
-    methods = {
-      values: getIterationMethod(VALUES),
-      keys: IS_SET ? defaultIterator : getIterationMethod(KEYS),
-      entries: getIterationMethod(ENTRIES)
-    };
-    if (FORCED) for (KEY in methods) {
-      if (BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME || !(KEY in IterablePrototype)) {
-        defineBuiltIn$3(IterablePrototype, KEY, methods[KEY]);
-      }
-    } else $$4({ target: NAME, proto: true, forced: BUGGY_SAFARI_ITERATORS || INCORRECT_VALUES_NAME }, methods);
-  }
-
-  // define iterator
-  if ((!IS_PURE$1 || FORCED) && IterablePrototype[ITERATOR$4] !== defaultIterator) {
-    defineBuiltIn$3(IterablePrototype, ITERATOR$4, defaultIterator, { name: DEFAULT });
-  }
-  Iterators$3[NAME] = defaultIterator;
-
-  return methods;
-};
-
-var iteratorDefine_default = /*@__PURE__*/getDefaultExportFromCjs(iteratorDefine);
-
-'use strict';
-// `CreateIterResultObject` abstract operation
-// https://tc39.es/ecma262/#sec-createiterresultobject
-var createIterResultObject$2 = function (value, done) {
-  return { value: value, done: done };
-};
-
-var createIterResultObject_default = /*@__PURE__*/getDefaultExportFromCjs(createIterResultObject$2);
-
-'use strict';
-var toIndexedObject$1 = toIndexedObject$6;
-var addToUnscopables = addToUnscopables$1;
-var Iterators$2 = iterators;
-var InternalStateModule$2 = internalState;
-var defineProperty$2 = objectDefineProperty.f;
-var defineIterator$1 = iteratorDefine;
-var createIterResultObject$1 = createIterResultObject$2;
-var IS_PURE = isPure;
-var DESCRIPTORS$1 = descriptors;
-
-var ARRAY_ITERATOR = 'Array Iterator';
-var setInternalState$2 = InternalStateModule$2.set;
-var getInternalState$2 = InternalStateModule$2.getterFor(ARRAY_ITERATOR);
-
-// `Array.prototype.entries` method
-// https://tc39.es/ecma262/#sec-array.prototype.entries
-// `Array.prototype.keys` method
-// https://tc39.es/ecma262/#sec-array.prototype.keys
-// `Array.prototype.values` method
-// https://tc39.es/ecma262/#sec-array.prototype.values
-// `Array.prototype[@@iterator]` method
-// https://tc39.es/ecma262/#sec-array.prototype-@@iterator
-// `CreateArrayIterator` internal method
-// https://tc39.es/ecma262/#sec-createarrayiterator
-var es_array_iterator = defineIterator$1(Array, 'Array', function (iterated, kind) {
-  setInternalState$2(this, {
-    type: ARRAY_ITERATOR,
-    target: toIndexedObject$1(iterated), // target
-    index: 0,                          // next index
-    kind: kind                         // kind
-  });
-// `%ArrayIteratorPrototype%.next` method
-// https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
-}, function () {
-  var state = getInternalState$2(this);
-  var target = state.target;
-  var index = state.index++;
-  if (!target || index >= target.length) {
-    state.target = undefined;
-    return createIterResultObject$1(undefined, true);
-  }
-  switch (state.kind) {
-    case 'keys': return createIterResultObject$1(index, false);
-    case 'values': return createIterResultObject$1(target[index], false);
-  } return createIterResultObject$1([index, target[index]], false);
-}, 'values');
-
-// argumentsList[@@iterator] is %ArrayProto_values%
-// https://tc39.es/ecma262/#sec-createunmappedargumentsobject
-// https://tc39.es/ecma262/#sec-createmappedargumentsobject
-var values = Iterators$2.Arguments = Iterators$2.Array;
-
-// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
-addToUnscopables('keys');
-addToUnscopables('values');
-addToUnscopables('entries');
-
-// V8 ~ Chrome 45- bug
-if (!IS_PURE && DESCRIPTORS$1 && values.name !== 'values') try {
-  defineProperty$2(values, 'name', { value: 'values' });
-} catch (error) { /* empty */ }
-
-var es_array_iterator_default = /*@__PURE__*/getDefaultExportFromCjs(es_array_iterator);
-
-var es_string_iterator = {};
-
-'use strict';
-var uncurryThis$a = functionUncurryThis;
-var toIntegerOrInfinity$1 = toIntegerOrInfinity$4;
-var toString$4 = toString$7;
-var requireObjectCoercible$2 = requireObjectCoercible$6;
-
-var charAt$4 = uncurryThis$a(''.charAt);
-var charCodeAt = uncurryThis$a(''.charCodeAt);
-var stringSlice$3 = uncurryThis$a(''.slice);
-
-var createMethod$1 = function (CONVERT_TO_STRING) {
-  return function ($this, pos) {
-    var S = toString$4(requireObjectCoercible$2($this));
-    var position = toIntegerOrInfinity$1(pos);
-    var size = S.length;
-    var first, second;
-    if (position < 0 || position >= size) return CONVERT_TO_STRING ? '' : undefined;
-    first = charCodeAt(S, position);
-    return first < 0xD800 || first > 0xDBFF || position + 1 === size
-      || (second = charCodeAt(S, position + 1)) < 0xDC00 || second > 0xDFFF
-        ? CONVERT_TO_STRING
-          ? charAt$4(S, position)
-          : first
-        : CONVERT_TO_STRING
-          ? stringSlice$3(S, position, position + 2)
-          : (first - 0xD800 << 10) + (second - 0xDC00) + 0x10000;
-  };
-};
-
-var stringMultibyte = {
-  // `String.prototype.codePointAt` method
-  // https://tc39.es/ecma262/#sec-string.prototype.codepointat
-  codeAt: createMethod$1(false),
-  // `String.prototype.at` method
-  // https://github.com/mathiasbynens/String.prototype.at
-  charAt: createMethod$1(true)
-};
-
-var stringMultibyte_default = /*@__PURE__*/getDefaultExportFromCjs(stringMultibyte);
-
-'use strict';
-var charAt$3 = stringMultibyte.charAt;
-var toString$3 = toString$7;
-var InternalStateModule$1 = internalState;
-var defineIterator = iteratorDefine;
-var createIterResultObject = createIterResultObject$2;
-
-var STRING_ITERATOR = 'String Iterator';
-var setInternalState$1 = InternalStateModule$1.set;
-var getInternalState$1 = InternalStateModule$1.getterFor(STRING_ITERATOR);
-
-// `String.prototype[@@iterator]` method
-// https://tc39.es/ecma262/#sec-string.prototype-@@iterator
-defineIterator(String, 'String', function (iterated) {
-  setInternalState$1(this, {
-    type: STRING_ITERATOR,
-    string: toString$3(iterated),
-    index: 0
-  });
-// `%StringIteratorPrototype%.next` method
-// https://tc39.es/ecma262/#sec-%stringiteratorprototype%.next
-}, function next() {
-  var state = getInternalState$1(this);
-  var string = state.string;
-  var index = state.index;
-  var point;
-  if (index >= string.length) return createIterResultObject(undefined, true);
-  point = charAt$3(string, index);
-  state.index += point.length;
-  return createIterResultObject(point, false);
-});
-
-var es_weakMap = {};
-
-var es_weakMap_constructor = {};
-
-'use strict';
-var fails$9 = fails$p;
-
-var freezing = !fails$9(function () {
-  // eslint-disable-next-line es/no-object-isextensible, es/no-object-preventextensions -- required for testing
-  return Object.isExtensible(Object.preventExtensions({}));
-});
-
-var freezing_default = /*@__PURE__*/getDefaultExportFromCjs(freezing);
-
-'use strict';
-var defineBuiltIn$2 = defineBuiltIn$7;
-
-var defineBuiltIns$2 = function (target, src, options) {
-  for (var key in src) defineBuiltIn$2(target, key, src[key], options);
-  return target;
-};
-
-var defineBuiltIns_default = /*@__PURE__*/getDefaultExportFromCjs(defineBuiltIns$2);
-
-var internalMetadata$1 = {exports: {}};
-
-var objectGetOwnPropertyNamesExternal = {};
-
-'use strict';
-var uncurryThis$9 = functionUncurryThis;
-
-var arraySlice$1 = uncurryThis$9([].slice);
-
-var arraySlice_default = /*@__PURE__*/getDefaultExportFromCjs(arraySlice$1);
-
-'use strict';
-/* eslint-disable es/no-object-getownpropertynames -- safe */
-var classof$4 = classofRaw$2;
-var toIndexedObject = toIndexedObject$6;
-var $getOwnPropertyNames = objectGetOwnPropertyNames.f;
-var arraySlice = arraySlice$1;
-
-var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
-  ? Object.getOwnPropertyNames(window) : [];
-
-var getWindowNames = function (it) {
-  try {
-    return $getOwnPropertyNames(it);
-  } catch (error) {
-    return arraySlice(windowNames);
-  }
-};
-
-// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
-var f = objectGetOwnPropertyNamesExternal.f = function getOwnPropertyNames(it) {
-  return windowNames && classof$4(it) === 'Window'
-    ? getWindowNames(it)
-    : $getOwnPropertyNames(toIndexedObject(it));
-};
-
-'use strict';
-// FF26- bug: ArrayBuffers are non-extensible, but Object.isExtensible does not report it
-var fails$8 = fails$p;
-
-var arrayBufferNonExtensible = fails$8(function () {
-  if (typeof ArrayBuffer == 'function') {
-    var buffer = new ArrayBuffer(8);
-    // eslint-disable-next-line es/no-object-isextensible, es/no-object-defineproperty -- safe
-    if (Object.isExtensible(buffer)) Object.defineProperty(buffer, 'a', { value: 8 });
-  }
-});
-
-var arrayBufferNonExtensible_default = /*@__PURE__*/getDefaultExportFromCjs(arrayBufferNonExtensible);
-
-'use strict';
-var fails$7 = fails$p;
-var isObject$8 = isObject$h;
-var classof$3 = classofRaw$2;
-var ARRAY_BUFFER_NON_EXTENSIBLE = arrayBufferNonExtensible;
-
-// eslint-disable-next-line es/no-object-isextensible -- safe
-var $isExtensible = Object.isExtensible;
-var FAILS_ON_PRIMITIVES = fails$7(function () { $isExtensible(1); });
-
-// `Object.isExtensible` method
-// https://tc39.es/ecma262/#sec-object.isextensible
-var objectIsExtensible = (FAILS_ON_PRIMITIVES || ARRAY_BUFFER_NON_EXTENSIBLE) ? function isExtensible(it) {
-  if (!isObject$8(it)) return false;
-  if (ARRAY_BUFFER_NON_EXTENSIBLE && classof$3(it) === 'ArrayBuffer') return false;
-  return $isExtensible ? $isExtensible(it) : true;
-} : $isExtensible;
-
-var objectIsExtensible_default = /*@__PURE__*/getDefaultExportFromCjs(objectIsExtensible);
-
-var internalMetadata = internalMetadata$1.exports;
-
-'use strict';
-var $$3 = _export;
-var uncurryThis$8 = functionUncurryThis;
-var hiddenKeys = hiddenKeys$5;
-var isObject$7 = isObject$h;
-var hasOwn$1 = hasOwnProperty_1;
-var defineProperty$1 = objectDefineProperty.f;
-var getOwnPropertyNamesModule = objectGetOwnPropertyNames;
-var getOwnPropertyNamesExternalModule = objectGetOwnPropertyNamesExternal;
-var isExtensible$1 = objectIsExtensible;
-var uid = uid$3;
-var FREEZING$1 = freezing;
-
-var REQUIRED = false;
-var METADATA = uid('meta');
-var id$1 = 0;
-
-var setMetadata = function (it) {
-  defineProperty$1(it, METADATA, { value: {
-    objectID: 'O' + id$1++, // object ID
-    weakData: {}          // weak collections IDs
-  } });
-};
-
-var fastKey = function (it, create) {
-  // return a primitive with prefix
-  if (!isObject$7(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-  if (!hasOwn$1(it, METADATA)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible$1(it)) return 'F';
-    // not necessary to add metadata
-    if (!create) return 'E';
-    // add missing metadata
-    setMetadata(it);
-  // return object ID
-  } return it[METADATA].objectID;
-};
-
-var getWeakData$1 = function (it, create) {
-  if (!hasOwn$1(it, METADATA)) {
-    // can't set metadata to uncaught frozen object
-    if (!isExtensible$1(it)) return true;
-    // not necessary to add metadata
-    if (!create) return false;
-    // add missing metadata
-    setMetadata(it);
-  // return the store of weak collections IDs
-  } return it[METADATA].weakData;
-};
-
-// add metadata on freeze-family methods calling
-var onFreeze = function (it) {
-  if (FREEZING$1 && REQUIRED && isExtensible$1(it) && !hasOwn$1(it, METADATA)) setMetadata(it);
-  return it;
-};
-
-var enable = function () {
-  meta.enable = function () { /* empty */ };
-  REQUIRED = true;
-  var getOwnPropertyNames = getOwnPropertyNamesModule.f;
-  var splice = uncurryThis$8([].splice);
-  var test = {};
-  test[METADATA] = 1;
-
-  // prevent exposing of metadata key
-  if (getOwnPropertyNames(test).length) {
-    getOwnPropertyNamesModule.f = function (it) {
-      var result = getOwnPropertyNames(it);
-      for (var i = 0, length = result.length; i < length; i++) {
-        if (result[i] === METADATA) {
-          splice(result, i, 1);
-          break;
-        }
-      } return result;
-    };
-
-    $$3({ target: 'Object', stat: true, forced: true }, {
-      getOwnPropertyNames: getOwnPropertyNamesExternalModule.f
-    });
-  }
-};
-
-var meta = internalMetadata$1.exports = {
-  enable: enable,
-  fastKey: fastKey,
-  getWeakData: getWeakData$1,
-  onFreeze: onFreeze
-};
-
-hiddenKeys[METADATA] = true;
-
-var internalMetadataExports = internalMetadata$1.exports;
-var internalMetadata_default = /*@__PURE__*/getDefaultExportFromCjs(internalMetadataExports);
-
-'use strict';
-var wellKnownSymbol$5 = wellKnownSymbol$f;
-var Iterators$1 = iterators;
-
-var ITERATOR$3 = wellKnownSymbol$5('iterator');
-var ArrayPrototype = Array.prototype;
-
-// check on default Array iterator
-var isArrayIteratorMethod$1 = function (it) {
-  return it !== undefined && (Iterators$1.Array === it || ArrayPrototype[ITERATOR$3] === it);
-};
-
-var isArrayIteratorMethod_default = /*@__PURE__*/getDefaultExportFromCjs(isArrayIteratorMethod$1);
-
-'use strict';
-var classof$2 = classof$a;
-var getMethod$3 = getMethod$5;
-var isNullOrUndefined$4 = isNullOrUndefined$7;
-var Iterators = iterators;
-var wellKnownSymbol$4 = wellKnownSymbol$f;
-
-var ITERATOR$2 = wellKnownSymbol$4('iterator');
-
-var getIteratorMethod$2 = function (it) {
-  if (!isNullOrUndefined$4(it)) return getMethod$3(it, ITERATOR$2)
-    || getMethod$3(it, '@@iterator')
-    || Iterators[classof$2(it)];
-};
-
-var getIteratorMethod_default = /*@__PURE__*/getDefaultExportFromCjs(getIteratorMethod$2);
-
-'use strict';
-var call$7 = functionCall;
-var aCallable$1 = aCallable$5;
-var anObject$7 = anObject$d;
-var tryToString$1 = tryToString$3;
-var getIteratorMethod$1 = getIteratorMethod$2;
-
-var $TypeError$4 = TypeError;
-
-var getIterator$1 = function (argument, usingIterator) {
-  var iteratorMethod = arguments.length < 2 ? getIteratorMethod$1(argument) : usingIterator;
-  if (aCallable$1(iteratorMethod)) return anObject$7(call$7(iteratorMethod, argument));
-  throw new $TypeError$4(tryToString$1(argument) + ' is not iterable');
-};
-
-var getIterator_default = /*@__PURE__*/getDefaultExportFromCjs(getIterator$1);
-
-'use strict';
-var call$6 = functionCall;
-var anObject$6 = anObject$d;
-var getMethod$2 = getMethod$5;
-
-var iteratorClose$1 = function (iterator, kind, value) {
-  var innerResult, innerError;
-  anObject$6(iterator);
-  try {
-    innerResult = getMethod$2(iterator, 'return');
-    if (!innerResult) {
-      if (kind === 'throw') throw value;
-      return value;
-    }
-    innerResult = call$6(innerResult, iterator);
-  } catch (error) {
-    innerError = true;
-    innerResult = error;
-  }
-  if (kind === 'throw') throw value;
-  if (innerError) throw innerResult;
-  anObject$6(innerResult);
-  return value;
-};
-
-var iteratorClose_default = /*@__PURE__*/getDefaultExportFromCjs(iteratorClose$1);
-
-'use strict';
-var bind = functionBindContext;
-var call$5 = functionCall;
-var anObject$5 = anObject$d;
-var tryToString = tryToString$3;
-var isArrayIteratorMethod = isArrayIteratorMethod$1;
-var lengthOfArrayLike$1 = lengthOfArrayLike$4;
-var isPrototypeOf$1 = objectIsPrototypeOf;
-var getIterator = getIterator$1;
-var getIteratorMethod = getIteratorMethod$2;
-var iteratorClose = iteratorClose$1;
-
-var $TypeError$3 = TypeError;
-
-var Result = function (stopped, result) {
-  this.stopped = stopped;
-  this.result = result;
-};
-
-var ResultPrototype = Result.prototype;
-
-var iterate$2 = function (iterable, unboundFunction, options) {
-  var that = options && options.that;
-  var AS_ENTRIES = !!(options && options.AS_ENTRIES);
-  var IS_RECORD = !!(options && options.IS_RECORD);
-  var IS_ITERATOR = !!(options && options.IS_ITERATOR);
-  var INTERRUPTED = !!(options && options.INTERRUPTED);
-  var fn = bind(unboundFunction, that);
-  var iterator, iterFn, index, length, result, next, step;
-
-  var stop = function (condition) {
-    if (iterator) iteratorClose(iterator, 'normal', condition);
-    return new Result(true, condition);
-  };
-
-  var callFn = function (value) {
-    if (AS_ENTRIES) {
-      anObject$5(value);
-      return INTERRUPTED ? fn(value[0], value[1], stop) : fn(value[0], value[1]);
-    } return INTERRUPTED ? fn(value, stop) : fn(value);
-  };
-
-  if (IS_RECORD) {
-    iterator = iterable.iterator;
-  } else if (IS_ITERATOR) {
-    iterator = iterable;
-  } else {
-    iterFn = getIteratorMethod(iterable);
-    if (!iterFn) throw new $TypeError$3(tryToString(iterable) + ' is not iterable');
-    // optimisation for array iterators
-    if (isArrayIteratorMethod(iterFn)) {
-      for (index = 0, length = lengthOfArrayLike$1(iterable); length > index; index++) {
-        result = callFn(iterable[index]);
-        if (result && isPrototypeOf$1(ResultPrototype, result)) return result;
-      } return new Result(false);
-    }
-    iterator = getIterator(iterable, iterFn);
-  }
-
-  next = IS_RECORD ? iterable.next : iterator.next;
-  while (!(step = call$5(next, iterator)).done) {
-    try {
-      result = callFn(step.value);
-    } catch (error) {
-      iteratorClose(iterator, 'throw', error);
-    }
-    if (typeof result == 'object' && result && isPrototypeOf$1(ResultPrototype, result)) return result;
-  } return new Result(false);
-};
-
-var iterate_default = /*@__PURE__*/getDefaultExportFromCjs(iterate$2);
-
-'use strict';
-var isPrototypeOf = objectIsPrototypeOf;
-
-var $TypeError$2 = TypeError;
-
-var anInstance$2 = function (it, Prototype) {
-  if (isPrototypeOf(Prototype, it)) return it;
-  throw new $TypeError$2('Incorrect invocation');
-};
-
-var anInstance_default = /*@__PURE__*/getDefaultExportFromCjs(anInstance$2);
-
-'use strict';
-var wellKnownSymbol$3 = wellKnownSymbol$f;
-
-var ITERATOR$1 = wellKnownSymbol$3('iterator');
-var SAFE_CLOSING = false;
-
-try {
-  var called = 0;
-  var iteratorWithReturn = {
-    next: function () {
-      return { done: !!called++ };
-    },
-    'return': function () {
-      SAFE_CLOSING = true;
-    }
-  };
-  iteratorWithReturn[ITERATOR$1] = function () {
-    return this;
-  };
-  // eslint-disable-next-line es/no-array-from, no-throw-literal -- required for testing
-  Array.from(iteratorWithReturn, function () { throw 2; });
-} catch (error) { /* empty */ }
-
-var checkCorrectnessOfIteration$1 = function (exec, SKIP_CLOSING) {
-  try {
-    if (!SKIP_CLOSING && !SAFE_CLOSING) return false;
-  } catch (error) { return false; } // workaround of old WebKit + `eval` bug
-  var ITERATION_SUPPORT = false;
-  try {
-    var object = {};
-    object[ITERATOR$1] = function () {
-      return {
-        next: function () {
-          return { done: ITERATION_SUPPORT = true };
-        }
-      };
-    };
-    exec(object);
-  } catch (error) { /* empty */ }
-  return ITERATION_SUPPORT;
-};
-
-var checkCorrectnessOfIteration_default = /*@__PURE__*/getDefaultExportFromCjs(checkCorrectnessOfIteration$1);
-
-'use strict';
-var isCallable$3 = isCallable$j;
-var isObject$6 = isObject$h;
-var setPrototypeOf = objectSetPrototypeOf;
-
-// makes subclassing work correct for wrapped built-ins
-var inheritIfRequired$1 = function ($this, dummy, Wrapper) {
-  var NewTarget, NewTargetPrototype;
-  if (
-    // it can work only with native `setPrototypeOf`
-    setPrototypeOf &&
-    // we haven't completely correct pre-ES6 way for getting `new.target`, so use this
-    isCallable$3(NewTarget = dummy.constructor) &&
-    NewTarget !== Wrapper &&
-    isObject$6(NewTargetPrototype = NewTarget.prototype) &&
-    NewTargetPrototype !== Wrapper.prototype
-  ) setPrototypeOf($this, NewTargetPrototype);
-  return $this;
-};
-
-var inheritIfRequired_default = /*@__PURE__*/getDefaultExportFromCjs(inheritIfRequired$1);
-
-'use strict';
-var $$2 = _export;
-var global$8 = global$l;
-var uncurryThis$7 = functionUncurryThis;
-var isForced = isForced_1;
-var defineBuiltIn$1 = defineBuiltIn$7;
-var InternalMetadataModule$1 = internalMetadataExports;
-var iterate$1 = iterate$2;
-var anInstance$1 = anInstance$2;
-var isCallable$2 = isCallable$j;
-var isNullOrUndefined$3 = isNullOrUndefined$7;
-var isObject$5 = isObject$h;
-var fails$6 = fails$p;
-var checkCorrectnessOfIteration = checkCorrectnessOfIteration$1;
-var setToStringTag$1 = setToStringTag$4;
-var inheritIfRequired = inheritIfRequired$1;
-
-var collection$1 = function (CONSTRUCTOR_NAME, wrapper, common) {
-  var IS_MAP = CONSTRUCTOR_NAME.indexOf('Map') !== -1;
-  var IS_WEAK = CONSTRUCTOR_NAME.indexOf('Weak') !== -1;
-  var ADDER = IS_MAP ? 'set' : 'add';
-  var NativeConstructor = global$8[CONSTRUCTOR_NAME];
-  var NativePrototype = NativeConstructor && NativeConstructor.prototype;
-  var Constructor = NativeConstructor;
-  var exported = {};
-
-  var fixMethod = function (KEY) {
-    var uncurriedNativeMethod = uncurryThis$7(NativePrototype[KEY]);
-    defineBuiltIn$1(NativePrototype, KEY,
-      KEY === 'add' ? function add(value) {
-        uncurriedNativeMethod(this, value === 0 ? 0 : value);
-        return this;
-      } : KEY === 'delete' ? function (key) {
-        return IS_WEAK && !isObject$5(key) ? false : uncurriedNativeMethod(this, key === 0 ? 0 : key);
-      } : KEY === 'get' ? function get(key) {
-        return IS_WEAK && !isObject$5(key) ? undefined : uncurriedNativeMethod(this, key === 0 ? 0 : key);
-      } : KEY === 'has' ? function has(key) {
-        return IS_WEAK && !isObject$5(key) ? false : uncurriedNativeMethod(this, key === 0 ? 0 : key);
-      } : function set(key, value) {
-        uncurriedNativeMethod(this, key === 0 ? 0 : key, value);
-        return this;
-      }
-    );
-  };
-
-  var REPLACE = isForced(
-    CONSTRUCTOR_NAME,
-    !isCallable$2(NativeConstructor) || !(IS_WEAK || NativePrototype.forEach && !fails$6(function () {
-      new NativeConstructor().entries().next();
-    }))
-  );
-
-  if (REPLACE) {
-    // create collection constructor
-    Constructor = common.getConstructor(wrapper, CONSTRUCTOR_NAME, IS_MAP, ADDER);
-    InternalMetadataModule$1.enable();
-  } else if (isForced(CONSTRUCTOR_NAME, true)) {
-    var instance = new Constructor();
-    // early implementations not supports chaining
-    var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) !== instance;
-    // V8 ~ Chromium 40- weak-collections throws on primitives, but should return false
-    var THROWS_ON_PRIMITIVES = fails$6(function () { instance.has(1); });
-    // most early implementations doesn't supports iterables, most modern - not close it correctly
-    // eslint-disable-next-line no-new -- required for testing
-    var ACCEPT_ITERABLES = checkCorrectnessOfIteration(function (iterable) { new NativeConstructor(iterable); });
-    // for early implementations -0 and +0 not the same
-    var BUGGY_ZERO = !IS_WEAK && fails$6(function () {
-      // V8 ~ Chromium 42- fails only with 5+ elements
-      var $instance = new NativeConstructor();
-      var index = 5;
-      while (index--) $instance[ADDER](index, index);
-      return !$instance.has(-0);
-    });
-
-    if (!ACCEPT_ITERABLES) {
-      Constructor = wrapper(function (dummy, iterable) {
-        anInstance$1(dummy, NativePrototype);
-        var that = inheritIfRequired(new NativeConstructor(), dummy, Constructor);
-        if (!isNullOrUndefined$3(iterable)) iterate$1(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
-        return that;
-      });
-      Constructor.prototype = NativePrototype;
-      NativePrototype.constructor = Constructor;
-    }
-
-    if (THROWS_ON_PRIMITIVES || BUGGY_ZERO) {
-      fixMethod('delete');
-      fixMethod('has');
-      IS_MAP && fixMethod('get');
-    }
-
-    if (BUGGY_ZERO || HASNT_CHAINING) fixMethod(ADDER);
-
-    // weak collections should not contains .clear method
-    if (IS_WEAK && NativePrototype.clear) delete NativePrototype.clear;
-  }
-
-  exported[CONSTRUCTOR_NAME] = Constructor;
-  $$2({ global: true, constructor: true, forced: Constructor !== NativeConstructor }, exported);
-
-  setToStringTag$1(Constructor, CONSTRUCTOR_NAME);
-
-  if (!IS_WEAK) common.setStrong(Constructor, CONSTRUCTOR_NAME, IS_MAP);
-
-  return Constructor;
-};
-
-var collection_default = /*@__PURE__*/getDefaultExportFromCjs(collection$1);
-
-'use strict';
-var uncurryThis$6 = functionUncurryThis;
-var defineBuiltIns$1 = defineBuiltIns$2;
-var getWeakData = internalMetadataExports.getWeakData;
-var anInstance = anInstance$2;
-var anObject$4 = anObject$d;
-var isNullOrUndefined$2 = isNullOrUndefined$7;
-var isObject$4 = isObject$h;
-var iterate = iterate$2;
-var ArrayIterationModule = arrayIteration;
-var hasOwn = hasOwnProperty_1;
-var InternalStateModule = internalState;
-
-var setInternalState = InternalStateModule.set;
-var internalStateGetterFor = InternalStateModule.getterFor;
-var find = ArrayIterationModule.find;
-var findIndex = ArrayIterationModule.findIndex;
-var splice$1 = uncurryThis$6([].splice);
-var id = 0;
-
-// fallback for uncaught frozen keys
-var uncaughtFrozenStore = function (state) {
-  return state.frozen || (state.frozen = new UncaughtFrozenStore());
-};
-
-var UncaughtFrozenStore = function () {
-  this.entries = [];
-};
-
-var findUncaughtFrozen = function (store, key) {
-  return find(store.entries, function (it) {
-    return it[0] === key;
-  });
-};
-
-UncaughtFrozenStore.prototype = {
-  get: function (key) {
-    var entry = findUncaughtFrozen(this, key);
-    if (entry) return entry[1];
-  },
-  has: function (key) {
-    return !!findUncaughtFrozen(this, key);
-  },
-  set: function (key, value) {
-    var entry = findUncaughtFrozen(this, key);
-    if (entry) entry[1] = value;
-    else this.entries.push([key, value]);
-  },
-  'delete': function (key) {
-    var index = findIndex(this.entries, function (it) {
-      return it[0] === key;
-    });
-    if (~index) splice$1(this.entries, index, 1);
-    return !!~index;
-  }
-};
-
-var collectionWeak$1 = {
-  getConstructor: function (wrapper, CONSTRUCTOR_NAME, IS_MAP, ADDER) {
-    var Constructor = wrapper(function (that, iterable) {
-      anInstance(that, Prototype);
-      setInternalState(that, {
-        type: CONSTRUCTOR_NAME,
-        id: id++,
-        frozen: undefined
-      });
-      if (!isNullOrUndefined$2(iterable)) iterate(iterable, that[ADDER], { that: that, AS_ENTRIES: IS_MAP });
-    });
-
-    var Prototype = Constructor.prototype;
-
-    var getInternalState = internalStateGetterFor(CONSTRUCTOR_NAME);
-
-    var define = function (that, key, value) {
-      var state = getInternalState(that);
-      var data = getWeakData(anObject$4(key), true);
-      if (data === true) uncaughtFrozenStore(state).set(key, value);
-      else data[state.id] = value;
-      return that;
-    };
-
-    defineBuiltIns$1(Prototype, {
-      // `{ WeakMap, WeakSet }.prototype.delete(key)` methods
-      // https://tc39.es/ecma262/#sec-weakmap.prototype.delete
-      // https://tc39.es/ecma262/#sec-weakset.prototype.delete
-      'delete': function (key) {
-        var state = getInternalState(this);
-        if (!isObject$4(key)) return false;
-        var data = getWeakData(key);
-        if (data === true) return uncaughtFrozenStore(state)['delete'](key);
-        return data && hasOwn(data, state.id) && delete data[state.id];
-      },
-      // `{ WeakMap, WeakSet }.prototype.has(key)` methods
-      // https://tc39.es/ecma262/#sec-weakmap.prototype.has
-      // https://tc39.es/ecma262/#sec-weakset.prototype.has
-      has: function has(key) {
-        var state = getInternalState(this);
-        if (!isObject$4(key)) return false;
-        var data = getWeakData(key);
-        if (data === true) return uncaughtFrozenStore(state).has(key);
-        return data && hasOwn(data, state.id);
-      }
-    });
-
-    defineBuiltIns$1(Prototype, IS_MAP ? {
-      // `WeakMap.prototype.get(key)` method
-      // https://tc39.es/ecma262/#sec-weakmap.prototype.get
-      get: function get(key) {
-        var state = getInternalState(this);
-        if (isObject$4(key)) {
-          var data = getWeakData(key);
-          if (data === true) return uncaughtFrozenStore(state).get(key);
-          return data ? data[state.id] : undefined;
-        }
-      },
-      // `WeakMap.prototype.set(key, value)` method
-      // https://tc39.es/ecma262/#sec-weakmap.prototype.set
-      set: function set(key, value) {
-        return define(this, key, value);
-      }
-    } : {
-      // `WeakSet.prototype.add(value)` method
-      // https://tc39.es/ecma262/#sec-weakset.prototype.add
-      add: function add(value) {
-        return define(this, value, true);
-      }
-    });
-
-    return Constructor;
-  }
-};
-
-var collectionWeak_default = /*@__PURE__*/getDefaultExportFromCjs(collectionWeak$1);
-
-'use strict';
-var FREEZING = freezing;
-var global$7 = global$l;
-var uncurryThis$5 = functionUncurryThis;
-var defineBuiltIns = defineBuiltIns$2;
-var InternalMetadataModule = internalMetadataExports;
-var collection = collection$1;
-var collectionWeak = collectionWeak$1;
-var isObject$3 = isObject$h;
-var enforceInternalState = internalState.enforce;
-var fails$5 = fails$p;
-var NATIVE_WEAK_MAP = weakMapBasicDetection;
-
-var $Object = Object;
-// eslint-disable-next-line es/no-array-isarray -- safe
-var isArray = Array.isArray;
-// eslint-disable-next-line es/no-object-isextensible -- safe
-var isExtensible = $Object.isExtensible;
-// eslint-disable-next-line es/no-object-isfrozen -- safe
-var isFrozen = $Object.isFrozen;
-// eslint-disable-next-line es/no-object-issealed -- safe
-var isSealed = $Object.isSealed;
-// eslint-disable-next-line es/no-object-freeze -- safe
-var freeze$1 = $Object.freeze;
-// eslint-disable-next-line es/no-object-seal -- safe
-var seal = $Object.seal;
-
-var IS_IE11 = !global$7.ActiveXObject && 'ActiveXObject' in global$7;
-var InternalWeakMap;
-
-var wrapper = function (init) {
-  return function WeakMap() {
-    return init(this, arguments.length ? arguments[0] : undefined);
-  };
-};
-
-// `WeakMap` constructor
-// https://tc39.es/ecma262/#sec-weakmap-constructor
-var $WeakMap = collection('WeakMap', wrapper, collectionWeak);
-var WeakMapPrototype = $WeakMap.prototype;
-var nativeSet = uncurryThis$5(WeakMapPrototype.set);
-
-// Chakra Edge bug: adding frozen arrays to WeakMap unfreeze them
-var hasMSEdgeFreezingBug = function () {
-  return FREEZING && fails$5(function () {
-    var frozenArray = freeze$1([]);
-    nativeSet(new $WeakMap(), frozenArray, 1);
-    return !isFrozen(frozenArray);
-  });
-};
-
-// IE11 WeakMap frozen keys fix
-// We can't use feature detection because it crash some old IE builds
-// https://github.com/zloirock/core-js/issues/485
-if (NATIVE_WEAK_MAP) if (IS_IE11) {
-  InternalWeakMap = collectionWeak.getConstructor(wrapper, 'WeakMap', true);
-  InternalMetadataModule.enable();
-  var nativeDelete = uncurryThis$5(WeakMapPrototype['delete']);
-  var nativeHas = uncurryThis$5(WeakMapPrototype.has);
-  var nativeGet = uncurryThis$5(WeakMapPrototype.get);
-  defineBuiltIns(WeakMapPrototype, {
-    'delete': function (key) {
-      if (isObject$3(key) && !isExtensible(key)) {
-        var state = enforceInternalState(this);
-        if (!state.frozen) state.frozen = new InternalWeakMap();
-        return nativeDelete(this, key) || state.frozen['delete'](key);
-      } return nativeDelete(this, key);
-    },
-    has: function has(key) {
-      if (isObject$3(key) && !isExtensible(key)) {
-        var state = enforceInternalState(this);
-        if (!state.frozen) state.frozen = new InternalWeakMap();
-        return nativeHas(this, key) || state.frozen.has(key);
-      } return nativeHas(this, key);
-    },
-    get: function get(key) {
-      if (isObject$3(key) && !isExtensible(key)) {
-        var state = enforceInternalState(this);
-        if (!state.frozen) state.frozen = new InternalWeakMap();
-        return nativeHas(this, key) ? nativeGet(this, key) : state.frozen.get(key);
-      } return nativeGet(this, key);
-    },
-    set: function set(key, value) {
-      if (isObject$3(key) && !isExtensible(key)) {
-        var state = enforceInternalState(this);
-        if (!state.frozen) state.frozen = new InternalWeakMap();
-        nativeHas(this, key) ? nativeSet(this, key, value) : state.frozen.set(key, value);
-      } else nativeSet(this, key, value);
-      return this;
-    }
-  });
-// Chakra Edge frozen keys fix
-} else if (hasMSEdgeFreezingBug()) {
-  defineBuiltIns(WeakMapPrototype, {
-    set: function set(key, value) {
-      var arrayIntegrityLevel;
-      if (isArray(key)) {
-        if (isFrozen(key)) arrayIntegrityLevel = freeze$1;
-        else if (isSealed(key)) arrayIntegrityLevel = seal;
-      }
-      nativeSet(this, key, value);
-      if (arrayIntegrityLevel) arrayIntegrityLevel(key);
-      return this;
-    }
-  });
-}
-
-'use strict';
-
-var web_domCollections_iterator = {};
-
-'use strict';
-var global$6 = global$l;
-var DOMIterables = domIterables;
-var DOMTokenListPrototype = domTokenListPrototype;
-var ArrayIteratorMethods = es_array_iterator;
-var createNonEnumerableProperty$1 = createNonEnumerableProperty$6;
-var setToStringTag = setToStringTag$4;
-var wellKnownSymbol$2 = wellKnownSymbol$f;
-
-var ITERATOR = wellKnownSymbol$2('iterator');
-var ArrayValues = ArrayIteratorMethods.values;
-
-var handlePrototype = function (CollectionPrototype, COLLECTION_NAME) {
-  if (CollectionPrototype) {
-    // some Chrome versions have non-configurable methods on DOMTokenList
-    if (CollectionPrototype[ITERATOR] !== ArrayValues) try {
-      createNonEnumerableProperty$1(CollectionPrototype, ITERATOR, ArrayValues);
-    } catch (error) {
-      CollectionPrototype[ITERATOR] = ArrayValues;
-    }
-    setToStringTag(CollectionPrototype, COLLECTION_NAME, true);
-    if (DOMIterables[COLLECTION_NAME]) for (var METHOD_NAME in ArrayIteratorMethods) {
-      // some Chrome versions have non-configurable methods on DOMTokenList
-      if (CollectionPrototype[METHOD_NAME] !== ArrayIteratorMethods[METHOD_NAME]) try {
-        createNonEnumerableProperty$1(CollectionPrototype, METHOD_NAME, ArrayIteratorMethods[METHOD_NAME]);
-      } catch (error) {
-        CollectionPrototype[METHOD_NAME] = ArrayIteratorMethods[METHOD_NAME];
-      }
-    }
-  }
-};
-
-for (var COLLECTION_NAME in DOMIterables) {
-  handlePrototype(global$6[COLLECTION_NAME] && global$6[COLLECTION_NAME].prototype, COLLECTION_NAME);
-}
-
-handlePrototype(DOMTokenListPrototype, 'DOMTokenList');
-
-/**
- * lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="npm" -o ./`
- * Copyright jQuery Foundation and other contributors <https://jquery.org/>
- * Released under MIT license <https://lodash.com/license>
- * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
- * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- */
-
-/** Used as the `TypeError` message for "Functions" methods. */
-var FUNC_ERROR_TEXT$2 = 'Expected a function';
-
-/** Used as references for various `Number` constants. */
-var NAN$1 = 0 / 0;
-
-/** `Object#toString` result references. */
-var symbolTag$1 = '[object Symbol]';
-
-/** Used to match leading and trailing whitespace. */
-var reTrim$1 = /^\s+|\s+$/g;
-
-/** Used to detect bad signed hexadecimal string values. */
-var reIsBadHex$1 = /^[-+]0x[0-9a-f]+$/i;
-
-/** Used to detect binary string values. */
-var reIsBinary$1 = /^0b[01]+$/i;
-
-/** Used to detect octal string values. */
-var reIsOctal$1 = /^0o[0-7]+$/i;
-
-/** Built-in method references without a dependency on `root`. */
-var freeParseInt$1 = parseInt;
-
-/** Detect free variable `global` from Node.js. */
-var freeGlobal$2 = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
-
-/** Detect free variable `self`. */
-var freeSelf$2 = typeof self == 'object' && self && self.Object === Object && self;
-
-/** Used as a reference to the global object. */
-var root$2 = freeGlobal$2 || freeSelf$2 || Function('return this')();
-
-/** Used for built-in method references. */
-var objectProto$2 = Object.prototype;
-
-/**
- * Used to resolve the
- * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
- * of values.
- */
-var objectToString$2 = objectProto$2.toString;
-
-/* Built-in method references for those with the same name as other `lodash` methods. */
-var nativeMax$1 = Math.max,
-    nativeMin$1 = Math.min;
-
-/**
- * Gets the timestamp of the number of milliseconds that have elapsed since
- * the Unix epoch (1 January 1970 00:00:00 UTC).
- *
- * @static
- * @memberOf _
- * @since 2.4.0
- * @category Date
- * @returns {number} Returns the timestamp.
- * @example
- *
- * _.defer(function(stamp) {
- *   console.log(_.now() - stamp);
- * }, _.now());
- * // => Logs the number of milliseconds it took for the deferred invocation.
- */
-var now$1 = function() {
-  return root$2.Date.now();
-};
-
-/**
- * Creates a debounced function that delays invoking `func` until after `wait`
- * milliseconds have elapsed since the last time the debounced function was
- * invoked. The debounced function comes with a `cancel` method to cancel
- * delayed `func` invocations and a `flush` method to immediately invoke them.
- * Provide `options` to indicate whether `func` should be invoked on the
- * leading and/or trailing edge of the `wait` timeout. The `func` is invoked
- * with the last arguments provided to the debounced function. Subsequent
- * calls to the debounced function return the result of the last `func`
- * invocation.
- *
- * **Note:** If `leading` and `trailing` options are `true`, `func` is
- * invoked on the trailing edge of the timeout only if the debounced function
- * is invoked more than once during the `wait` timeout.
- *
- * If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
- * until to the next tick, similar to `setTimeout` with a timeout of `0`.
- *
- * See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
- * for details over the differences between `_.debounce` and `_.throttle`.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Function
- * @param {Function} func The function to debounce.
- * @param {number} [wait=0] The number of milliseconds to delay.
- * @param {Object} [options={}] The options object.
- * @param {boolean} [options.leading=false]
- *  Specify invoking on the leading edge of the timeout.
- * @param {number} [options.maxWait]
- *  The maximum time `func` is allowed to be delayed before it's invoked.
- * @param {boolean} [options.trailing=true]
- *  Specify invoking on the trailing edge of the timeout.
- * @returns {Function} Returns the new debounced function.
- * @example
- *
- * // Avoid costly calculations while the window size is in flux.
- * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
- *
- * // Invoke `sendMail` when clicked, debouncing subsequent calls.
- * jQuery(element).on('click', _.debounce(sendMail, 300, {
- *   'leading': true,
- *   'trailing': false
- * }));
- *
- * // Ensure `batchLog` is invoked once after 1 second of debounced calls.
- * var debounced = _.debounce(batchLog, 250, { 'maxWait': 1000 });
- * var source = new EventSource('/stream');
- * jQuery(source).on('message', debounced);
- *
- * // Cancel the trailing debounced invocation.
- * jQuery(window).on('popstate', debounced.cancel);
- */
-function debounce$2(func, wait, options) {
-  var lastArgs,
-      lastThis,
-      maxWait,
-      result,
-      timerId,
-      lastCallTime,
-      lastInvokeTime = 0,
-      leading = false,
-      maxing = false,
-      trailing = true;
-
-  if (typeof func != 'function') {
-    throw new TypeError(FUNC_ERROR_TEXT$2);
-  }
-  wait = toNumber$1(wait) || 0;
-  if (isObject$2(options)) {
-    leading = !!options.leading;
-    maxing = 'maxWait' in options;
-    maxWait = maxing ? nativeMax$1(toNumber$1(options.maxWait) || 0, wait) : maxWait;
-    trailing = 'trailing' in options ? !!options.trailing : trailing;
-  }
-
-  function invokeFunc(time) {
-    var args = lastArgs,
-        thisArg = lastThis;
-
-    lastArgs = lastThis = undefined;
-    lastInvokeTime = time;
-    result = func.apply(thisArg, args);
-    return result;
-  }
-
-  function leadingEdge(time) {
-    // Reset any `maxWait` timer.
-    lastInvokeTime = time;
-    // Start the timer for the trailing edge.
-    timerId = setTimeout(timerExpired, wait);
-    // Invoke the leading edge.
-    return leading ? invokeFunc(time) : result;
-  }
-
-  function remainingWait(time) {
-    var timeSinceLastCall = time - lastCallTime,
-        timeSinceLastInvoke = time - lastInvokeTime,
-        result = wait - timeSinceLastCall;
-
-    return maxing ? nativeMin$1(result, maxWait - timeSinceLastInvoke) : result;
-  }
-
-  function shouldInvoke(time) {
-    var timeSinceLastCall = time - lastCallTime,
-        timeSinceLastInvoke = time - lastInvokeTime;
-
-    // Either this is the first call, activity has stopped and we're at the
-    // trailing edge, the system time has gone backwards and we're treating
-    // it as the trailing edge, or we've hit the `maxWait` limit.
-    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
-      (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
-  }
-
-  function timerExpired() {
-    var time = now$1();
-    if (shouldInvoke(time)) {
-      return trailingEdge(time);
-    }
-    // Restart the timer.
-    timerId = setTimeout(timerExpired, remainingWait(time));
-  }
-
-  function trailingEdge(time) {
-    timerId = undefined;
-
-    // Only invoke if we have `lastArgs` which means `func` has been
-    // debounced at least once.
-    if (trailing && lastArgs) {
-      return invokeFunc(time);
-    }
-    lastArgs = lastThis = undefined;
-    return result;
-  }
-
-  function cancel() {
-    if (timerId !== undefined) {
-      clearTimeout(timerId);
-    }
-    lastInvokeTime = 0;
-    lastArgs = lastCallTime = lastThis = timerId = undefined;
-  }
-
-  function flush() {
-    return timerId === undefined ? result : trailingEdge(now$1());
-  }
-
-  function debounced() {
-    var time = now$1(),
-        isInvoking = shouldInvoke(time);
-
-    lastArgs = arguments;
-    lastThis = this;
-    lastCallTime = time;
-
-    if (isInvoking) {
-      if (timerId === undefined) {
-        return leadingEdge(lastCallTime);
-      }
-      if (maxing) {
-        // Handle invocations in a tight loop.
-        timerId = setTimeout(timerExpired, wait);
-        return invokeFunc(lastCallTime);
-      }
-    }
-    if (timerId === undefined) {
-      timerId = setTimeout(timerExpired, wait);
-    }
-    return result;
-  }
-  debounced.cancel = cancel;
-  debounced.flush = flush;
-  return debounced;
-}
-
-/**
- * Creates a throttled function that only invokes `func` at most once per
- * every `wait` milliseconds. The throttled function comes with a `cancel`
- * method to cancel delayed `func` invocations and a `flush` method to
- * immediately invoke them. Provide `options` to indicate whether `func`
- * should be invoked on the leading and/or trailing edge of the `wait`
- * timeout. The `func` is invoked with the last arguments provided to the
- * throttled function. Subsequent calls to the throttled function return the
- * result of the last `func` invocation.
- *
- * **Note:** If `leading` and `trailing` options are `true`, `func` is
- * invoked on the trailing edge of the timeout only if the throttled function
- * is invoked more than once during the `wait` timeout.
- *
- * If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
- * until to the next tick, similar to `setTimeout` with a timeout of `0`.
- *
- * See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
- * for details over the differences between `_.throttle` and `_.debounce`.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Function
- * @param {Function} func The function to throttle.
- * @param {number} [wait=0] The number of milliseconds to throttle invocations to.
- * @param {Object} [options={}] The options object.
- * @param {boolean} [options.leading=true]
- *  Specify invoking on the leading edge of the timeout.
- * @param {boolean} [options.trailing=true]
- *  Specify invoking on the trailing edge of the timeout.
- * @returns {Function} Returns the new throttled function.
- * @example
- *
- * // Avoid excessively updating the position while scrolling.
- * jQuery(window).on('scroll', _.throttle(updatePosition, 100));
- *
- * // Invoke `renewToken` when the click event is fired, but not more than once every 5 minutes.
- * var throttled = _.throttle(renewToken, 300000, { 'trailing': false });
- * jQuery(element).on('click', throttled);
- *
- * // Cancel the trailing throttled invocation.
- * jQuery(window).on('popstate', throttled.cancel);
- */
-function throttle(func, wait, options) {
-  var leading = true,
-      trailing = true;
-
-  if (typeof func != 'function') {
-    throw new TypeError(FUNC_ERROR_TEXT$2);
-  }
-  if (isObject$2(options)) {
-    leading = 'leading' in options ? !!options.leading : leading;
-    trailing = 'trailing' in options ? !!options.trailing : trailing;
-  }
-  return debounce$2(func, wait, {
-    'leading': leading,
-    'maxWait': wait,
-    'trailing': trailing
-  });
 }
 
 /**
@@ -5352,9 +1819,162 @@ function throttle(func, wait, options) {
  * _.isObject(null);
  * // => false
  */
-function isObject$2(value) {
+function isObject(value) {
   var type = typeof value;
-  return !!value && (type == 'object' || type == 'function');
+  return value != null && (type == 'object' || type == 'function');
+}
+
+/** Detect free variable `global` from Node.js. */
+var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
+
+/** Detect free variable `self`. */
+var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+/** Used as a reference to the global object. */
+var root = freeGlobal || freeSelf || Function('return this')();
+
+/**
+ * Gets the timestamp of the number of milliseconds that have elapsed since
+ * the Unix epoch (1 January 1970 00:00:00 UTC).
+ *
+ * @static
+ * @memberOf _
+ * @since 2.4.0
+ * @category Date
+ * @returns {number} Returns the timestamp.
+ * @example
+ *
+ * _.defer(function(stamp) {
+ *   console.log(_.now() - stamp);
+ * }, _.now());
+ * // => Logs the number of milliseconds it took for the deferred invocation.
+ */
+var now = function() {
+  return root.Date.now();
+};
+
+/** Used to match a single whitespace character. */
+var reWhitespace = /\s/;
+
+/**
+ * Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
+ * character of `string`.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {number} Returns the index of the last non-whitespace character.
+ */
+function trimmedEndIndex(string) {
+  var index = string.length;
+
+  while (index-- && reWhitespace.test(string.charAt(index))) {}
+  return index;
+}
+
+/** Used to match leading whitespace. */
+var reTrimStart = /^\s+/;
+
+/**
+ * The base implementation of `_.trim`.
+ *
+ * @private
+ * @param {string} string The string to trim.
+ * @returns {string} Returns the trimmed string.
+ */
+function baseTrim(string) {
+  return string
+    ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, '')
+    : string;
+}
+
+/** Built-in value references. */
+var Symbol$1 = root.Symbol;
+
+/** Used for built-in method references. */
+var objectProto$1 = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto$1.hasOwnProperty;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var nativeObjectToString$1 = objectProto$1.toString;
+
+/** Built-in value references. */
+var symToStringTag$1 = Symbol$1 ? Symbol$1.toStringTag : undefined;
+
+/**
+ * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the raw `toStringTag`.
+ */
+function getRawTag(value) {
+  var isOwn = hasOwnProperty.call(value, symToStringTag$1),
+      tag = value[symToStringTag$1];
+
+  try {
+    value[symToStringTag$1] = undefined;
+    var unmasked = true;
+  } catch (e) {}
+
+  var result = nativeObjectToString$1.call(value);
+  if (unmasked) {
+    if (isOwn) {
+      value[symToStringTag$1] = tag;
+    } else {
+      delete value[symToStringTag$1];
+    }
+  }
+  return result;
+}
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var nativeObjectToString = objectProto.toString;
+
+/**
+ * Converts `value` to a string using `Object.prototype.toString`.
+ *
+ * @private
+ * @param {*} value The value to convert.
+ * @returns {string} Returns the converted string.
+ */
+function objectToString(value) {
+  return nativeObjectToString.call(value);
+}
+
+/** `Object#toString` result references. */
+var nullTag = '[object Null]',
+    undefinedTag = '[object Undefined]';
+
+/** Built-in value references. */
+var symToStringTag = Symbol$1 ? Symbol$1.toStringTag : undefined;
+
+/**
+ * The base implementation of `getTag` without fallbacks for buggy environments.
+ *
+ * @private
+ * @param {*} value The value to query.
+ * @returns {string} Returns the `toStringTag`.
+ */
+function baseGetTag(value) {
+  if (value == null) {
+    return value === undefined ? undefinedTag : nullTag;
+  }
+  return (symToStringTag && symToStringTag in Object(value))
+    ? getRawTag(value)
+    : objectToString(value);
 }
 
 /**
@@ -5381,9 +2001,12 @@ function isObject$2(value) {
  * _.isObjectLike(null);
  * // => false
  */
-function isObjectLike$1(value) {
-  return !!value && typeof value == 'object';
+function isObjectLike(value) {
+  return value != null && typeof value == 'object';
 }
+
+/** `Object#toString` result references. */
+var symbolTag = '[object Symbol]';
 
 /**
  * Checks if `value` is classified as a `Symbol` primitive or object.
@@ -5402,10 +2025,25 @@ function isObjectLike$1(value) {
  * _.isSymbol('abc');
  * // => false
  */
-function isSymbol$1(value) {
+function isSymbol(value) {
   return typeof value == 'symbol' ||
-    (isObjectLike$1(value) && objectToString$2.call(value) == symbolTag$1);
+    (isObjectLike(value) && baseGetTag(value) == symbolTag);
 }
+
+/** Used as references for various `Number` constants. */
+var NAN = 0 / 0;
+
+/** Used to detect bad signed hexadecimal string values. */
+var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
+
+/** Used to detect binary string values. */
+var reIsBinary = /^0b[01]+$/i;
+
+/** Used to detect octal string values. */
+var reIsOctal = /^0o[0-7]+$/i;
+
+/** Built-in method references without a dependency on `root`. */
+var freeParseInt = parseInt;
 
 /**
  * Converts `value` to a number.
@@ -5430,106 +2068,33 @@ function isSymbol$1(value) {
  * _.toNumber('3.2');
  * // => 3.2
  */
-function toNumber$1(value) {
+function toNumber(value) {
   if (typeof value == 'number') {
     return value;
   }
-  if (isSymbol$1(value)) {
-    return NAN$1;
+  if (isSymbol(value)) {
+    return NAN;
   }
-  if (isObject$2(value)) {
+  if (isObject(value)) {
     var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
-    value = isObject$2(other) ? (other + '') : other;
+    value = isObject(other) ? (other + '') : other;
   }
   if (typeof value != 'string') {
     return value === 0 ? value : +value;
   }
-  value = value.replace(reTrim$1, '');
-  var isBinary = reIsBinary$1.test(value);
-  return (isBinary || reIsOctal$1.test(value))
-    ? freeParseInt$1(value.slice(2), isBinary ? 2 : 8)
-    : (reIsBadHex$1.test(value) ? NAN$1 : +value);
+  value = baseTrim(value);
+  var isBinary = reIsBinary.test(value);
+  return (isBinary || reIsOctal.test(value))
+    ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
+    : (reIsBadHex.test(value) ? NAN : +value);
 }
 
-var lodash_throttle = throttle;
-
-var throttle$1 = /*@__PURE__*/getDefaultExportFromCjs(lodash_throttle);
-
-/**
- * lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="npm" -o ./`
- * Copyright jQuery Foundation and other contributors <https://jquery.org/>
- * Released under MIT license <https://lodash.com/license>
- * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
- * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- */
-
-/** Used as the `TypeError` message for "Functions" methods. */
+/** Error message constants. */
 var FUNC_ERROR_TEXT$1 = 'Expected a function';
-
-/** Used as references for various `Number` constants. */
-var NAN = 0 / 0;
-
-/** `Object#toString` result references. */
-var symbolTag = '[object Symbol]';
-
-/** Used to match leading and trailing whitespace. */
-var reTrim = /^\s+|\s+$/g;
-
-/** Used to detect bad signed hexadecimal string values. */
-var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
-
-/** Used to detect binary string values. */
-var reIsBinary = /^0b[01]+$/i;
-
-/** Used to detect octal string values. */
-var reIsOctal = /^0o[0-7]+$/i;
-
-/** Built-in method references without a dependency on `root`. */
-var freeParseInt = parseInt;
-
-/** Detect free variable `global` from Node.js. */
-var freeGlobal$1 = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
-
-/** Detect free variable `self`. */
-var freeSelf$1 = typeof self == 'object' && self && self.Object === Object && self;
-
-/** Used as a reference to the global object. */
-var root$1 = freeGlobal$1 || freeSelf$1 || Function('return this')();
-
-/** Used for built-in method references. */
-var objectProto$1 = Object.prototype;
-
-/**
- * Used to resolve the
- * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
- * of values.
- */
-var objectToString$1 = objectProto$1.toString;
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max,
     nativeMin = Math.min;
-
-/**
- * Gets the timestamp of the number of milliseconds that have elapsed since
- * the Unix epoch (1 January 1970 00:00:00 UTC).
- *
- * @static
- * @memberOf _
- * @since 2.4.0
- * @category Date
- * @returns {number} Returns the timestamp.
- * @example
- *
- * _.defer(function(stamp) {
- *   console.log(_.now() - stamp);
- * }, _.now());
- * // => Logs the number of milliseconds it took for the deferred invocation.
- */
-var now = function() {
-  return root$1.Date.now();
-};
 
 /**
  * Creates a debounced function that delays invoking `func` until after `wait`
@@ -5601,7 +2166,7 @@ function debounce(func, wait, options) {
     throw new TypeError(FUNC_ERROR_TEXT$1);
   }
   wait = toNumber(wait) || 0;
-  if (isObject$1(options)) {
+  if (isObject(options)) {
     leading = !!options.leading;
     maxing = 'maxWait' in options;
     maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
@@ -5630,9 +2195,11 @@ function debounce(func, wait, options) {
   function remainingWait(time) {
     var timeSinceLastCall = time - lastCallTime,
         timeSinceLastInvoke = time - lastInvokeTime,
-        result = wait - timeSinceLastCall;
+        timeWaiting = wait - timeSinceLastCall;
 
-    return maxing ? nativeMin(result, maxWait - timeSinceLastInvoke) : result;
+    return maxing
+      ? nativeMin(timeWaiting, maxWait - timeSinceLastInvoke)
+      : timeWaiting;
   }
 
   function shouldInvoke(time) {
@@ -5693,6 +2260,7 @@ function debounce(func, wait, options) {
       }
       if (maxing) {
         // Handle invocations in a tight loop.
+        clearTimeout(timerId);
         timerId = setTimeout(timerExpired, wait);
         return invokeFunc(lastCallTime);
       }
@@ -5707,2022 +2275,73 @@ function debounce(func, wait, options) {
   return debounced;
 }
 
-/**
- * Checks if `value` is the
- * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
- * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an object, else `false`.
- * @example
- *
- * _.isObject({});
- * // => true
- *
- * _.isObject([1, 2, 3]);
- * // => true
- *
- * _.isObject(_.noop);
- * // => true
- *
- * _.isObject(null);
- * // => false
- */
-function isObject$1(value) {
-  var type = typeof value;
-  return !!value && (type == 'object' || type == 'function');
-}
-
-/**
- * Checks if `value` is object-like. A value is object-like if it's not `null`
- * and has a `typeof` result of "object".
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
- * @example
- *
- * _.isObjectLike({});
- * // => true
- *
- * _.isObjectLike([1, 2, 3]);
- * // => true
- *
- * _.isObjectLike(_.noop);
- * // => false
- *
- * _.isObjectLike(null);
- * // => false
- */
-function isObjectLike(value) {
-  return !!value && typeof value == 'object';
-}
-
-/**
- * Checks if `value` is classified as a `Symbol` primitive or object.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
- * @example
- *
- * _.isSymbol(Symbol.iterator);
- * // => true
- *
- * _.isSymbol('abc');
- * // => false
- */
-function isSymbol(value) {
-  return typeof value == 'symbol' ||
-    (isObjectLike(value) && objectToString$1.call(value) == symbolTag);
-}
-
-/**
- * Converts `value` to a number.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to process.
- * @returns {number} Returns the number.
- * @example
- *
- * _.toNumber(3.2);
- * // => 3.2
- *
- * _.toNumber(Number.MIN_VALUE);
- * // => 5e-324
- *
- * _.toNumber(Infinity);
- * // => Infinity
- *
- * _.toNumber('3.2');
- * // => 3.2
- */
-function toNumber(value) {
-  if (typeof value == 'number') {
-    return value;
-  }
-  if (isSymbol(value)) {
-    return NAN;
-  }
-  if (isObject$1(value)) {
-    var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
-    value = isObject$1(other) ? (other + '') : other;
-  }
-  if (typeof value != 'string') {
-    return value === 0 ? value : +value;
-  }
-  value = value.replace(reTrim, '');
-  var isBinary = reIsBinary.test(value);
-  return (isBinary || reIsOctal.test(value))
-    ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
-    : (reIsBadHex.test(value) ? NAN : +value);
-}
-
-var lodash_debounce = debounce;
-
-var debounce$1 = /*@__PURE__*/getDefaultExportFromCjs(lodash_debounce);
-
-/**
- * lodash (Custom Build) <https://lodash.com/>
- * Build: `lodash modularize exports="npm" -o ./`
- * Copyright jQuery Foundation and other contributors <https://jquery.org/>
- * Released under MIT license <https://lodash.com/license>
- * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
- * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- */
-
-/** Used as the `TypeError` message for "Functions" methods. */
+/** Error message constants. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
-/** Used to stand-in for `undefined` hash values. */
-var HASH_UNDEFINED = '__lodash_hash_undefined__';
-
-/** `Object#toString` result references. */
-var funcTag = '[object Function]',
-    genTag = '[object GeneratorFunction]';
-
 /**
- * Used to match `RegExp`
- * [syntax characters](http://ecma-international.org/ecma-262/7.0/#sec-patterns).
- */
-var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
-
-/** Used to detect host constructors (Safari). */
-var reIsHostCtor = /^\[object .+?Constructor\]$/;
-
-/** Detect free variable `global` from Node.js. */
-var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
-
-/** Detect free variable `self`. */
-var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
-
-/** Used as a reference to the global object. */
-var root = freeGlobal || freeSelf || Function('return this')();
-
-/**
- * Gets the value at `key` of `object`.
+ * Creates a throttled function that only invokes `func` at most once per
+ * every `wait` milliseconds. The throttled function comes with a `cancel`
+ * method to cancel delayed `func` invocations and a `flush` method to
+ * immediately invoke them. Provide `options` to indicate whether `func`
+ * should be invoked on the leading and/or trailing edge of the `wait`
+ * timeout. The `func` is invoked with the last arguments provided to the
+ * throttled function. Subsequent calls to the throttled function return the
+ * result of the last `func` invocation.
  *
- * @private
- * @param {Object} [object] The object to query.
- * @param {string} key The key of the property to get.
- * @returns {*} Returns the property value.
- */
-function getValue(object, key) {
-  return object == null ? undefined : object[key];
-}
-
-/**
- * Checks if `value` is a host object in IE < 9.
+ * **Note:** If `leading` and `trailing` options are `true`, `func` is
+ * invoked on the trailing edge of the timeout only if the throttled function
+ * is invoked more than once during the `wait` timeout.
  *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a host object, else `false`.
- */
-function isHostObject(value) {
-  // Many host objects are `Object` objects that can coerce to strings
-  // despite having improperly defined `toString` methods.
-  var result = false;
-  if (value != null && typeof value.toString != 'function') {
-    try {
-      result = !!(value + '');
-    } catch (e) {}
-  }
-  return result;
-}
-
-/** Used for built-in method references. */
-var arrayProto = Array.prototype,
-    funcProto = Function.prototype,
-    objectProto = Object.prototype;
-
-/** Used to detect overreaching core-js shims. */
-var coreJsData = root['__core-js_shared__'];
-
-/** Used to detect methods masquerading as native. */
-var maskSrcKey = (function() {
-  var uid = /[^.]+$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || '');
-  return uid ? ('Symbol(src)_1.' + uid) : '';
-}());
-
-/** Used to resolve the decompiled source of functions. */
-var funcToString = funcProto.toString;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Used to resolve the
- * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
- * of values.
- */
-var objectToString = objectProto.toString;
-
-/** Used to detect if a method is native. */
-var reIsNative = RegExp('^' +
-  funcToString.call(hasOwnProperty).replace(reRegExpChar, '\\$&')
-  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
-);
-
-/** Built-in value references. */
-var splice = arrayProto.splice;
-
-/* Built-in method references that are verified to be native. */
-var Map$1 = getNative(root, 'Map'),
-    nativeCreate = getNative(Object, 'create');
-
-/**
- * Creates a hash object.
+ * If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
+ * until to the next tick, similar to `setTimeout` with a timeout of `0`.
  *
- * @private
- * @constructor
- * @param {Array} [entries] The key-value pairs to cache.
- */
-function Hash(entries) {
-  var index = -1,
-      length = entries ? entries.length : 0;
-
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-
-/**
- * Removes all key-value entries from the hash.
- *
- * @private
- * @name clear
- * @memberOf Hash
- */
-function hashClear() {
-  this.__data__ = nativeCreate ? nativeCreate(null) : {};
-}
-
-/**
- * Removes `key` and its value from the hash.
- *
- * @private
- * @name delete
- * @memberOf Hash
- * @param {Object} hash The hash to modify.
- * @param {string} key The key of the value to remove.
- * @returns {boolean} Returns `true` if the entry was removed, else `false`.
- */
-function hashDelete(key) {
-  return this.has(key) && delete this.__data__[key];
-}
-
-/**
- * Gets the hash value for `key`.
- *
- * @private
- * @name get
- * @memberOf Hash
- * @param {string} key The key of the value to get.
- * @returns {*} Returns the entry value.
- */
-function hashGet(key) {
-  var data = this.__data__;
-  if (nativeCreate) {
-    var result = data[key];
-    return result === HASH_UNDEFINED ? undefined : result;
-  }
-  return hasOwnProperty.call(data, key) ? data[key] : undefined;
-}
-
-/**
- * Checks if a hash value for `key` exists.
- *
- * @private
- * @name has
- * @memberOf Hash
- * @param {string} key The key of the entry to check.
- * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
- */
-function hashHas(key) {
-  var data = this.__data__;
-  return nativeCreate ? data[key] !== undefined : hasOwnProperty.call(data, key);
-}
-
-/**
- * Sets the hash `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf Hash
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the hash instance.
- */
-function hashSet(key, value) {
-  var data = this.__data__;
-  data[key] = (nativeCreate && value === undefined) ? HASH_UNDEFINED : value;
-  return this;
-}
-
-// Add methods to `Hash`.
-Hash.prototype.clear = hashClear;
-Hash.prototype['delete'] = hashDelete;
-Hash.prototype.get = hashGet;
-Hash.prototype.has = hashHas;
-Hash.prototype.set = hashSet;
-
-/**
- * Creates an list cache object.
- *
- * @private
- * @constructor
- * @param {Array} [entries] The key-value pairs to cache.
- */
-function ListCache(entries) {
-  var index = -1,
-      length = entries ? entries.length : 0;
-
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-
-/**
- * Removes all key-value entries from the list cache.
- *
- * @private
- * @name clear
- * @memberOf ListCache
- */
-function listCacheClear() {
-  this.__data__ = [];
-}
-
-/**
- * Removes `key` and its value from the list cache.
- *
- * @private
- * @name delete
- * @memberOf ListCache
- * @param {string} key The key of the value to remove.
- * @returns {boolean} Returns `true` if the entry was removed, else `false`.
- */
-function listCacheDelete(key) {
-  var data = this.__data__,
-      index = assocIndexOf(data, key);
-
-  if (index < 0) {
-    return false;
-  }
-  var lastIndex = data.length - 1;
-  if (index == lastIndex) {
-    data.pop();
-  } else {
-    splice.call(data, index, 1);
-  }
-  return true;
-}
-
-/**
- * Gets the list cache value for `key`.
- *
- * @private
- * @name get
- * @memberOf ListCache
- * @param {string} key The key of the value to get.
- * @returns {*} Returns the entry value.
- */
-function listCacheGet(key) {
-  var data = this.__data__,
-      index = assocIndexOf(data, key);
-
-  return index < 0 ? undefined : data[index][1];
-}
-
-/**
- * Checks if a list cache value for `key` exists.
- *
- * @private
- * @name has
- * @memberOf ListCache
- * @param {string} key The key of the entry to check.
- * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
- */
-function listCacheHas(key) {
-  return assocIndexOf(this.__data__, key) > -1;
-}
-
-/**
- * Sets the list cache `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf ListCache
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the list cache instance.
- */
-function listCacheSet(key, value) {
-  var data = this.__data__,
-      index = assocIndexOf(data, key);
-
-  if (index < 0) {
-    data.push([key, value]);
-  } else {
-    data[index][1] = value;
-  }
-  return this;
-}
-
-// Add methods to `ListCache`.
-ListCache.prototype.clear = listCacheClear;
-ListCache.prototype['delete'] = listCacheDelete;
-ListCache.prototype.get = listCacheGet;
-ListCache.prototype.has = listCacheHas;
-ListCache.prototype.set = listCacheSet;
-
-/**
- * Creates a map cache object to store key-value pairs.
- *
- * @private
- * @constructor
- * @param {Array} [entries] The key-value pairs to cache.
- */
-function MapCache(entries) {
-  var index = -1,
-      length = entries ? entries.length : 0;
-
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-
-/**
- * Removes all key-value entries from the map.
- *
- * @private
- * @name clear
- * @memberOf MapCache
- */
-function mapCacheClear() {
-  this.__data__ = {
-    'hash': new Hash,
-    'map': new (Map$1 || ListCache),
-    'string': new Hash
-  };
-}
-
-/**
- * Removes `key` and its value from the map.
- *
- * @private
- * @name delete
- * @memberOf MapCache
- * @param {string} key The key of the value to remove.
- * @returns {boolean} Returns `true` if the entry was removed, else `false`.
- */
-function mapCacheDelete(key) {
-  return getMapData(this, key)['delete'](key);
-}
-
-/**
- * Gets the map value for `key`.
- *
- * @private
- * @name get
- * @memberOf MapCache
- * @param {string} key The key of the value to get.
- * @returns {*} Returns the entry value.
- */
-function mapCacheGet(key) {
-  return getMapData(this, key).get(key);
-}
-
-/**
- * Checks if a map value for `key` exists.
- *
- * @private
- * @name has
- * @memberOf MapCache
- * @param {string} key The key of the entry to check.
- * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
- */
-function mapCacheHas(key) {
-  return getMapData(this, key).has(key);
-}
-
-/**
- * Sets the map `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf MapCache
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the map cache instance.
- */
-function mapCacheSet(key, value) {
-  getMapData(this, key).set(key, value);
-  return this;
-}
-
-// Add methods to `MapCache`.
-MapCache.prototype.clear = mapCacheClear;
-MapCache.prototype['delete'] = mapCacheDelete;
-MapCache.prototype.get = mapCacheGet;
-MapCache.prototype.has = mapCacheHas;
-MapCache.prototype.set = mapCacheSet;
-
-/**
- * Gets the index at which the `key` is found in `array` of key-value pairs.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {*} key The key to search for.
- * @returns {number} Returns the index of the matched value, else `-1`.
- */
-function assocIndexOf(array, key) {
-  var length = array.length;
-  while (length--) {
-    if (eq(array[length][0], key)) {
-      return length;
-    }
-  }
-  return -1;
-}
-
-/**
- * The base implementation of `_.isNative` without bad shim checks.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a native function,
- *  else `false`.
- */
-function baseIsNative(value) {
-  if (!isObject(value) || isMasked(value)) {
-    return false;
-  }
-  var pattern = (isFunction(value) || isHostObject(value)) ? reIsNative : reIsHostCtor;
-  return pattern.test(toSource(value));
-}
-
-/**
- * Gets the data for `map`.
- *
- * @private
- * @param {Object} map The map to query.
- * @param {string} key The reference key.
- * @returns {*} Returns the map data.
- */
-function getMapData(map, key) {
-  var data = map.__data__;
-  return isKeyable(key)
-    ? data[typeof key == 'string' ? 'string' : 'hash']
-    : data.map;
-}
-
-/**
- * Gets the native function at `key` of `object`.
- *
- * @private
- * @param {Object} object The object to query.
- * @param {string} key The key of the method to get.
- * @returns {*} Returns the function if it's native, else `undefined`.
- */
-function getNative(object, key) {
-  var value = getValue(object, key);
-  return baseIsNative(value) ? value : undefined;
-}
-
-/**
- * Checks if `value` is suitable for use as unique object key.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is suitable, else `false`.
- */
-function isKeyable(value) {
-  var type = typeof value;
-  return (type == 'string' || type == 'number' || type == 'symbol' || type == 'boolean')
-    ? (value !== '__proto__')
-    : (value === null);
-}
-
-/**
- * Checks if `func` has its source masked.
- *
- * @private
- * @param {Function} func The function to check.
- * @returns {boolean} Returns `true` if `func` is masked, else `false`.
- */
-function isMasked(func) {
-  return !!maskSrcKey && (maskSrcKey in func);
-}
-
-/**
- * Converts `func` to its source code.
- *
- * @private
- * @param {Function} func The function to process.
- * @returns {string} Returns the source code.
- */
-function toSource(func) {
-  if (func != null) {
-    try {
-      return funcToString.call(func);
-    } catch (e) {}
-    try {
-      return (func + '');
-    } catch (e) {}
-  }
-  return '';
-}
-
-/**
- * Creates a function that memoizes the result of `func`. If `resolver` is
- * provided, it determines the cache key for storing the result based on the
- * arguments provided to the memoized function. By default, the first argument
- * provided to the memoized function is used as the map cache key. The `func`
- * is invoked with the `this` binding of the memoized function.
- *
- * **Note:** The cache is exposed as the `cache` property on the memoized
- * function. Its creation may be customized by replacing the `_.memoize.Cache`
- * constructor with one whose instances implement the
- * [`Map`](http://ecma-international.org/ecma-262/7.0/#sec-properties-of-the-map-prototype-object)
- * method interface of `delete`, `get`, `has`, and `set`.
+ * See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
+ * for details over the differences between `_.throttle` and `_.debounce`.
  *
  * @static
  * @memberOf _
  * @since 0.1.0
  * @category Function
- * @param {Function} func The function to have its output memoized.
- * @param {Function} [resolver] The function to resolve the cache key.
- * @returns {Function} Returns the new memoized function.
+ * @param {Function} func The function to throttle.
+ * @param {number} [wait=0] The number of milliseconds to throttle invocations to.
+ * @param {Object} [options={}] The options object.
+ * @param {boolean} [options.leading=true]
+ *  Specify invoking on the leading edge of the timeout.
+ * @param {boolean} [options.trailing=true]
+ *  Specify invoking on the trailing edge of the timeout.
+ * @returns {Function} Returns the new throttled function.
  * @example
  *
- * var object = { 'a': 1, 'b': 2 };
- * var other = { 'c': 3, 'd': 4 };
+ * // Avoid excessively updating the position while scrolling.
+ * jQuery(window).on('scroll', _.throttle(updatePosition, 100));
  *
- * var values = _.memoize(_.values);
- * values(object);
- * // => [1, 2]
+ * // Invoke `renewToken` when the click event is fired, but not more than once every 5 minutes.
+ * var throttled = _.throttle(renewToken, 300000, { 'trailing': false });
+ * jQuery(element).on('click', throttled);
  *
- * values(other);
- * // => [3, 4]
- *
- * object.a = 2;
- * values(object);
- * // => [1, 2]
- *
- * // Modify the result cache.
- * values.cache.set(object, ['a', 'b']);
- * values(object);
- * // => ['a', 'b']
- *
- * // Replace `_.memoize.Cache`.
- * _.memoize.Cache = WeakMap;
+ * // Cancel the trailing throttled invocation.
+ * jQuery(window).on('popstate', throttled.cancel);
  */
-function memoize(func, resolver) {
-  if (typeof func != 'function' || (resolver && typeof resolver != 'function')) {
+function throttle(func, wait, options) {
+  var leading = true,
+      trailing = true;
+
+  if (typeof func != 'function') {
     throw new TypeError(FUNC_ERROR_TEXT);
   }
-  var memoized = function() {
-    var args = arguments,
-        key = resolver ? resolver.apply(this, args) : args[0],
-        cache = memoized.cache;
-
-    if (cache.has(key)) {
-      return cache.get(key);
-    }
-    var result = func.apply(this, args);
-    memoized.cache = cache.set(key, result);
-    return result;
-  };
-  memoized.cache = new (memoize.Cache || MapCache);
-  return memoized;
-}
-
-// Assign cache to `_.memoize`.
-memoize.Cache = MapCache;
-
-/**
- * Performs a
- * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
- * comparison between two values to determine if they are equivalent.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to compare.
- * @param {*} other The other value to compare.
- * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
- * @example
- *
- * var object = { 'a': 1 };
- * var other = { 'a': 1 };
- *
- * _.eq(object, object);
- * // => true
- *
- * _.eq(object, other);
- * // => false
- *
- * _.eq('a', 'a');
- * // => true
- *
- * _.eq('a', Object('a'));
- * // => false
- *
- * _.eq(NaN, NaN);
- * // => true
- */
-function eq(value, other) {
-  return value === other || (value !== value && other !== other);
-}
-
-/**
- * Checks if `value` is classified as a `Function` object.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a function, else `false`.
- * @example
- *
- * _.isFunction(_);
- * // => true
- *
- * _.isFunction(/abc/);
- * // => false
- */
-function isFunction(value) {
-  // The use of `Object#toString` avoids issues with the `typeof` operator
-  // in Safari 8-9 which returns 'object' for typed array and other constructors.
-  var tag = isObject(value) ? objectToString.call(value) : '';
-  return tag == funcTag || tag == genTag;
-}
-
-/**
- * Checks if `value` is the
- * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
- * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an object, else `false`.
- * @example
- *
- * _.isObject({});
- * // => true
- *
- * _.isObject([1, 2, 3]);
- * // => true
- *
- * _.isObject(_.noop);
- * // => true
- *
- * _.isObject(null);
- * // => false
- */
-function isObject(value) {
-  var type = typeof value;
-  return !!value && (type == 'object' || type == 'function');
-}
-
-var lodash_memoize = memoize;
-
-var memoize$1 = /*@__PURE__*/getDefaultExportFromCjs(lodash_memoize);
-
-var resizeObservers = [];
-
-var hasActiveObservations = function () {
-    return resizeObservers.some(function (ro) { return ro.activeTargets.length > 0; });
-};
-
-var hasSkippedObservations = function () {
-    return resizeObservers.some(function (ro) { return ro.skippedTargets.length > 0; });
-};
-
-var msg = 'ResizeObserver loop completed with undelivered notifications.';
-var deliverResizeLoopError = function () {
-    var event;
-    if (typeof ErrorEvent === 'function') {
-        event = new ErrorEvent('error', {
-            message: msg
-        });
-    }
-    else {
-        event = document.createEvent('Event');
-        event.initEvent('error', false, false);
-        event.message = msg;
-    }
-    window.dispatchEvent(event);
-};
-
-var ResizeObserverBoxOptions;
-(function (ResizeObserverBoxOptions) {
-    ResizeObserverBoxOptions["BORDER_BOX"] = "border-box";
-    ResizeObserverBoxOptions["CONTENT_BOX"] = "content-box";
-    ResizeObserverBoxOptions["DEVICE_PIXEL_CONTENT_BOX"] = "device-pixel-content-box";
-})(ResizeObserverBoxOptions || (ResizeObserverBoxOptions = {}));
-
-var freeze = function (obj) { return Object.freeze(obj); };
-
-var ResizeObserverSize = (function () {
-    function ResizeObserverSize(inlineSize, blockSize) {
-        this.inlineSize = inlineSize;
-        this.blockSize = blockSize;
-        freeze(this);
-    }
-    return ResizeObserverSize;
-}());
-
-var DOMRectReadOnly = (function () {
-    function DOMRectReadOnly(x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.top = this.y;
-        this.left = this.x;
-        this.bottom = this.top + this.height;
-        this.right = this.left + this.width;
-        return freeze(this);
-    }
-    DOMRectReadOnly.prototype.toJSON = function () {
-        var _a = this, x = _a.x, y = _a.y, top = _a.top, right = _a.right, bottom = _a.bottom, left = _a.left, width = _a.width, height = _a.height;
-        return { x: x, y: y, top: top, right: right, bottom: bottom, left: left, width: width, height: height };
-    };
-    DOMRectReadOnly.fromRect = function (rectangle) {
-        return new DOMRectReadOnly(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-    };
-    return DOMRectReadOnly;
-}());
-
-var isSVG = function (target) { return target instanceof SVGElement && 'getBBox' in target; };
-var isHidden = function (target) {
-    if (isSVG(target)) {
-        var _a = target.getBBox(), width = _a.width, height = _a.height;
-        return !width && !height;
-    }
-    var _b = target, offsetWidth = _b.offsetWidth, offsetHeight = _b.offsetHeight;
-    return !(offsetWidth || offsetHeight || target.getClientRects().length);
-};
-var isElement = function (obj) {
-    var _a;
-    if (obj instanceof Element) {
-        return true;
-    }
-    var scope = (_a = obj === null || obj === void 0 ? void 0 : obj.ownerDocument) === null || _a === void 0 ? void 0 : _a.defaultView;
-    return !!(scope && obj instanceof scope.Element);
-};
-var isReplacedElement = function (target) {
-    switch (target.tagName) {
-        case 'INPUT':
-            if (target.type !== 'image') {
-                break;
-            }
-        case 'VIDEO':
-        case 'AUDIO':
-        case 'EMBED':
-        case 'OBJECT':
-        case 'CANVAS':
-        case 'IFRAME':
-        case 'IMG':
-            return true;
-    }
-    return false;
-};
-
-var global$5 = typeof window !== 'undefined' ? window : {};
-
-var cache = new WeakMap();
-var scrollRegexp = /auto|scroll/;
-var verticalRegexp = /^tb|vertical/;
-var IE = (/msie|trident/i).test(global$5.navigator && global$5.navigator.userAgent);
-var parseDimension = function (pixel) { return parseFloat(pixel || '0'); };
-var size = function (inlineSize, blockSize, switchSizes) {
-    if (inlineSize === void 0) { inlineSize = 0; }
-    if (blockSize === void 0) { blockSize = 0; }
-    if (switchSizes === void 0) { switchSizes = false; }
-    return new ResizeObserverSize((switchSizes ? blockSize : inlineSize) || 0, (switchSizes ? inlineSize : blockSize) || 0);
-};
-var zeroBoxes = freeze({
-    devicePixelContentBoxSize: size(),
-    borderBoxSize: size(),
-    contentBoxSize: size(),
-    contentRect: new DOMRectReadOnly(0, 0, 0, 0)
-});
-var calculateBoxSizes = function (target, forceRecalculation) {
-    if (forceRecalculation === void 0) { forceRecalculation = false; }
-    if (cache.has(target) && !forceRecalculation) {
-        return cache.get(target);
-    }
-    if (isHidden(target)) {
-        cache.set(target, zeroBoxes);
-        return zeroBoxes;
-    }
-    var cs = getComputedStyle(target);
-    var svg = isSVG(target) && target.ownerSVGElement && target.getBBox();
-    var removePadding = !IE && cs.boxSizing === 'border-box';
-    var switchSizes = verticalRegexp.test(cs.writingMode || '');
-    var canScrollVertically = !svg && scrollRegexp.test(cs.overflowY || '');
-    var canScrollHorizontally = !svg && scrollRegexp.test(cs.overflowX || '');
-    var paddingTop = svg ? 0 : parseDimension(cs.paddingTop);
-    var paddingRight = svg ? 0 : parseDimension(cs.paddingRight);
-    var paddingBottom = svg ? 0 : parseDimension(cs.paddingBottom);
-    var paddingLeft = svg ? 0 : parseDimension(cs.paddingLeft);
-    var borderTop = svg ? 0 : parseDimension(cs.borderTopWidth);
-    var borderRight = svg ? 0 : parseDimension(cs.borderRightWidth);
-    var borderBottom = svg ? 0 : parseDimension(cs.borderBottomWidth);
-    var borderLeft = svg ? 0 : parseDimension(cs.borderLeftWidth);
-    var horizontalPadding = paddingLeft + paddingRight;
-    var verticalPadding = paddingTop + paddingBottom;
-    var horizontalBorderArea = borderLeft + borderRight;
-    var verticalBorderArea = borderTop + borderBottom;
-    var horizontalScrollbarThickness = !canScrollHorizontally ? 0 : target.offsetHeight - verticalBorderArea - target.clientHeight;
-    var verticalScrollbarThickness = !canScrollVertically ? 0 : target.offsetWidth - horizontalBorderArea - target.clientWidth;
-    var widthReduction = removePadding ? horizontalPadding + horizontalBorderArea : 0;
-    var heightReduction = removePadding ? verticalPadding + verticalBorderArea : 0;
-    var contentWidth = svg ? svg.width : parseDimension(cs.width) - widthReduction - verticalScrollbarThickness;
-    var contentHeight = svg ? svg.height : parseDimension(cs.height) - heightReduction - horizontalScrollbarThickness;
-    var borderBoxWidth = contentWidth + horizontalPadding + verticalScrollbarThickness + horizontalBorderArea;
-    var borderBoxHeight = contentHeight + verticalPadding + horizontalScrollbarThickness + verticalBorderArea;
-    var boxes = freeze({
-        devicePixelContentBoxSize: size(Math.round(contentWidth * devicePixelRatio), Math.round(contentHeight * devicePixelRatio), switchSizes),
-        borderBoxSize: size(borderBoxWidth, borderBoxHeight, switchSizes),
-        contentBoxSize: size(contentWidth, contentHeight, switchSizes),
-        contentRect: new DOMRectReadOnly(paddingLeft, paddingTop, contentWidth, contentHeight)
-    });
-    cache.set(target, boxes);
-    return boxes;
-};
-var calculateBoxSize = function (target, observedBox, forceRecalculation) {
-    var _a = calculateBoxSizes(target, forceRecalculation), borderBoxSize = _a.borderBoxSize, contentBoxSize = _a.contentBoxSize, devicePixelContentBoxSize = _a.devicePixelContentBoxSize;
-    switch (observedBox) {
-        case ResizeObserverBoxOptions.DEVICE_PIXEL_CONTENT_BOX:
-            return devicePixelContentBoxSize;
-        case ResizeObserverBoxOptions.BORDER_BOX:
-            return borderBoxSize;
-        default:
-            return contentBoxSize;
-    }
-};
-
-var ResizeObserverEntry = (function () {
-    function ResizeObserverEntry(target) {
-        var boxes = calculateBoxSizes(target);
-        this.target = target;
-        this.contentRect = boxes.contentRect;
-        this.borderBoxSize = freeze([boxes.borderBoxSize]);
-        this.contentBoxSize = freeze([boxes.contentBoxSize]);
-        this.devicePixelContentBoxSize = freeze([boxes.devicePixelContentBoxSize]);
-    }
-    return ResizeObserverEntry;
-}());
-
-var calculateDepthForNode = function (node) {
-    if (isHidden(node)) {
-        return Infinity;
-    }
-    var depth = 0;
-    var parent = node.parentNode;
-    while (parent) {
-        depth += 1;
-        parent = parent.parentNode;
-    }
-    return depth;
-};
-
-var broadcastActiveObservations = function () {
-    var shallowestDepth = Infinity;
-    var callbacks = [];
-    resizeObservers.forEach(function processObserver(ro) {
-        if (ro.activeTargets.length === 0) {
-            return;
-        }
-        var entries = [];
-        ro.activeTargets.forEach(function processTarget(ot) {
-            var entry = new ResizeObserverEntry(ot.target);
-            var targetDepth = calculateDepthForNode(ot.target);
-            entries.push(entry);
-            ot.lastReportedSize = calculateBoxSize(ot.target, ot.observedBox);
-            if (targetDepth < shallowestDepth) {
-                shallowestDepth = targetDepth;
-            }
-        });
-        callbacks.push(function resizeObserverCallback() {
-            ro.callback.call(ro.observer, entries, ro.observer);
-        });
-        ro.activeTargets.splice(0, ro.activeTargets.length);
-    });
-    for (var _i = 0, callbacks_1 = callbacks; _i < callbacks_1.length; _i++) {
-        var callback = callbacks_1[_i];
-        callback();
-    }
-    return shallowestDepth;
-};
-
-var gatherActiveObservationsAtDepth = function (depth) {
-    resizeObservers.forEach(function processObserver(ro) {
-        ro.activeTargets.splice(0, ro.activeTargets.length);
-        ro.skippedTargets.splice(0, ro.skippedTargets.length);
-        ro.observationTargets.forEach(function processTarget(ot) {
-            if (ot.isActive()) {
-                if (calculateDepthForNode(ot.target) > depth) {
-                    ro.activeTargets.push(ot);
-                }
-                else {
-                    ro.skippedTargets.push(ot);
-                }
-            }
-        });
-    });
-};
-
-var process = function () {
-    var depth = 0;
-    gatherActiveObservationsAtDepth(depth);
-    while (hasActiveObservations()) {
-        depth = broadcastActiveObservations();
-        gatherActiveObservationsAtDepth(depth);
-    }
-    if (hasSkippedObservations()) {
-        deliverResizeLoopError();
-    }
-    return depth > 0;
-};
-
-var trigger;
-var callbacks = [];
-var notify = function () { return callbacks.splice(0).forEach(function (cb) { return cb(); }); };
-var queueMicroTask = function (callback) {
-    if (!trigger) {
-        var toggle_1 = 0;
-        var el_1 = document.createTextNode('');
-        var config = { characterData: true };
-        new MutationObserver(function () { return notify(); }).observe(el_1, config);
-        trigger = function () { el_1.textContent = "".concat(toggle_1 ? toggle_1-- : toggle_1++); };
-    }
-    callbacks.push(callback);
-    trigger();
-};
-
-var queueResizeObserver = function (cb) {
-    queueMicroTask(function ResizeObserver() {
-        requestAnimationFrame(cb);
-    });
-};
-
-var watching = 0;
-var isWatching = function () { return !!watching; };
-var CATCH_PERIOD = 250;
-var observerConfig = { attributes: true, characterData: true, childList: true, subtree: true };
-var events = [
-    'resize',
-    'load',
-    'transitionend',
-    'animationend',
-    'animationstart',
-    'animationiteration',
-    'keyup',
-    'keydown',
-    'mouseup',
-    'mousedown',
-    'mouseover',
-    'mouseout',
-    'blur',
-    'focus'
-];
-var time = function (timeout) {
-    if (timeout === void 0) { timeout = 0; }
-    return Date.now() + timeout;
-};
-var scheduled = false;
-var Scheduler = (function () {
-    function Scheduler() {
-        var _this = this;
-        this.stopped = true;
-        this.listener = function () { return _this.schedule(); };
-    }
-    Scheduler.prototype.run = function (timeout) {
-        var _this = this;
-        if (timeout === void 0) { timeout = CATCH_PERIOD; }
-        if (scheduled) {
-            return;
-        }
-        scheduled = true;
-        var until = time(timeout);
-        queueResizeObserver(function () {
-            var elementsHaveResized = false;
-            try {
-                elementsHaveResized = process();
-            }
-            finally {
-                scheduled = false;
-                timeout = until - time();
-                if (!isWatching()) {
-                    return;
-                }
-                if (elementsHaveResized) {
-                    _this.run(1000);
-                }
-                else if (timeout > 0) {
-                    _this.run(timeout);
-                }
-                else {
-                    _this.start();
-                }
-            }
-        });
-    };
-    Scheduler.prototype.schedule = function () {
-        this.stop();
-        this.run();
-    };
-    Scheduler.prototype.observe = function () {
-        var _this = this;
-        var cb = function () { return _this.observer && _this.observer.observe(document.body, observerConfig); };
-        document.body ? cb() : global$5.addEventListener('DOMContentLoaded', cb);
-    };
-    Scheduler.prototype.start = function () {
-        var _this = this;
-        if (this.stopped) {
-            this.stopped = false;
-            this.observer = new MutationObserver(this.listener);
-            this.observe();
-            events.forEach(function (name) { return global$5.addEventListener(name, _this.listener, true); });
-        }
-    };
-    Scheduler.prototype.stop = function () {
-        var _this = this;
-        if (!this.stopped) {
-            this.observer && this.observer.disconnect();
-            events.forEach(function (name) { return global$5.removeEventListener(name, _this.listener, true); });
-            this.stopped = true;
-        }
-    };
-    return Scheduler;
-}());
-var scheduler = new Scheduler();
-var updateCount = function (n) {
-    !watching && n > 0 && scheduler.start();
-    watching += n;
-    !watching && scheduler.stop();
-};
-
-var skipNotifyOnElement = function (target) {
-    return !isSVG(target)
-        && !isReplacedElement(target)
-        && getComputedStyle(target).display === 'inline';
-};
-var ResizeObservation = (function () {
-    function ResizeObservation(target, observedBox) {
-        this.target = target;
-        this.observedBox = observedBox || ResizeObserverBoxOptions.CONTENT_BOX;
-        this.lastReportedSize = {
-            inlineSize: 0,
-            blockSize: 0
-        };
-    }
-    ResizeObservation.prototype.isActive = function () {
-        var size = calculateBoxSize(this.target, this.observedBox, true);
-        if (skipNotifyOnElement(this.target)) {
-            this.lastReportedSize = size;
-        }
-        if (this.lastReportedSize.inlineSize !== size.inlineSize
-            || this.lastReportedSize.blockSize !== size.blockSize) {
-            return true;
-        }
-        return false;
-    };
-    return ResizeObservation;
-}());
-
-var ResizeObserverDetail = (function () {
-    function ResizeObserverDetail(resizeObserver, callback) {
-        this.activeTargets = [];
-        this.skippedTargets = [];
-        this.observationTargets = [];
-        this.observer = resizeObserver;
-        this.callback = callback;
-    }
-    return ResizeObserverDetail;
-}());
-
-var observerMap = new WeakMap();
-var getObservationIndex = function (observationTargets, target) {
-    for (var i = 0; i < observationTargets.length; i += 1) {
-        if (observationTargets[i].target === target) {
-            return i;
-        }
-    }
-    return -1;
-};
-var ResizeObserverController = (function () {
-    function ResizeObserverController() {
-    }
-    ResizeObserverController.connect = function (resizeObserver, callback) {
-        var detail = new ResizeObserverDetail(resizeObserver, callback);
-        observerMap.set(resizeObserver, detail);
-    };
-    ResizeObserverController.observe = function (resizeObserver, target, options) {
-        var detail = observerMap.get(resizeObserver);
-        var firstObservation = detail.observationTargets.length === 0;
-        if (getObservationIndex(detail.observationTargets, target) < 0) {
-            firstObservation && resizeObservers.push(detail);
-            detail.observationTargets.push(new ResizeObservation(target, options && options.box));
-            updateCount(1);
-            scheduler.schedule();
-        }
-    };
-    ResizeObserverController.unobserve = function (resizeObserver, target) {
-        var detail = observerMap.get(resizeObserver);
-        var index = getObservationIndex(detail.observationTargets, target);
-        var lastObservation = detail.observationTargets.length === 1;
-        if (index >= 0) {
-            lastObservation && resizeObservers.splice(resizeObservers.indexOf(detail), 1);
-            detail.observationTargets.splice(index, 1);
-            updateCount(-1);
-        }
-    };
-    ResizeObserverController.disconnect = function (resizeObserver) {
-        var _this = this;
-        var detail = observerMap.get(resizeObserver);
-        detail.observationTargets.slice().forEach(function (ot) { return _this.unobserve(resizeObserver, ot.target); });
-        detail.activeTargets.splice(0, detail.activeTargets.length);
-    };
-    return ResizeObserverController;
-}());
-
-var ResizeObserver = (function () {
-    function ResizeObserver(callback) {
-        if (arguments.length === 0) {
-            throw new TypeError("Failed to construct 'ResizeObserver': 1 argument required, but only 0 present.");
-        }
-        if (typeof callback !== 'function') {
-            throw new TypeError("Failed to construct 'ResizeObserver': The callback provided as parameter 1 is not a function.");
-        }
-        ResizeObserverController.connect(this, callback);
-    }
-    ResizeObserver.prototype.observe = function (target, options) {
-        if (arguments.length === 0) {
-            throw new TypeError("Failed to execute 'observe' on 'ResizeObserver': 1 argument required, but only 0 present.");
-        }
-        if (!isElement(target)) {
-            throw new TypeError("Failed to execute 'observe' on 'ResizeObserver': parameter 1 is not of type 'Element");
-        }
-        ResizeObserverController.observe(this, target, options);
-    };
-    ResizeObserver.prototype.unobserve = function (target) {
-        if (arguments.length === 0) {
-            throw new TypeError("Failed to execute 'unobserve' on 'ResizeObserver': 1 argument required, but only 0 present.");
-        }
-        if (!isElement(target)) {
-            throw new TypeError("Failed to execute 'unobserve' on 'ResizeObserver': parameter 1 is not of type 'Element");
-        }
-        ResizeObserverController.unobserve(this, target);
-    };
-    ResizeObserver.prototype.disconnect = function () {
-        ResizeObserverController.disconnect(this);
-    };
-    ResizeObserver.toString = function () {
-        return 'function ResizeObserver () { [polyfill code] }';
-    };
-    return ResizeObserver;
-}());
-
-var es_array_reduce = {};
-
-'use strict';
-var aCallable = aCallable$5;
-var toObject$1 = toObject$6;
-var IndexedObject = indexedObject;
-var lengthOfArrayLike = lengthOfArrayLike$4;
-
-var $TypeError$1 = TypeError;
-
-// `Array.prototype.{ reduce, reduceRight }` methods implementation
-var createMethod = function (IS_RIGHT) {
-  return function (that, callbackfn, argumentsLength, memo) {
-    var O = toObject$1(that);
-    var self = IndexedObject(O);
-    var length = lengthOfArrayLike(O);
-    aCallable(callbackfn);
-    var index = IS_RIGHT ? length - 1 : 0;
-    var i = IS_RIGHT ? -1 : 1;
-    if (argumentsLength < 2) while (true) {
-      if (index in self) {
-        memo = self[index];
-        index += i;
-        break;
-      }
-      index += i;
-      if (IS_RIGHT ? index < 0 : length <= index) {
-        throw new $TypeError$1('Reduce of empty array with no initial value');
-      }
-    }
-    for (;IS_RIGHT ? index >= 0 : length > index; index += i) if (index in self) {
-      memo = callbackfn(memo, self[index], index, O);
-    }
-    return memo;
-  };
-};
-
-var arrayReduce = {
-  // `Array.prototype.reduce` method
-  // https://tc39.es/ecma262/#sec-array.prototype.reduce
-  left: createMethod(false),
-  // `Array.prototype.reduceRight` method
-  // https://tc39.es/ecma262/#sec-array.prototype.reduceright
-  right: createMethod(true)
-};
-
-var arrayReduce_default = /*@__PURE__*/getDefaultExportFromCjs(arrayReduce);
-
-'use strict';
-var global$4 = global$l;
-var classof$1 = classofRaw$2;
-
-var engineIsNode = classof$1(global$4.process) === 'process';
-
-var engineIsNode_default = /*@__PURE__*/getDefaultExportFromCjs(engineIsNode);
-
-'use strict';
-var $$1 = _export;
-var $reduce = arrayReduce.left;
-var arrayMethodIsStrict = arrayMethodIsStrict$2;
-var CHROME_VERSION = engineV8Version;
-var IS_NODE = engineIsNode;
-
-// Chrome 80-82 has a critical bug
-// https://bugs.chromium.org/p/chromium/issues/detail?id=1049982
-var CHROME_BUG = !IS_NODE && CHROME_VERSION > 79 && CHROME_VERSION < 83;
-var FORCED = CHROME_BUG || !arrayMethodIsStrict('reduce');
-
-// `Array.prototype.reduce` method
-// https://tc39.es/ecma262/#sec-array.prototype.reduce
-$$1({ target: 'Array', proto: true, forced: FORCED }, {
-  reduce: function reduce(callbackfn /* , initialValue */) {
-    var length = arguments.length;
-    return $reduce(this, callbackfn, length, length > 1 ? arguments[1] : undefined);
+  if (isObject(options)) {
+    leading = 'leading' in options ? !!options.leading : leading;
+    trailing = 'trailing' in options ? !!options.trailing : trailing;
   }
-});
-
-var es_regexp_exec = {};
-
-'use strict';
-var anObject$3 = anObject$d;
-
-// `RegExp.prototype.flags` getter implementation
-// https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
-var regexpFlags$1 = function () {
-  var that = anObject$3(this);
-  var result = '';
-  if (that.hasIndices) result += 'd';
-  if (that.global) result += 'g';
-  if (that.ignoreCase) result += 'i';
-  if (that.multiline) result += 'm';
-  if (that.dotAll) result += 's';
-  if (that.unicode) result += 'u';
-  if (that.unicodeSets) result += 'v';
-  if (that.sticky) result += 'y';
-  return result;
-};
-
-var regexpFlags_default = /*@__PURE__*/getDefaultExportFromCjs(regexpFlags$1);
-
-'use strict';
-var fails$4 = fails$p;
-var global$3 = global$l;
-
-// babel-minify and Closure Compiler transpiles RegExp('a', 'y') -> /a/y and it causes SyntaxError
-var $RegExp$2 = global$3.RegExp;
-
-var UNSUPPORTED_Y$1 = fails$4(function () {
-  var re = $RegExp$2('a', 'y');
-  re.lastIndex = 2;
-  return re.exec('abcd') !== null;
-});
-
-// UC Browser bug
-// https://github.com/zloirock/core-js/issues/1008
-var MISSED_STICKY = UNSUPPORTED_Y$1 || fails$4(function () {
-  return !$RegExp$2('a', 'y').sticky;
-});
-
-var BROKEN_CARET = UNSUPPORTED_Y$1 || fails$4(function () {
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=773687
-  var re = $RegExp$2('^r', 'gy');
-  re.lastIndex = 2;
-  return re.exec('str') !== null;
-});
-
-var regexpStickyHelpers = {
-  BROKEN_CARET: BROKEN_CARET,
-  MISSED_STICKY: MISSED_STICKY,
-  UNSUPPORTED_Y: UNSUPPORTED_Y$1
-};
-
-var regexpStickyHelpers_default = /*@__PURE__*/getDefaultExportFromCjs(regexpStickyHelpers);
-
-'use strict';
-var fails$3 = fails$p;
-var global$2 = global$l;
-
-// babel-minify and Closure Compiler transpiles RegExp('.', 's') -> /./s and it causes SyntaxError
-var $RegExp$1 = global$2.RegExp;
-
-var regexpUnsupportedDotAll = fails$3(function () {
-  var re = $RegExp$1('.', 's');
-  return !(re.dotAll && re.test('\n') && re.flags === 's');
-});
-
-var regexpUnsupportedDotAll_default = /*@__PURE__*/getDefaultExportFromCjs(regexpUnsupportedDotAll);
-
-'use strict';
-var fails$2 = fails$p;
-var global$1 = global$l;
-
-// babel-minify and Closure Compiler transpiles RegExp('(?<a>b)', 'g') -> /(?<a>b)/g and it causes SyntaxError
-var $RegExp = global$1.RegExp;
-
-var regexpUnsupportedNcg = fails$2(function () {
-  var re = $RegExp('(?<a>b)', 'g');
-  return re.exec('b').groups.a !== 'b' ||
-    'b'.replace(re, '$<a>c') !== 'bc';
-});
-
-var regexpUnsupportedNcg_default = /*@__PURE__*/getDefaultExportFromCjs(regexpUnsupportedNcg);
-
-'use strict';
-/* eslint-disable regexp/no-empty-capturing-group, regexp/no-empty-group, regexp/no-lazy-ends -- testing */
-/* eslint-disable regexp/no-useless-quantifier -- testing */
-var call$4 = functionCall;
-var uncurryThis$4 = functionUncurryThis;
-var toString$2 = toString$7;
-var regexpFlags = regexpFlags$1;
-var stickyHelpers = regexpStickyHelpers;
-var shared = sharedExports;
-var create = objectCreate;
-var getInternalState = internalState.get;
-var UNSUPPORTED_DOT_ALL = regexpUnsupportedDotAll;
-var UNSUPPORTED_NCG = regexpUnsupportedNcg;
-
-var nativeReplace = shared('native-string-replace', String.prototype.replace);
-var nativeExec = RegExp.prototype.exec;
-var patchedExec = nativeExec;
-var charAt$2 = uncurryThis$4(''.charAt);
-var indexOf = uncurryThis$4(''.indexOf);
-var replace$1 = uncurryThis$4(''.replace);
-var stringSlice$2 = uncurryThis$4(''.slice);
-
-var UPDATES_LAST_INDEX_WRONG = (function () {
-  var re1 = /a/;
-  var re2 = /b*/g;
-  call$4(nativeExec, re1, 'a');
-  call$4(nativeExec, re2, 'a');
-  return re1.lastIndex !== 0 || re2.lastIndex !== 0;
-})();
-
-var UNSUPPORTED_Y = stickyHelpers.BROKEN_CARET;
-
-// nonparticipating capturing group, copied from es5-shim's String#split patch.
-var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
-
-var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED || UNSUPPORTED_Y || UNSUPPORTED_DOT_ALL || UNSUPPORTED_NCG;
-
-if (PATCH) {
-  patchedExec = function exec(string) {
-    var re = this;
-    var state = getInternalState(re);
-    var str = toString$2(string);
-    var raw = state.raw;
-    var result, reCopy, lastIndex, match, i, object, group;
-
-    if (raw) {
-      raw.lastIndex = re.lastIndex;
-      result = call$4(patchedExec, raw, str);
-      re.lastIndex = raw.lastIndex;
-      return result;
-    }
-
-    var groups = state.groups;
-    var sticky = UNSUPPORTED_Y && re.sticky;
-    var flags = call$4(regexpFlags, re);
-    var source = re.source;
-    var charsAdded = 0;
-    var strCopy = str;
-
-    if (sticky) {
-      flags = replace$1(flags, 'y', '');
-      if (indexOf(flags, 'g') === -1) {
-        flags += 'g';
-      }
-
-      strCopy = stringSlice$2(str, re.lastIndex);
-      // Support anchored sticky behavior.
-      if (re.lastIndex > 0 && (!re.multiline || re.multiline && charAt$2(str, re.lastIndex - 1) !== '\n')) {
-        source = '(?: ' + source + ')';
-        strCopy = ' ' + strCopy;
-        charsAdded++;
-      }
-      // ^(? + rx + ) is needed, in combination with some str slicing, to
-      // simulate the 'y' flag.
-      reCopy = new RegExp('^(?:' + source + ')', flags);
-    }
-
-    if (NPCG_INCLUDED) {
-      reCopy = new RegExp('^' + source + '$(?!\\s)', flags);
-    }
-    if (UPDATES_LAST_INDEX_WRONG) lastIndex = re.lastIndex;
-
-    match = call$4(nativeExec, sticky ? reCopy : re, strCopy);
-
-    if (sticky) {
-      if (match) {
-        match.input = stringSlice$2(match.input, charsAdded);
-        match[0] = stringSlice$2(match[0], charsAdded);
-        match.index = re.lastIndex;
-        re.lastIndex += match[0].length;
-      } else re.lastIndex = 0;
-    } else if (UPDATES_LAST_INDEX_WRONG && match) {
-      re.lastIndex = re.global ? match.index + match[0].length : lastIndex;
-    }
-    if (NPCG_INCLUDED && match && match.length > 1) {
-      // Fix browsers whose `exec` methods don't consistently return `undefined`
-      // for NPCG, like IE8. NOTE: This doesn't work for /(.?)?/
-      call$4(nativeReplace, match[0], reCopy, function () {
-        for (i = 1; i < arguments.length - 2; i++) {
-          if (arguments[i] === undefined) match[i] = undefined;
-        }
-      });
-    }
-
-    if (match && groups) {
-      match.groups = object = create(null);
-      for (i = 0; i < groups.length; i++) {
-        group = groups[i];
-        object[group[0]] = match[group[1]];
-      }
-    }
-
-    return match;
-  };
-}
-
-var regexpExec$2 = patchedExec;
-
-var regexpExec_default = /*@__PURE__*/getDefaultExportFromCjs(regexpExec$2);
-
-'use strict';
-var $ = _export;
-var exec = regexpExec$2;
-
-// `RegExp.prototype.exec` method
-// https://tc39.es/ecma262/#sec-regexp.prototype.exec
-$({ target: 'RegExp', proto: true, forced: /./.exec !== exec }, {
-  exec: exec
-});
-
-var es_string_match = {};
-
-'use strict';
-// TODO: Remove from `core-js@4` since it's moved to entry points
-
-var uncurryThis$3 = functionUncurryThisClause;
-var defineBuiltIn = defineBuiltIn$7;
-var regexpExec$1 = regexpExec$2;
-var fails$1 = fails$p;
-var wellKnownSymbol$1 = wellKnownSymbol$f;
-var createNonEnumerableProperty = createNonEnumerableProperty$6;
-
-var SPECIES = wellKnownSymbol$1('species');
-var RegExpPrototype = RegExp.prototype;
-
-var fixRegexpWellKnownSymbolLogic = function (KEY, exec, FORCED, SHAM) {
-  var SYMBOL = wellKnownSymbol$1(KEY);
-
-  var DELEGATES_TO_SYMBOL = !fails$1(function () {
-    // String methods call symbol-named RegEp methods
-    var O = {};
-    O[SYMBOL] = function () { return 7; };
-    return ''[KEY](O) !== 7;
-  });
-
-  var DELEGATES_TO_EXEC = DELEGATES_TO_SYMBOL && !fails$1(function () {
-    // Symbol-named RegExp methods call .exec
-    var execCalled = false;
-    var re = /a/;
-
-    if (KEY === 'split') {
-      // We can't use real regex here since it causes deoptimization
-      // and serious performance degradation in V8
-      // https://github.com/zloirock/core-js/issues/306
-      re = {};
-      // RegExp[@@split] doesn't call the regex's exec method, but first creates
-      // a new one. We need to return the patched regex when creating the new one.
-      re.constructor = {};
-      re.constructor[SPECIES] = function () { return re; };
-      re.flags = '';
-      re[SYMBOL] = /./[SYMBOL];
-    }
-
-    re.exec = function () {
-      execCalled = true;
-      return null;
-    };
-
-    re[SYMBOL]('');
-    return !execCalled;
-  });
-
-  if (
-    !DELEGATES_TO_SYMBOL ||
-    !DELEGATES_TO_EXEC ||
-    FORCED
-  ) {
-    var uncurriedNativeRegExpMethod = uncurryThis$3(/./[SYMBOL]);
-    var methods = exec(SYMBOL, ''[KEY], function (nativeMethod, regexp, str, arg2, forceStringMethod) {
-      var uncurriedNativeMethod = uncurryThis$3(nativeMethod);
-      var $exec = regexp.exec;
-      if ($exec === regexpExec$1 || $exec === RegExpPrototype.exec) {
-        if (DELEGATES_TO_SYMBOL && !forceStringMethod) {
-          // The native String method already delegates to @@method (this
-          // polyfilled function), leasing to infinite recursion.
-          // We avoid it by directly calling the native @@method method.
-          return { done: true, value: uncurriedNativeRegExpMethod(regexp, str, arg2) };
-        }
-        return { done: true, value: uncurriedNativeMethod(str, regexp, arg2) };
-      }
-      return { done: false };
-    });
-
-    defineBuiltIn(String.prototype, KEY, methods[0]);
-    defineBuiltIn(RegExpPrototype, SYMBOL, methods[1]);
-  }
-
-  if (SHAM) createNonEnumerableProperty(RegExpPrototype[SYMBOL], 'sham', true);
-};
-
-var fixRegexpWellKnownSymbolLogic_default = /*@__PURE__*/getDefaultExportFromCjs(fixRegexpWellKnownSymbolLogic);
-
-'use strict';
-var charAt$1 = stringMultibyte.charAt;
-
-// `AdvanceStringIndex` abstract operation
-// https://tc39.es/ecma262/#sec-advancestringindex
-var advanceStringIndex$2 = function (S, index, unicode) {
-  return index + (unicode ? charAt$1(S, index).length : 1);
-};
-
-var advanceStringIndex_default = /*@__PURE__*/getDefaultExportFromCjs(advanceStringIndex$2);
-
-'use strict';
-var call$3 = functionCall;
-var anObject$2 = anObject$d;
-var isCallable$1 = isCallable$j;
-var classof = classofRaw$2;
-var regexpExec = regexpExec$2;
-
-var $TypeError = TypeError;
-
-// `RegExpExec` abstract operation
-// https://tc39.es/ecma262/#sec-regexpexec
-var regexpExecAbstract = function (R, S) {
-  var exec = R.exec;
-  if (isCallable$1(exec)) {
-    var result = call$3(exec, R, S);
-    if (result !== null) anObject$2(result);
-    return result;
-  }
-  if (classof(R) === 'RegExp') return call$3(regexpExec, R, S);
-  throw new $TypeError('RegExp#exec called on incompatible receiver');
-};
-
-var regexpExecAbstract_default = /*@__PURE__*/getDefaultExportFromCjs(regexpExecAbstract);
-
-'use strict';
-var call$2 = functionCall;
-var fixRegExpWellKnownSymbolLogic$1 = fixRegexpWellKnownSymbolLogic;
-var anObject$1 = anObject$d;
-var isNullOrUndefined$1 = isNullOrUndefined$7;
-var toLength$1 = toLength$3;
-var toString$1 = toString$7;
-var requireObjectCoercible$1 = requireObjectCoercible$6;
-var getMethod$1 = getMethod$5;
-var advanceStringIndex$1 = advanceStringIndex$2;
-var regExpExec$2 = regexpExecAbstract;
-
-// @@match logic
-fixRegExpWellKnownSymbolLogic$1('match', function (MATCH, nativeMatch, maybeCallNative) {
-  return [
-    // `String.prototype.match` method
-    // https://tc39.es/ecma262/#sec-string.prototype.match
-    function match(regexp) {
-      var O = requireObjectCoercible$1(this);
-      var matcher = isNullOrUndefined$1(regexp) ? undefined : getMethod$1(regexp, MATCH);
-      return matcher ? call$2(matcher, regexp, O) : new RegExp(regexp)[MATCH](toString$1(O));
-    },
-    // `RegExp.prototype[@@match]` method
-    // https://tc39.es/ecma262/#sec-regexp.prototype-@@match
-    function (string) {
-      var rx = anObject$1(this);
-      var S = toString$1(string);
-      var res = maybeCallNative(nativeMatch, rx, S);
-
-      if (res.done) return res.value;
-
-      if (!rx.global) return regExpExec$2(rx, S);
-
-      var fullUnicode = rx.unicode;
-      rx.lastIndex = 0;
-      var A = [];
-      var n = 0;
-      var result;
-      while ((result = regExpExec$2(rx, S)) !== null) {
-        var matchStr = toString$1(result[0]);
-        A[n] = matchStr;
-        if (matchStr === '') rx.lastIndex = advanceStringIndex$1(S, toLength$1(rx.lastIndex), fullUnicode);
-        n++;
-      }
-      return n === 0 ? null : A;
-    }
-  ];
-});
-
-var es_function_name = {};
-
-'use strict';
-var makeBuiltIn = makeBuiltInExports;
-var defineProperty = objectDefineProperty;
-
-var defineBuiltInAccessor$1 = function (target, name, descriptor) {
-  if (descriptor.get) makeBuiltIn(descriptor.get, name, { getter: true });
-  if (descriptor.set) makeBuiltIn(descriptor.set, name, { setter: true });
-  return defineProperty.f(target, name, descriptor);
-};
-
-var defineBuiltInAccessor_default = /*@__PURE__*/getDefaultExportFromCjs(defineBuiltInAccessor$1);
-
-'use strict';
-var DESCRIPTORS = descriptors;
-var FUNCTION_NAME_EXISTS = functionName.EXISTS;
-var uncurryThis$2 = functionUncurryThis;
-var defineBuiltInAccessor = defineBuiltInAccessor$1;
-
-var FunctionPrototype$1 = Function.prototype;
-var functionToString = uncurryThis$2(FunctionPrototype$1.toString);
-var nameRE = /function\b(?:\s|\/\*[\S\s]*?\*\/|\/\/[^\n\r]*[\n\r]+)*([^\s(/]*)/;
-var regExpExec$1 = uncurryThis$2(nameRE.exec);
-var NAME = 'name';
-
-// Function instances `.name` property
-// https://tc39.es/ecma262/#sec-function-instances-name
-if (DESCRIPTORS && !FUNCTION_NAME_EXISTS) {
-  defineBuiltInAccessor(FunctionPrototype$1, NAME, {
-    configurable: true,
-    get: function () {
-      try {
-        return regExpExec$1(nameRE, functionToString(this))[1];
-      } catch (error) {
-        return '';
-      }
-    }
+  return debounce(func, wait, {
+    'leading': leading,
+    'maxWait': wait,
+    'trailing': trailing
   });
 }
 
-var es_string_replace = {};
-
-'use strict';
-var NATIVE_BIND = functionBindNative;
-
-var FunctionPrototype = Function.prototype;
-var apply$1 = FunctionPrototype.apply;
-var call$1 = FunctionPrototype.call;
-
-// eslint-disable-next-line es/no-reflect -- safe
-var functionApply = typeof Reflect == 'object' && Reflect.apply || (NATIVE_BIND ? call$1.bind(apply$1) : function () {
-  return call$1.apply(apply$1, arguments);
-});
-
-var functionApply_default = /*@__PURE__*/getDefaultExportFromCjs(functionApply);
-
-'use strict';
-var uncurryThis$1 = functionUncurryThis;
-var toObject = toObject$6;
-
-var floor = Math.floor;
-var charAt = uncurryThis$1(''.charAt);
-var replace = uncurryThis$1(''.replace);
-var stringSlice$1 = uncurryThis$1(''.slice);
-// eslint-disable-next-line redos/no-vulnerable -- safe
-var SUBSTITUTION_SYMBOLS = /\$([$&'`]|\d{1,2}|<[^>]*>)/g;
-var SUBSTITUTION_SYMBOLS_NO_NAMED = /\$([$&'`]|\d{1,2})/g;
-
-// `GetSubstitution` abstract operation
-// https://tc39.es/ecma262/#sec-getsubstitution
-var getSubstitution$1 = function (matched, str, position, captures, namedCaptures, replacement) {
-  var tailPos = position + matched.length;
-  var m = captures.length;
-  var symbols = SUBSTITUTION_SYMBOLS_NO_NAMED;
-  if (namedCaptures !== undefined) {
-    namedCaptures = toObject(namedCaptures);
-    symbols = SUBSTITUTION_SYMBOLS;
-  }
-  return replace(replacement, symbols, function (match, ch) {
-    var capture;
-    switch (charAt(ch, 0)) {
-      case '$': return '$';
-      case '&': return matched;
-      case '`': return stringSlice$1(str, 0, position);
-      case "'": return stringSlice$1(str, tailPos);
-      case '<':
-        capture = namedCaptures[stringSlice$1(ch, 1, -1)];
-        break;
-      default: // \d\d?
-        var n = +ch;
-        if (n === 0) return match;
-        if (n > m) {
-          var f = floor(n / 10);
-          if (f === 0) return match;
-          if (f <= m) return captures[f - 1] === undefined ? charAt(ch, 1) : captures[f - 1] + charAt(ch, 1);
-          return match;
-        }
-        capture = captures[n - 1];
-    }
-    return capture === undefined ? '' : capture;
-  });
-};
-
-var getSubstitution_default = /*@__PURE__*/getDefaultExportFromCjs(getSubstitution$1);
-
-'use strict';
-var apply = functionApply;
-var call = functionCall;
-var uncurryThis = functionUncurryThis;
-var fixRegExpWellKnownSymbolLogic = fixRegexpWellKnownSymbolLogic;
-var fails = fails$p;
-var anObject = anObject$d;
-var isCallable = isCallable$j;
-var isNullOrUndefined = isNullOrUndefined$7;
-var toIntegerOrInfinity = toIntegerOrInfinity$4;
-var toLength = toLength$3;
-var toString = toString$7;
-var requireObjectCoercible = requireObjectCoercible$6;
-var advanceStringIndex = advanceStringIndex$2;
-var getMethod = getMethod$5;
-var getSubstitution = getSubstitution$1;
-var regExpExec = regexpExecAbstract;
-var wellKnownSymbol = wellKnownSymbol$f;
-
-var REPLACE = wellKnownSymbol('replace');
-var max = Math.max;
-var min = Math.min;
-var concat$1 = uncurryThis([].concat);
-var push = uncurryThis([].push);
-var stringIndexOf = uncurryThis(''.indexOf);
-var stringSlice = uncurryThis(''.slice);
-
-var maybeToString = function (it) {
-  return it === undefined ? it : String(it);
-};
-
-// IE <= 11 replaces $0 with the whole match, as if it was $&
-// https://stackoverflow.com/questions/6024666/getting-ie-to-replace-a-regex-with-the-literal-string-0
-var REPLACE_KEEPS_$0 = (function () {
-  // eslint-disable-next-line regexp/prefer-escape-replacement-dollar-char -- required for testing
-  return 'a'.replace(/./, '$0') === '$0';
-})();
-
-// Safari <= 13.0.3(?) substitutes nth capture where n>m with an empty string
-var REGEXP_REPLACE_SUBSTITUTES_UNDEFINED_CAPTURE = (function () {
-  if (/./[REPLACE]) {
-    return /./[REPLACE]('a', '$0') === '';
-  }
-  return false;
-})();
-
-var REPLACE_SUPPORTS_NAMED_GROUPS = !fails(function () {
-  var re = /./;
-  re.exec = function () {
-    var result = [];
-    result.groups = { a: '7' };
-    return result;
-  };
-  // eslint-disable-next-line regexp/no-useless-dollar-replacements -- false positive
-  return ''.replace(re, '$<a>') !== '7';
-});
-
-// @@replace logic
-fixRegExpWellKnownSymbolLogic('replace', function (_, nativeReplace, maybeCallNative) {
-  var UNSAFE_SUBSTITUTE = REGEXP_REPLACE_SUBSTITUTES_UNDEFINED_CAPTURE ? '$' : '$0';
-
-  return [
-    // `String.prototype.replace` method
-    // https://tc39.es/ecma262/#sec-string.prototype.replace
-    function replace(searchValue, replaceValue) {
-      var O = requireObjectCoercible(this);
-      var replacer = isNullOrUndefined(searchValue) ? undefined : getMethod(searchValue, REPLACE);
-      return replacer
-        ? call(replacer, searchValue, O, replaceValue)
-        : call(nativeReplace, toString(O), searchValue, replaceValue);
-    },
-    // `RegExp.prototype[@@replace]` method
-    // https://tc39.es/ecma262/#sec-regexp.prototype-@@replace
-    function (string, replaceValue) {
-      var rx = anObject(this);
-      var S = toString(string);
-
-      if (
-        typeof replaceValue == 'string' &&
-        stringIndexOf(replaceValue, UNSAFE_SUBSTITUTE) === -1 &&
-        stringIndexOf(replaceValue, '$<') === -1
-      ) {
-        var res = maybeCallNative(nativeReplace, rx, S, replaceValue);
-        if (res.done) return res.value;
-      }
-
-      var functionalReplace = isCallable(replaceValue);
-      if (!functionalReplace) replaceValue = toString(replaceValue);
-
-      var global = rx.global;
-      var fullUnicode;
-      if (global) {
-        fullUnicode = rx.unicode;
-        rx.lastIndex = 0;
-      }
-
-      var results = [];
-      var result;
-      while (true) {
-        result = regExpExec(rx, S);
-        if (result === null) break;
-
-        push(results, result);
-        if (!global) break;
-
-        var matchStr = toString(result[0]);
-        if (matchStr === '') rx.lastIndex = advanceStringIndex(S, toLength(rx.lastIndex), fullUnicode);
-      }
-
-      var accumulatedResult = '';
-      var nextSourcePosition = 0;
-      for (var i = 0; i < results.length; i++) {
-        result = results[i];
-
-        var matched = toString(result[0]);
-        var position = max(min(toIntegerOrInfinity(result.index), S.length), 0);
-        var captures = [];
-        var replacement;
-        // NOTE: This is equivalent to
-        //   captures = result.slice(1).map(maybeToString)
-        // but for some reason `nativeSlice.call(result, 1, result.length)` (called in
-        // the slice polyfill when slicing native arrays) "doesn't work" in safari 9 and
-        // causes a crash (https://pastebin.com/N21QzeQA) when trying to debug it.
-        for (var j = 1; j < result.length; j++) push(captures, maybeToString(result[j]));
-        var namedCaptures = result.groups;
-        if (functionalReplace) {
-          var replacerArgs = concat$1([matched], captures, position, S);
-          if (namedCaptures !== undefined) push(replacerArgs, namedCaptures);
-          replacement = toString(apply(replaceValue, undefined, replacerArgs));
-        } else {
-          replacement = getSubstitution(matched, S, position, captures, namedCaptures, replaceValue);
-        }
-        if (position >= nextSourcePosition) {
-          accumulatedResult += stringSlice(S, nextSourcePosition, position) + replacement;
-          nextSourcePosition = position + matched.length;
-        }
-      }
-
-      return accumulatedResult + stringSlice(S, nextSourcePosition);
-    }
-  ];
-}, !REPLACE_SUPPORTS_NAMED_GROUPS || !REPLACE_KEEPS_$0 || REGEXP_REPLACE_SUBSTITUTES_UNDEFINED_CAPTURE);
-
 /**
- * SimpleBar.js - v5.3.9
+ * simplebar-core - v1.3.2
  * Scrollbars, simpler.
  * https://grsmto.github.io/simplebar/
  *
@@ -7731,3577 +2350,3766 @@ fixRegExpWellKnownSymbolLogic('replace', function (_, nativeReplace, maybeCallNa
  */
 
 
-// Helper function to retrieve options from element attributes
-var getOptions = function getOptions(obj) {
-  var options = Array.prototype.reduce.call(obj, function (acc, attribute) {
-    var option = attribute.name.match(/data-simplebar-(.+)/);
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
 
-    if (option) {
-      var key = option[1].replace(/\W+(.)/g, function (x, chr) {
-        return chr.toUpperCase();
-      });
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
 
-      switch (attribute.value) {
-        case 'true':
-          acc[key] = true;
-          break;
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
 
-        case 'false':
-          acc[key] = false;
-          break;
-
-        case undefined:
-          acc[key] = true;
-          break;
-
-        default:
-          acc[key] = attribute.value;
-      }
-    }
-
-    return acc;
-  }, {});
-  return options;
+var __assign = function() {
+    __assign = Object.assign || function __assign(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
-function getElementWindow(element) {
-  if (!element || !element.ownerDocument || !element.ownerDocument.defaultView) {
-    return window;
-  }
 
-  return element.ownerDocument.defaultView;
+function getElementWindow$1(element) {
+    if (!element ||
+        !element.ownerDocument ||
+        !element.ownerDocument.defaultView) {
+        return window;
+    }
+    return element.ownerDocument.defaultView;
 }
-function getElementDocument(element) {
-  if (!element || !element.ownerDocument) {
-    return document;
-  }
+function getElementDocument$1(element) {
+    if (!element || !element.ownerDocument) {
+        return document;
+    }
+    return element.ownerDocument;
+}
+// Helper function to retrieve options from element attributes
+var getOptions$1 = function (obj) {
+    var initialObj = {};
+    var options = Array.prototype.reduce.call(obj, function (acc, attribute) {
+        var option = attribute.name.match(/data-simplebar-(.+)/);
+        if (option) {
+            var key = option[1].replace(/\W+(.)/g, function (_, chr) { return chr.toUpperCase(); });
+            switch (attribute.value) {
+                case 'true':
+                    acc[key] = true;
+                    break;
+                case 'false':
+                    acc[key] = false;
+                    break;
+                case undefined:
+                    acc[key] = true;
+                    break;
+                default:
+                    acc[key] = attribute.value;
+            }
+        }
+        return acc;
+    }, initialObj);
+    return options;
+};
+function addClasses$1(el, classes) {
+    var _a;
+    if (!el)
+        return;
+    (_a = el.classList).add.apply(_a, classes.split(' '));
+}
+function removeClasses$1(el, classes) {
+    if (!el)
+        return;
+    classes.split(' ').forEach(function (className) {
+        el.classList.remove(className);
+    });
+}
+function classNamesToQuery$1(classNames) {
+    return ".".concat(classNames.split(' ').join('.'));
+}
+var canUseDOM$1 = !!(typeof window !== 'undefined' &&
+    window.document &&
+    window.document.createElement);
 
-  return element.ownerDocument;
-}
+var helpers = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    addClasses: addClasses$1,
+    canUseDOM: canUseDOM$1,
+    classNamesToQuery: classNamesToQuery$1,
+    getElementDocument: getElementDocument$1,
+    getElementWindow: getElementWindow$1,
+    getOptions: getOptions$1,
+    removeClasses: removeClasses$1
+});
 
 var cachedScrollbarWidth = null;
 var cachedDevicePixelRatio = null;
-
 if (canUseDOM$1) {
-  window.addEventListener('resize', function () {
-    if (cachedDevicePixelRatio !== window.devicePixelRatio) {
-      cachedDevicePixelRatio = window.devicePixelRatio;
-      cachedScrollbarWidth = null;
+    window.addEventListener('resize', function () {
+        if (cachedDevicePixelRatio !== window.devicePixelRatio) {
+            cachedDevicePixelRatio = window.devicePixelRatio;
+            cachedScrollbarWidth = null;
+        }
+    });
+}
+function scrollbarWidth() {
+    if (cachedScrollbarWidth === null) {
+        if (typeof document === 'undefined') {
+            cachedScrollbarWidth = 0;
+            return cachedScrollbarWidth;
+        }
+        var body = document.body;
+        var box = document.createElement('div');
+        box.classList.add('simplebar-hide-scrollbar');
+        body.appendChild(box);
+        var width = box.getBoundingClientRect().right;
+        body.removeChild(box);
+        cachedScrollbarWidth = width;
     }
-  });
+    return cachedScrollbarWidth;
 }
 
-function scrollbarWidth(el) {
-  if (cachedScrollbarWidth === null) {
-    var document = getElementDocument(el);
-
-    if (typeof document === 'undefined') {
-      cachedScrollbarWidth = 0;
-      return cachedScrollbarWidth;
+var getElementWindow = getElementWindow$1, getElementDocument = getElementDocument$1, getOptions$2 = getOptions$1, addClasses$2 = addClasses$1, removeClasses = removeClasses$1, classNamesToQuery = classNamesToQuery$1;
+var SimpleBarCore = /** @class */ (function () {
+    function SimpleBarCore(element, options) {
+        if (options === void 0) { options = {}; }
+        var _this = this;
+        this.removePreventClickId = null;
+        this.minScrollbarWidth = 20;
+        this.stopScrollDelay = 175;
+        this.isScrolling = false;
+        this.isMouseEntering = false;
+        this.isDragging = false;
+        this.scrollXTicking = false;
+        this.scrollYTicking = false;
+        this.wrapperEl = null;
+        this.contentWrapperEl = null;
+        this.contentEl = null;
+        this.offsetEl = null;
+        this.maskEl = null;
+        this.placeholderEl = null;
+        this.heightAutoObserverWrapperEl = null;
+        this.heightAutoObserverEl = null;
+        this.rtlHelpers = null;
+        this.scrollbarWidth = 0;
+        this.resizeObserver = null;
+        this.mutationObserver = null;
+        this.elStyles = null;
+        this.isRtl = null;
+        this.mouseX = 0;
+        this.mouseY = 0;
+        this.onMouseMove = function () { };
+        this.onWindowResize = function () { };
+        this.onStopScrolling = function () { };
+        this.onMouseEntered = function () { };
+        /**
+         * On scroll event handling
+         */
+        this.onScroll = function () {
+            var elWindow = getElementWindow(_this.el);
+            if (!_this.scrollXTicking) {
+                elWindow.requestAnimationFrame(_this.scrollX);
+                _this.scrollXTicking = true;
+            }
+            if (!_this.scrollYTicking) {
+                elWindow.requestAnimationFrame(_this.scrollY);
+                _this.scrollYTicking = true;
+            }
+            if (!_this.isScrolling) {
+                _this.isScrolling = true;
+                addClasses$2(_this.el, _this.classNames.scrolling);
+            }
+            _this.showScrollbar('x');
+            _this.showScrollbar('y');
+            _this.onStopScrolling();
+        };
+        this.scrollX = function () {
+            if (_this.axis.x.isOverflowing) {
+                _this.positionScrollbar('x');
+            }
+            _this.scrollXTicking = false;
+        };
+        this.scrollY = function () {
+            if (_this.axis.y.isOverflowing) {
+                _this.positionScrollbar('y');
+            }
+            _this.scrollYTicking = false;
+        };
+        this._onStopScrolling = function () {
+            removeClasses(_this.el, _this.classNames.scrolling);
+            if (_this.options.autoHide) {
+                _this.hideScrollbar('x');
+                _this.hideScrollbar('y');
+            }
+            _this.isScrolling = false;
+        };
+        this.onMouseEnter = function () {
+            if (!_this.isMouseEntering) {
+                addClasses$2(_this.el, _this.classNames.mouseEntered);
+                _this.showScrollbar('x');
+                _this.showScrollbar('y');
+                _this.isMouseEntering = true;
+            }
+            _this.onMouseEntered();
+        };
+        this._onMouseEntered = function () {
+            removeClasses(_this.el, _this.classNames.mouseEntered);
+            if (_this.options.autoHide) {
+                _this.hideScrollbar('x');
+                _this.hideScrollbar('y');
+            }
+            _this.isMouseEntering = false;
+        };
+        this._onMouseMove = function (e) {
+            _this.mouseX = e.clientX;
+            _this.mouseY = e.clientY;
+            if (_this.axis.x.isOverflowing || _this.axis.x.forceVisible) {
+                _this.onMouseMoveForAxis('x');
+            }
+            if (_this.axis.y.isOverflowing || _this.axis.y.forceVisible) {
+                _this.onMouseMoveForAxis('y');
+            }
+        };
+        this.onMouseLeave = function () {
+            _this.onMouseMove.cancel();
+            if (_this.axis.x.isOverflowing || _this.axis.x.forceVisible) {
+                _this.onMouseLeaveForAxis('x');
+            }
+            if (_this.axis.y.isOverflowing || _this.axis.y.forceVisible) {
+                _this.onMouseLeaveForAxis('y');
+            }
+            _this.mouseX = -1;
+            _this.mouseY = -1;
+        };
+        this._onWindowResize = function () {
+            // Recalculate scrollbarWidth in case it's a zoom
+            _this.scrollbarWidth = _this.getScrollbarWidth();
+            _this.hideNativeScrollbar();
+        };
+        this.onPointerEvent = function (e) {
+            if (!_this.axis.x.track.el ||
+                !_this.axis.y.track.el ||
+                !_this.axis.x.scrollbar.el ||
+                !_this.axis.y.scrollbar.el)
+                return;
+            var isWithinTrackXBounds, isWithinTrackYBounds;
+            _this.axis.x.track.rect = _this.axis.x.track.el.getBoundingClientRect();
+            _this.axis.y.track.rect = _this.axis.y.track.el.getBoundingClientRect();
+            if (_this.axis.x.isOverflowing || _this.axis.x.forceVisible) {
+                isWithinTrackXBounds = _this.isWithinBounds(_this.axis.x.track.rect);
+            }
+            if (_this.axis.y.isOverflowing || _this.axis.y.forceVisible) {
+                isWithinTrackYBounds = _this.isWithinBounds(_this.axis.y.track.rect);
+            }
+            // If any pointer event is called on the scrollbar
+            if (isWithinTrackXBounds || isWithinTrackYBounds) {
+                // Prevent event leaking
+                e.stopPropagation();
+                if (e.type === 'pointerdown' && e.pointerType !== 'touch') {
+                    if (isWithinTrackXBounds) {
+                        _this.axis.x.scrollbar.rect =
+                            _this.axis.x.scrollbar.el.getBoundingClientRect();
+                        if (_this.isWithinBounds(_this.axis.x.scrollbar.rect)) {
+                            _this.onDragStart(e, 'x');
+                        }
+                        else {
+                            _this.onTrackClick(e, 'x');
+                        }
+                    }
+                    if (isWithinTrackYBounds) {
+                        _this.axis.y.scrollbar.rect =
+                            _this.axis.y.scrollbar.el.getBoundingClientRect();
+                        if (_this.isWithinBounds(_this.axis.y.scrollbar.rect)) {
+                            _this.onDragStart(e, 'y');
+                        }
+                        else {
+                            _this.onTrackClick(e, 'y');
+                        }
+                    }
+                }
+            }
+        };
+        /**
+         * Drag scrollbar handle
+         */
+        this.drag = function (e) {
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+            if (!_this.draggedAxis || !_this.contentWrapperEl)
+                return;
+            var eventOffset;
+            var track = _this.axis[_this.draggedAxis].track;
+            var trackSize = (_b = (_a = track.rect) === null || _a === void 0 ? void 0 : _a[_this.axis[_this.draggedAxis].sizeAttr]) !== null && _b !== void 0 ? _b : 0;
+            var scrollbar = _this.axis[_this.draggedAxis].scrollbar;
+            var contentSize = (_d = (_c = _this.contentWrapperEl) === null || _c === void 0 ? void 0 : _c[_this.axis[_this.draggedAxis].scrollSizeAttr]) !== null && _d !== void 0 ? _d : 0;
+            var hostSize = parseInt((_f = (_e = _this.elStyles) === null || _e === void 0 ? void 0 : _e[_this.axis[_this.draggedAxis].sizeAttr]) !== null && _f !== void 0 ? _f : '0px', 10);
+            e.preventDefault();
+            e.stopPropagation();
+            if (_this.draggedAxis === 'y') {
+                eventOffset = e.pageY;
+            }
+            else {
+                eventOffset = e.pageX;
+            }
+            // Calculate how far the user's mouse is from the top/left of the scrollbar (minus the dragOffset).
+            var dragPos = eventOffset -
+                ((_h = (_g = track.rect) === null || _g === void 0 ? void 0 : _g[_this.axis[_this.draggedAxis].offsetAttr]) !== null && _h !== void 0 ? _h : 0) -
+                _this.axis[_this.draggedAxis].dragOffset;
+            dragPos =
+                _this.draggedAxis === 'x' && _this.isRtl
+                    ? ((_k = (_j = track.rect) === null || _j === void 0 ? void 0 : _j[_this.axis[_this.draggedAxis].sizeAttr]) !== null && _k !== void 0 ? _k : 0) -
+                        scrollbar.size -
+                        dragPos
+                    : dragPos;
+            // Convert the mouse position into a percentage of the scrollbar height/width.
+            var dragPerc = dragPos / (trackSize - scrollbar.size);
+            // Scroll the content by the same percentage.
+            var scrollPos = dragPerc * (contentSize - hostSize);
+            // Fix browsers inconsistency on RTL
+            if (_this.draggedAxis === 'x' && _this.isRtl) {
+                scrollPos = ((_l = SimpleBarCore.getRtlHelpers()) === null || _l === void 0 ? void 0 : _l.isScrollingToNegative)
+                    ? -scrollPos
+                    : scrollPos;
+            }
+            _this.contentWrapperEl[_this.axis[_this.draggedAxis].scrollOffsetAttr] =
+                scrollPos;
+        };
+        /**
+         * End scroll handle drag
+         */
+        this.onEndDrag = function (e) {
+            _this.isDragging = false;
+            var elDocument = getElementDocument(_this.el);
+            var elWindow = getElementWindow(_this.el);
+            e.preventDefault();
+            e.stopPropagation();
+            removeClasses(_this.el, _this.classNames.dragging);
+            _this.onStopScrolling();
+            elDocument.removeEventListener('mousemove', _this.drag, true);
+            elDocument.removeEventListener('mouseup', _this.onEndDrag, true);
+            _this.removePreventClickId = elWindow.setTimeout(function () {
+                // Remove these asynchronously so we still suppress click events
+                // generated simultaneously with mouseup.
+                elDocument.removeEventListener('click', _this.preventClick, true);
+                elDocument.removeEventListener('dblclick', _this.preventClick, true);
+                _this.removePreventClickId = null;
+            });
+        };
+        /**
+         * Handler to ignore click events during drag
+         */
+        this.preventClick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+        this.el = element;
+        this.options = __assign(__assign({}, SimpleBarCore.defaultOptions), options);
+        this.classNames = __assign(__assign({}, SimpleBarCore.defaultOptions.classNames), options.classNames);
+        this.axis = {
+            x: {
+                scrollOffsetAttr: 'scrollLeft',
+                sizeAttr: 'width',
+                scrollSizeAttr: 'scrollWidth',
+                offsetSizeAttr: 'offsetWidth',
+                offsetAttr: 'left',
+                overflowAttr: 'overflowX',
+                dragOffset: 0,
+                isOverflowing: true,
+                forceVisible: false,
+                track: { size: null, el: null, rect: null, isVisible: false },
+                scrollbar: { size: null, el: null, rect: null, isVisible: false }
+            },
+            y: {
+                scrollOffsetAttr: 'scrollTop',
+                sizeAttr: 'height',
+                scrollSizeAttr: 'scrollHeight',
+                offsetSizeAttr: 'offsetHeight',
+                offsetAttr: 'top',
+                overflowAttr: 'overflowY',
+                dragOffset: 0,
+                isOverflowing: true,
+                forceVisible: false,
+                track: { size: null, el: null, rect: null, isVisible: false },
+                scrollbar: { size: null, el: null, rect: null, isVisible: false }
+            }
+        };
+        if (typeof this.el !== 'object' || !this.el.nodeName) {
+            throw new Error("Argument passed to SimpleBar must be an HTML element instead of ".concat(this.el));
+        }
+        this.onMouseMove = throttle(this._onMouseMove, 64);
+        this.onWindowResize = debounce(this._onWindowResize, 64, { leading: true });
+        this.onStopScrolling = debounce(this._onStopScrolling, this.stopScrollDelay);
+        this.onMouseEntered = debounce(this._onMouseEntered, this.stopScrollDelay);
+        this.init();
     }
+    /**
+     * Helper to fix browsers inconsistency on RTL:
+     *  - Firefox inverts the scrollbar initial position
+     *  - IE11 inverts both scrollbar position and scrolling offset
+     * Directly inspired by @KingSora's OverlayScrollbars https://github.com/KingSora/OverlayScrollbars/blob/master/js/OverlayScrollbars.js#L1634
+     */
+    SimpleBarCore.getRtlHelpers = function () {
+        if (SimpleBarCore.rtlHelpers) {
+            return SimpleBarCore.rtlHelpers;
+        }
+        var dummyDiv = document.createElement('div');
+        dummyDiv.innerHTML =
+            '<div class="simplebar-dummy-scrollbar-size"><div></div></div>';
+        var scrollbarDummyEl = dummyDiv.firstElementChild;
+        var dummyChild = scrollbarDummyEl === null || scrollbarDummyEl === void 0 ? void 0 : scrollbarDummyEl.firstElementChild;
+        if (!dummyChild)
+            return null;
+        document.body.appendChild(scrollbarDummyEl);
+        scrollbarDummyEl.scrollLeft = 0;
+        var dummyContainerOffset = SimpleBarCore.getOffset(scrollbarDummyEl);
+        var dummyChildOffset = SimpleBarCore.getOffset(dummyChild);
+        scrollbarDummyEl.scrollLeft = -999;
+        var dummyChildOffsetAfterScroll = SimpleBarCore.getOffset(dummyChild);
+        document.body.removeChild(scrollbarDummyEl);
+        SimpleBarCore.rtlHelpers = {
+            // determines if the scrolling is responding with negative values
+            isScrollOriginAtZero: dummyContainerOffset.left !== dummyChildOffset.left,
+            // determines if the origin scrollbar position is inverted or not (positioned on left or right)
+            isScrollingToNegative: dummyChildOffset.left !== dummyChildOffsetAfterScroll.left
+        };
+        return SimpleBarCore.rtlHelpers;
+    };
+    SimpleBarCore.prototype.getScrollbarWidth = function () {
+        // Try/catch for FF 56 throwing on undefined computedStyles
+        try {
+            // Detect browsers supporting CSS scrollbar styling and do not calculate
+            if ((this.contentWrapperEl &&
+                getComputedStyle(this.contentWrapperEl, '::-webkit-scrollbar')
+                    .display === 'none') ||
+                'scrollbarWidth' in document.documentElement.style ||
+                '-ms-overflow-style' in document.documentElement.style) {
+                return 0;
+            }
+            else {
+                return scrollbarWidth();
+            }
+        }
+        catch (e) {
+            return scrollbarWidth();
+        }
+    };
+    SimpleBarCore.getOffset = function (el) {
+        var rect = el.getBoundingClientRect();
+        var elDocument = getElementDocument(el);
+        var elWindow = getElementWindow(el);
+        return {
+            top: rect.top +
+                (elWindow.pageYOffset || elDocument.documentElement.scrollTop),
+            left: rect.left +
+                (elWindow.pageXOffset || elDocument.documentElement.scrollLeft)
+        };
+    };
+    SimpleBarCore.prototype.init = function () {
+        // We stop here on server-side
+        if (canUseDOM$1) {
+            this.initDOM();
+            this.rtlHelpers = SimpleBarCore.getRtlHelpers();
+            this.scrollbarWidth = this.getScrollbarWidth();
+            this.recalculate();
+            this.initListeners();
+        }
+    };
+    SimpleBarCore.prototype.initDOM = function () {
+        var _a, _b;
+        // assume that element has his DOM already initiated
+        this.wrapperEl = this.el.querySelector(classNamesToQuery(this.classNames.wrapper));
+        this.contentWrapperEl =
+            this.options.scrollableNode ||
+                this.el.querySelector(classNamesToQuery(this.classNames.contentWrapper));
+        this.contentEl =
+            this.options.contentNode ||
+                this.el.querySelector(classNamesToQuery(this.classNames.contentEl));
+        this.offsetEl = this.el.querySelector(classNamesToQuery(this.classNames.offset));
+        this.maskEl = this.el.querySelector(classNamesToQuery(this.classNames.mask));
+        this.placeholderEl = this.findChild(this.wrapperEl, classNamesToQuery(this.classNames.placeholder));
+        this.heightAutoObserverWrapperEl = this.el.querySelector(classNamesToQuery(this.classNames.heightAutoObserverWrapperEl));
+        this.heightAutoObserverEl = this.el.querySelector(classNamesToQuery(this.classNames.heightAutoObserverEl));
+        this.axis.x.track.el = this.findChild(this.el, "".concat(classNamesToQuery(this.classNames.track)).concat(classNamesToQuery(this.classNames.horizontal)));
+        this.axis.y.track.el = this.findChild(this.el, "".concat(classNamesToQuery(this.classNames.track)).concat(classNamesToQuery(this.classNames.vertical)));
+        this.axis.x.scrollbar.el =
+            ((_a = this.axis.x.track.el) === null || _a === void 0 ? void 0 : _a.querySelector(classNamesToQuery(this.classNames.scrollbar))) || null;
+        this.axis.y.scrollbar.el =
+            ((_b = this.axis.y.track.el) === null || _b === void 0 ? void 0 : _b.querySelector(classNamesToQuery(this.classNames.scrollbar))) || null;
+        if (!this.options.autoHide) {
+            addClasses$2(this.axis.x.scrollbar.el, this.classNames.visible);
+            addClasses$2(this.axis.y.scrollbar.el, this.classNames.visible);
+        }
+    };
+    SimpleBarCore.prototype.initListeners = function () {
+        var _this = this;
+        var _a;
+        var elWindow = getElementWindow(this.el);
+        // Event listeners
+        this.el.addEventListener('mouseenter', this.onMouseEnter);
+        this.el.addEventListener('pointerdown', this.onPointerEvent, true);
+        this.el.addEventListener('mousemove', this.onMouseMove);
+        this.el.addEventListener('mouseleave', this.onMouseLeave);
+        (_a = this.contentWrapperEl) === null || _a === void 0 ? void 0 : _a.addEventListener('scroll', this.onScroll);
+        // Browser zoom triggers a window resize
+        elWindow.addEventListener('resize', this.onWindowResize);
+        if (!this.contentEl)
+            return;
+        if (window.ResizeObserver) {
+            // Hack for https://github.com/WICG/ResizeObserver/issues/38
+            var resizeObserverStarted_1 = false;
+            var resizeObserver = elWindow.ResizeObserver || ResizeObserver;
+            this.resizeObserver = new resizeObserver(function () {
+                if (!resizeObserverStarted_1)
+                    return;
+                elWindow.requestAnimationFrame(function () {
+                    _this.recalculate();
+                });
+            });
+            this.resizeObserver.observe(this.el);
+            this.resizeObserver.observe(this.contentEl);
+            elWindow.requestAnimationFrame(function () {
+                resizeObserverStarted_1 = true;
+            });
+        }
+        // This is required to detect horizontal scroll. Vertical scroll only needs the resizeObserver.
+        this.mutationObserver = new elWindow.MutationObserver(function () {
+            elWindow.requestAnimationFrame(function () {
+                _this.recalculate();
+            });
+        });
+        this.mutationObserver.observe(this.contentEl, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+    };
+    SimpleBarCore.prototype.recalculate = function () {
+        if (!this.heightAutoObserverEl ||
+            !this.contentEl ||
+            !this.contentWrapperEl ||
+            !this.wrapperEl ||
+            !this.placeholderEl)
+            return;
+        var elWindow = getElementWindow(this.el);
+        this.elStyles = elWindow.getComputedStyle(this.el);
+        this.isRtl = this.elStyles.direction === 'rtl';
+        var contentElOffsetWidth = this.contentEl.offsetWidth;
+        var isHeightAuto = this.heightAutoObserverEl.offsetHeight <= 1;
+        var isWidthAuto = this.heightAutoObserverEl.offsetWidth <= 1 || contentElOffsetWidth > 0;
+        var contentWrapperElOffsetWidth = this.contentWrapperEl.offsetWidth;
+        var elOverflowX = this.elStyles.overflowX;
+        var elOverflowY = this.elStyles.overflowY;
+        this.contentEl.style.padding = "".concat(this.elStyles.paddingTop, " ").concat(this.elStyles.paddingRight, " ").concat(this.elStyles.paddingBottom, " ").concat(this.elStyles.paddingLeft);
+        this.wrapperEl.style.margin = "-".concat(this.elStyles.paddingTop, " -").concat(this.elStyles.paddingRight, " -").concat(this.elStyles.paddingBottom, " -").concat(this.elStyles.paddingLeft);
+        var contentElScrollHeight = this.contentEl.scrollHeight;
+        var contentElScrollWidth = this.contentEl.scrollWidth;
+        this.contentWrapperEl.style.height = isHeightAuto ? 'auto' : '100%';
+        // Determine placeholder size
+        this.placeholderEl.style.width = isWidthAuto
+            ? "".concat(contentElOffsetWidth || contentElScrollWidth, "px")
+            : 'auto';
+        this.placeholderEl.style.height = "".concat(contentElScrollHeight, "px");
+        var contentWrapperElOffsetHeight = this.contentWrapperEl.offsetHeight;
+        this.axis.x.isOverflowing =
+            contentElOffsetWidth !== 0 && contentElScrollWidth > contentElOffsetWidth;
+        this.axis.y.isOverflowing =
+            contentElScrollHeight > contentWrapperElOffsetHeight;
+        // Set isOverflowing to false if user explicitely set hidden overflow
+        this.axis.x.isOverflowing =
+            elOverflowX === 'hidden' ? false : this.axis.x.isOverflowing;
+        this.axis.y.isOverflowing =
+            elOverflowY === 'hidden' ? false : this.axis.y.isOverflowing;
+        this.axis.x.forceVisible =
+            this.options.forceVisible === 'x' || this.options.forceVisible === true;
+        this.axis.y.forceVisible =
+            this.options.forceVisible === 'y' || this.options.forceVisible === true;
+        this.hideNativeScrollbar();
+        // Set isOverflowing to false if scrollbar is not necessary (content is shorter than offset)
+        var offsetForXScrollbar = this.axis.x.isOverflowing
+            ? this.scrollbarWidth
+            : 0;
+        var offsetForYScrollbar = this.axis.y.isOverflowing
+            ? this.scrollbarWidth
+            : 0;
+        this.axis.x.isOverflowing =
+            this.axis.x.isOverflowing &&
+                contentElScrollWidth > contentWrapperElOffsetWidth - offsetForYScrollbar;
+        this.axis.y.isOverflowing =
+            this.axis.y.isOverflowing &&
+                contentElScrollHeight >
+                    contentWrapperElOffsetHeight - offsetForXScrollbar;
+        this.axis.x.scrollbar.size = this.getScrollbarSize('x');
+        this.axis.y.scrollbar.size = this.getScrollbarSize('y');
+        if (this.axis.x.scrollbar.el)
+            this.axis.x.scrollbar.el.style.width = "".concat(this.axis.x.scrollbar.size, "px");
+        if (this.axis.y.scrollbar.el)
+            this.axis.y.scrollbar.el.style.height = "".concat(this.axis.y.scrollbar.size, "px");
+        this.positionScrollbar('x');
+        this.positionScrollbar('y');
+        this.toggleTrackVisibility('x');
+        this.toggleTrackVisibility('y');
+    };
+    /**
+     * Calculate scrollbar size
+     */
+    SimpleBarCore.prototype.getScrollbarSize = function (axis) {
+        var _a, _b;
+        if (axis === void 0) { axis = 'y'; }
+        if (!this.axis[axis].isOverflowing || !this.contentEl) {
+            return 0;
+        }
+        var contentSize = this.contentEl[this.axis[axis].scrollSizeAttr];
+        var trackSize = (_b = (_a = this.axis[axis].track.el) === null || _a === void 0 ? void 0 : _a[this.axis[axis].offsetSizeAttr]) !== null && _b !== void 0 ? _b : 0;
+        var scrollbarRatio = trackSize / contentSize;
+        var scrollbarSize;
+        // Calculate new height/position of drag handle.
+        scrollbarSize = Math.max(~~(scrollbarRatio * trackSize), this.options.scrollbarMinSize);
+        if (this.options.scrollbarMaxSize) {
+            scrollbarSize = Math.min(scrollbarSize, this.options.scrollbarMaxSize);
+        }
+        return scrollbarSize;
+    };
+    SimpleBarCore.prototype.positionScrollbar = function (axis) {
+        var _a, _b, _c;
+        if (axis === void 0) { axis = 'y'; }
+        var scrollbar = this.axis[axis].scrollbar;
+        if (!this.axis[axis].isOverflowing ||
+            !this.contentWrapperEl ||
+            !scrollbar.el ||
+            !this.elStyles) {
+            return;
+        }
+        var contentSize = this.contentWrapperEl[this.axis[axis].scrollSizeAttr];
+        var trackSize = ((_a = this.axis[axis].track.el) === null || _a === void 0 ? void 0 : _a[this.axis[axis].offsetSizeAttr]) || 0;
+        var hostSize = parseInt(this.elStyles[this.axis[axis].sizeAttr], 10);
+        var scrollOffset = this.contentWrapperEl[this.axis[axis].scrollOffsetAttr];
+        scrollOffset =
+            axis === 'x' &&
+                this.isRtl &&
+                ((_b = SimpleBarCore.getRtlHelpers()) === null || _b === void 0 ? void 0 : _b.isScrollOriginAtZero)
+                ? -scrollOffset
+                : scrollOffset;
+        if (axis === 'x' && this.isRtl) {
+            scrollOffset = ((_c = SimpleBarCore.getRtlHelpers()) === null || _c === void 0 ? void 0 : _c.isScrollingToNegative)
+                ? scrollOffset
+                : -scrollOffset;
+        }
+        var scrollPourcent = scrollOffset / (contentSize - hostSize);
+        var handleOffset = ~~((trackSize - scrollbar.size) * scrollPourcent);
+        handleOffset =
+            axis === 'x' && this.isRtl
+                ? -handleOffset + (trackSize - scrollbar.size)
+                : handleOffset;
+        scrollbar.el.style.transform =
+            axis === 'x'
+                ? "translate3d(".concat(handleOffset, "px, 0, 0)")
+                : "translate3d(0, ".concat(handleOffset, "px, 0)");
+    };
+    SimpleBarCore.prototype.toggleTrackVisibility = function (axis) {
+        if (axis === void 0) { axis = 'y'; }
+        var track = this.axis[axis].track.el;
+        var scrollbar = this.axis[axis].scrollbar.el;
+        if (!track || !scrollbar || !this.contentWrapperEl)
+            return;
+        if (this.axis[axis].isOverflowing || this.axis[axis].forceVisible) {
+            track.style.visibility = 'visible';
+            this.contentWrapperEl.style[this.axis[axis].overflowAttr] = 'scroll';
+            this.el.classList.add("".concat(this.classNames.scrollable, "-").concat(axis));
+        }
+        else {
+            track.style.visibility = 'hidden';
+            this.contentWrapperEl.style[this.axis[axis].overflowAttr] = 'hidden';
+            this.el.classList.remove("".concat(this.classNames.scrollable, "-").concat(axis));
+        }
+        // Even if forceVisible is enabled, scrollbar itself should be hidden
+        if (this.axis[axis].isOverflowing) {
+            scrollbar.style.display = 'block';
+        }
+        else {
+            scrollbar.style.display = 'none';
+        }
+    };
+    SimpleBarCore.prototype.showScrollbar = function (axis) {
+        if (axis === void 0) { axis = 'y'; }
+        if (this.axis[axis].isOverflowing && !this.axis[axis].scrollbar.isVisible) {
+            addClasses$2(this.axis[axis].scrollbar.el, this.classNames.visible);
+            this.axis[axis].scrollbar.isVisible = true;
+        }
+    };
+    SimpleBarCore.prototype.hideScrollbar = function (axis) {
+        if (axis === void 0) { axis = 'y'; }
+        if (this.isDragging)
+            return;
+        if (this.axis[axis].isOverflowing && this.axis[axis].scrollbar.isVisible) {
+            removeClasses(this.axis[axis].scrollbar.el, this.classNames.visible);
+            this.axis[axis].scrollbar.isVisible = false;
+        }
+    };
+    SimpleBarCore.prototype.hideNativeScrollbar = function () {
+        if (!this.offsetEl)
+            return;
+        this.offsetEl.style[this.isRtl ? 'left' : 'right'] =
+            this.axis.y.isOverflowing || this.axis.y.forceVisible
+                ? "-".concat(this.scrollbarWidth, "px")
+                : '0px';
+        this.offsetEl.style.bottom =
+            this.axis.x.isOverflowing || this.axis.x.forceVisible
+                ? "-".concat(this.scrollbarWidth, "px")
+                : '0px';
+    };
+    SimpleBarCore.prototype.onMouseMoveForAxis = function (axis) {
+        if (axis === void 0) { axis = 'y'; }
+        var currentAxis = this.axis[axis];
+        if (!currentAxis.track.el || !currentAxis.scrollbar.el)
+            return;
+        currentAxis.track.rect = currentAxis.track.el.getBoundingClientRect();
+        currentAxis.scrollbar.rect =
+            currentAxis.scrollbar.el.getBoundingClientRect();
+        if (this.isWithinBounds(currentAxis.track.rect)) {
+            this.showScrollbar(axis);
+            addClasses$2(currentAxis.track.el, this.classNames.hover);
+            if (this.isWithinBounds(currentAxis.scrollbar.rect)) {
+                addClasses$2(currentAxis.scrollbar.el, this.classNames.hover);
+            }
+            else {
+                removeClasses(currentAxis.scrollbar.el, this.classNames.hover);
+            }
+        }
+        else {
+            removeClasses(currentAxis.track.el, this.classNames.hover);
+            if (this.options.autoHide) {
+                this.hideScrollbar(axis);
+            }
+        }
+    };
+    SimpleBarCore.prototype.onMouseLeaveForAxis = function (axis) {
+        if (axis === void 0) { axis = 'y'; }
+        removeClasses(this.axis[axis].track.el, this.classNames.hover);
+        removeClasses(this.axis[axis].scrollbar.el, this.classNames.hover);
+        if (this.options.autoHide) {
+            this.hideScrollbar(axis);
+        }
+    };
+    /**
+     * on scrollbar handle drag movement starts
+     */
+    SimpleBarCore.prototype.onDragStart = function (e, axis) {
+        var _a;
+        if (axis === void 0) { axis = 'y'; }
+        this.isDragging = true;
+        var elDocument = getElementDocument(this.el);
+        var elWindow = getElementWindow(this.el);
+        var scrollbar = this.axis[axis].scrollbar;
+        // Measure how far the user's mouse is from the top of the scrollbar drag handle.
+        var eventOffset = axis === 'y' ? e.pageY : e.pageX;
+        this.axis[axis].dragOffset =
+            eventOffset - (((_a = scrollbar.rect) === null || _a === void 0 ? void 0 : _a[this.axis[axis].offsetAttr]) || 0);
+        this.draggedAxis = axis;
+        addClasses$2(this.el, this.classNames.dragging);
+        elDocument.addEventListener('mousemove', this.drag, true);
+        elDocument.addEventListener('mouseup', this.onEndDrag, true);
+        if (this.removePreventClickId === null) {
+            elDocument.addEventListener('click', this.preventClick, true);
+            elDocument.addEventListener('dblclick', this.preventClick, true);
+        }
+        else {
+            elWindow.clearTimeout(this.removePreventClickId);
+            this.removePreventClickId = null;
+        }
+    };
+    SimpleBarCore.prototype.onTrackClick = function (e, axis) {
+        var _this = this;
+        var _a, _b, _c, _d;
+        if (axis === void 0) { axis = 'y'; }
+        var currentAxis = this.axis[axis];
+        if (!this.options.clickOnTrack ||
+            !currentAxis.scrollbar.el ||
+            !this.contentWrapperEl)
+            return;
+        // Preventing the event's default to trigger click underneath
+        e.preventDefault();
+        var elWindow = getElementWindow(this.el);
+        this.axis[axis].scrollbar.rect =
+            currentAxis.scrollbar.el.getBoundingClientRect();
+        var scrollbar = this.axis[axis].scrollbar;
+        var scrollbarOffset = (_b = (_a = scrollbar.rect) === null || _a === void 0 ? void 0 : _a[this.axis[axis].offsetAttr]) !== null && _b !== void 0 ? _b : 0;
+        var hostSize = parseInt((_d = (_c = this.elStyles) === null || _c === void 0 ? void 0 : _c[this.axis[axis].sizeAttr]) !== null && _d !== void 0 ? _d : '0px', 10);
+        var scrolled = this.contentWrapperEl[this.axis[axis].scrollOffsetAttr];
+        var t = axis === 'y'
+            ? this.mouseY - scrollbarOffset
+            : this.mouseX - scrollbarOffset;
+        var dir = t < 0 ? -1 : 1;
+        var scrollSize = dir === -1 ? scrolled - hostSize : scrolled + hostSize;
+        var speed = 40;
+        var scrollTo = function () {
+            if (!_this.contentWrapperEl)
+                return;
+            if (dir === -1) {
+                if (scrolled > scrollSize) {
+                    scrolled -= speed;
+                    _this.contentWrapperEl[_this.axis[axis].scrollOffsetAttr] = scrolled;
+                    elWindow.requestAnimationFrame(scrollTo);
+                }
+            }
+            else {
+                if (scrolled < scrollSize) {
+                    scrolled += speed;
+                    _this.contentWrapperEl[_this.axis[axis].scrollOffsetAttr] = scrolled;
+                    elWindow.requestAnimationFrame(scrollTo);
+                }
+            }
+        };
+        scrollTo();
+    };
+    /**
+     * Getter for content element
+     */
+    SimpleBarCore.prototype.getContentElement = function () {
+        return this.contentEl;
+    };
+    /**
+     * Getter for original scrolling element
+     */
+    SimpleBarCore.prototype.getScrollElement = function () {
+        return this.contentWrapperEl;
+    };
+    SimpleBarCore.prototype.removeListeners = function () {
+        var elWindow = getElementWindow(this.el);
+        // Event listeners
+        this.el.removeEventListener('mouseenter', this.onMouseEnter);
+        this.el.removeEventListener('pointerdown', this.onPointerEvent, true);
+        this.el.removeEventListener('mousemove', this.onMouseMove);
+        this.el.removeEventListener('mouseleave', this.onMouseLeave);
+        if (this.contentWrapperEl) {
+            this.contentWrapperEl.removeEventListener('scroll', this.onScroll);
+        }
+        elWindow.removeEventListener('resize', this.onWindowResize);
+        if (this.mutationObserver) {
+            this.mutationObserver.disconnect();
+        }
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+        // Cancel all debounced functions
+        this.onMouseMove.cancel();
+        this.onWindowResize.cancel();
+        this.onStopScrolling.cancel();
+        this.onMouseEntered.cancel();
+    };
+    /**
+     * Remove all listeners from DOM nodes
+     */
+    SimpleBarCore.prototype.unMount = function () {
+        this.removeListeners();
+    };
+    /**
+     * Check if mouse is within bounds
+     */
+    SimpleBarCore.prototype.isWithinBounds = function (bbox) {
+        return (this.mouseX >= bbox.left &&
+            this.mouseX <= bbox.left + bbox.width &&
+            this.mouseY >= bbox.top &&
+            this.mouseY <= bbox.top + bbox.height);
+    };
+    /**
+     * Find element children matches query
+     */
+    SimpleBarCore.prototype.findChild = function (el, query) {
+        var matches = el.matches ||
+            el.webkitMatchesSelector ||
+            el.mozMatchesSelector ||
+            el.msMatchesSelector;
+        return Array.prototype.filter.call(el.children, function (child) {
+            return matches.call(child, query);
+        })[0];
+    };
+    SimpleBarCore.rtlHelpers = null;
+    SimpleBarCore.defaultOptions = {
+        forceVisible: false,
+        clickOnTrack: true,
+        scrollbarMinSize: 25,
+        scrollbarMaxSize: 0,
+        ariaLabel: 'scrollable content',
+        tabIndex: 0,
+        classNames: {
+            contentEl: 'simplebar-content',
+            contentWrapper: 'simplebar-content-wrapper',
+            offset: 'simplebar-offset',
+            mask: 'simplebar-mask',
+            wrapper: 'simplebar-wrapper',
+            placeholder: 'simplebar-placeholder',
+            scrollbar: 'simplebar-scrollbar',
+            track: 'simplebar-track',
+            heightAutoObserverWrapperEl: 'simplebar-height-auto-observer-wrapper',
+            heightAutoObserverEl: 'simplebar-height-auto-observer',
+            visible: 'simplebar-visible',
+            horizontal: 'simplebar-horizontal',
+            vertical: 'simplebar-vertical',
+            hover: 'simplebar-hover',
+            dragging: 'simplebar-dragging',
+            scrolling: 'simplebar-scrolling',
+            scrollable: 'simplebar-scrollable',
+            mouseEntered: 'simplebar-mouse-entered'
+        },
+        scrollableNode: null,
+        contentNode: null,
+        autoHide: true
+    };
+    /**
+     * Static functions
+     */
+    SimpleBarCore.getOptions = getOptions$2;
+    SimpleBarCore.helpers = helpers;
+    return SimpleBarCore;
+}());
 
-    var body = document.body;
-    var box = document.createElement('div');
-    box.classList.add('simplebar-hide-scrollbar');
-    body.appendChild(box);
-    var width = box.getBoundingClientRect().right;
-    body.removeChild(box);
-    cachedScrollbarWidth = width;
-  }
+/**
+ * simplebar - v6.3.3
+ * Scrollbars, simpler.
+ * https://grsmto.github.io/simplebar/
+ *
+ * Made by Adrien Denat from a fork by Jonathan Nicol
+ * Under MIT License
+ */
 
-  return cachedScrollbarWidth;
+
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise */
+
+var extendStatics = function(d, b) {
+    extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+    return extendStatics(d, b);
+};
+
+function __extends(d, b) {
+    if (typeof b !== "function" && b !== null)
+        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+    extendStatics(d, b);
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
 
-var SimpleBar = /*#__PURE__*/function () {
-  function SimpleBar(element, options) {
-    var _this = this;
-
-    this.onScroll = function () {
-      var elWindow = getElementWindow(_this.el);
-
-      if (!_this.scrollXTicking) {
-        elWindow.requestAnimationFrame(_this.scrollX);
-        _this.scrollXTicking = true;
-      }
-
-      if (!_this.scrollYTicking) {
-        elWindow.requestAnimationFrame(_this.scrollY);
-        _this.scrollYTicking = true;
-      }
+var _a = SimpleBarCore.helpers, getOptions = _a.getOptions, addClasses = _a.addClasses, canUseDOM = _a.canUseDOM;
+var SimpleBar = /** @class */ (function (_super) {
+    __extends(SimpleBar, _super);
+    function SimpleBar() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var _this = _super.apply(this, args) || this;
+        // // Save a reference to the instance, so we know this DOM node has already been instancied
+        SimpleBar.instances.set(args[0], _this);
+        return _this;
+    }
+    SimpleBar.initDOMLoadedElements = function () {
+        document.removeEventListener('DOMContentLoaded', this.initDOMLoadedElements);
+        window.removeEventListener('load', this.initDOMLoadedElements);
+        Array.prototype.forEach.call(document.querySelectorAll('[data-simplebar]'), function (el) {
+            if (el.getAttribute('data-simplebar') !== 'init' &&
+                !SimpleBar.instances.has(el))
+                new SimpleBar(el, getOptions(el.attributes));
+        });
     };
-
-    this.scrollX = function () {
-      if (_this.axis.x.isOverflowing) {
-        _this.showScrollbar('x');
-
-        _this.positionScrollbar('x');
-      }
-
-      _this.scrollXTicking = false;
+    SimpleBar.removeObserver = function () {
+        var _a;
+        (_a = SimpleBar.globalObserver) === null || _a === void 0 ? void 0 : _a.disconnect();
     };
-
-    this.scrollY = function () {
-      if (_this.axis.y.isOverflowing) {
-        _this.showScrollbar('y');
-
-        _this.positionScrollbar('y');
-      }
-
-      _this.scrollYTicking = false;
-    };
-
-    this.onMouseEnter = function () {
-      _this.showScrollbar('x');
-
-      _this.showScrollbar('y');
-    };
-
-    this.onMouseMove = function (e) {
-      _this.mouseX = e.clientX;
-      _this.mouseY = e.clientY;
-
-      if (_this.axis.x.isOverflowing || _this.axis.x.forceVisible) {
-        _this.onMouseMoveForAxis('x');
-      }
-
-      if (_this.axis.y.isOverflowing || _this.axis.y.forceVisible) {
-        _this.onMouseMoveForAxis('y');
-      }
-    };
-
-    this.onMouseLeave = function () {
-      _this.onMouseMove.cancel();
-
-      if (_this.axis.x.isOverflowing || _this.axis.x.forceVisible) {
-        _this.onMouseLeaveForAxis('x');
-      }
-
-      if (_this.axis.y.isOverflowing || _this.axis.y.forceVisible) {
-        _this.onMouseLeaveForAxis('y');
-      }
-
-      _this.mouseX = -1;
-      _this.mouseY = -1;
-    };
-
-    this.onWindowResize = function () {
-      // Recalculate scrollbarWidth in case it's a zoom
-      _this.scrollbarWidth = _this.getScrollbarWidth();
-
-      _this.hideNativeScrollbar();
-    };
-
-    this.hideScrollbars = function () {
-      _this.axis.x.track.rect = _this.axis.x.track.el.getBoundingClientRect();
-      _this.axis.y.track.rect = _this.axis.y.track.el.getBoundingClientRect();
-
-      if (!_this.isWithinBounds(_this.axis.y.track.rect)) {
-        _this.axis.y.scrollbar.el.classList.remove(_this.classNames.visible);
-
-        _this.axis.y.isVisible = false;
-      }
-
-      if (!_this.isWithinBounds(_this.axis.x.track.rect)) {
-        _this.axis.x.scrollbar.el.classList.remove(_this.classNames.visible);
-
-        _this.axis.x.isVisible = false;
-      }
-    };
-
-    this.onPointerEvent = function (e) {
-      var isWithinTrackXBounds, isWithinTrackYBounds;
-      _this.axis.x.track.rect = _this.axis.x.track.el.getBoundingClientRect();
-      _this.axis.y.track.rect = _this.axis.y.track.el.getBoundingClientRect();
-
-      if (_this.axis.x.isOverflowing || _this.axis.x.forceVisible) {
-        isWithinTrackXBounds = _this.isWithinBounds(_this.axis.x.track.rect);
-      }
-
-      if (_this.axis.y.isOverflowing || _this.axis.y.forceVisible) {
-        isWithinTrackYBounds = _this.isWithinBounds(_this.axis.y.track.rect);
-      } // If any pointer event is called on the scrollbar
-
-
-      if (isWithinTrackXBounds || isWithinTrackYBounds) {
-        // Preventing the event's default action stops text being
-        // selectable during the drag.
-        e.preventDefault(); // Prevent event leaking
-
-        e.stopPropagation();
-
-        if (e.type === 'mousedown') {
-          if (isWithinTrackXBounds) {
-            _this.axis.x.scrollbar.rect = _this.axis.x.scrollbar.el.getBoundingClientRect();
-
-            if (_this.isWithinBounds(_this.axis.x.scrollbar.rect)) {
-              _this.onDragStart(e, 'x');
-            } else {
-              _this.onTrackClick(e, 'x');
+    SimpleBar.prototype.initDOM = function () {
+        var _this = this;
+        var _a, _b, _c;
+        // make sure this element doesn't have the elements yet
+        if (!Array.prototype.filter.call(this.el.children, function (child) {
+            return child.classList.contains(_this.classNames.wrapper);
+        }).length) {
+            // Prepare DOM
+            this.wrapperEl = document.createElement('div');
+            this.contentWrapperEl = document.createElement('div');
+            this.offsetEl = document.createElement('div');
+            this.maskEl = document.createElement('div');
+            this.contentEl = document.createElement('div');
+            this.placeholderEl = document.createElement('div');
+            this.heightAutoObserverWrapperEl = document.createElement('div');
+            this.heightAutoObserverEl = document.createElement('div');
+            addClasses(this.wrapperEl, this.classNames.wrapper);
+            addClasses(this.contentWrapperEl, this.classNames.contentWrapper);
+            addClasses(this.offsetEl, this.classNames.offset);
+            addClasses(this.maskEl, this.classNames.mask);
+            addClasses(this.contentEl, this.classNames.contentEl);
+            addClasses(this.placeholderEl, this.classNames.placeholder);
+            addClasses(this.heightAutoObserverWrapperEl, this.classNames.heightAutoObserverWrapperEl);
+            addClasses(this.heightAutoObserverEl, this.classNames.heightAutoObserverEl);
+            while (this.el.firstChild) {
+                this.contentEl.appendChild(this.el.firstChild);
             }
-          }
-
-          if (isWithinTrackYBounds) {
-            _this.axis.y.scrollbar.rect = _this.axis.y.scrollbar.el.getBoundingClientRect();
-
-            if (_this.isWithinBounds(_this.axis.y.scrollbar.rect)) {
-              _this.onDragStart(e, 'y');
-            } else {
-              _this.onTrackClick(e, 'y');
-            }
-          }
+            this.contentWrapperEl.appendChild(this.contentEl);
+            this.offsetEl.appendChild(this.contentWrapperEl);
+            this.maskEl.appendChild(this.offsetEl);
+            this.heightAutoObserverWrapperEl.appendChild(this.heightAutoObserverEl);
+            this.wrapperEl.appendChild(this.heightAutoObserverWrapperEl);
+            this.wrapperEl.appendChild(this.maskEl);
+            this.wrapperEl.appendChild(this.placeholderEl);
+            this.el.appendChild(this.wrapperEl);
+            (_a = this.contentWrapperEl) === null || _a === void 0 ? void 0 : _a.setAttribute('tabindex', this.options.tabIndex.toString());
+            (_b = this.contentWrapperEl) === null || _b === void 0 ? void 0 : _b.setAttribute('role', 'region');
+            (_c = this.contentWrapperEl) === null || _c === void 0 ? void 0 : _c.setAttribute('aria-label', this.options.ariaLabel);
         }
-      }
-    };
-
-    this.drag = function (e) {
-      var eventOffset;
-      var track = _this.axis[_this.draggedAxis].track;
-      var trackSize = track.rect[_this.axis[_this.draggedAxis].sizeAttr];
-      var scrollbar = _this.axis[_this.draggedAxis].scrollbar;
-      var contentSize = _this.contentWrapperEl[_this.axis[_this.draggedAxis].scrollSizeAttr];
-      var hostSize = parseInt(_this.elStyles[_this.axis[_this.draggedAxis].sizeAttr], 10);
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (_this.draggedAxis === 'y') {
-        eventOffset = e.pageY;
-      } else {
-        eventOffset = e.pageX;
-      } // Calculate how far the user's mouse is from the top/left of the scrollbar (minus the dragOffset).
-
-
-      var dragPos = eventOffset - track.rect[_this.axis[_this.draggedAxis].offsetAttr] - _this.axis[_this.draggedAxis].dragOffset; // Convert the mouse position into a percentage of the scrollbar height/width.
-
-      var dragPerc = dragPos / (trackSize - scrollbar.size); // Scroll the content by the same percentage.
-
-      var scrollPos = dragPerc * (contentSize - hostSize); // Fix browsers inconsistency on RTL
-
-      if (_this.draggedAxis === 'x') {
-        scrollPos = _this.isRtl && SimpleBar.getRtlHelpers().isRtlScrollbarInverted ? scrollPos - (trackSize + scrollbar.size) : scrollPos;
-        scrollPos = _this.isRtl && SimpleBar.getRtlHelpers().isRtlScrollingInverted ? -scrollPos : scrollPos;
-      }
-
-      _this.contentWrapperEl[_this.axis[_this.draggedAxis].scrollOffsetAttr] = scrollPos;
-    };
-
-    this.onEndDrag = function (e) {
-      var elDocument = getElementDocument(_this.el);
-      var elWindow = getElementWindow(_this.el);
-      e.preventDefault();
-      e.stopPropagation();
-
-      _this.el.classList.remove(_this.classNames.dragging);
-
-      elDocument.removeEventListener('mousemove', _this.drag, true);
-      elDocument.removeEventListener('mouseup', _this.onEndDrag, true);
-      _this.removePreventClickId = elWindow.setTimeout(function () {
-        // Remove these asynchronously so we still suppress click events
-        // generated simultaneously with mouseup.
-        elDocument.removeEventListener('click', _this.preventClick, true);
-        elDocument.removeEventListener('dblclick', _this.preventClick, true);
-        _this.removePreventClickId = null;
-      });
-    };
-
-    this.preventClick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    this.el = element;
-    this.minScrollbarWidth = 20;
-    this.options = Object.assign({}, SimpleBar.defaultOptions, options);
-    this.classNames = Object.assign({}, SimpleBar.defaultOptions.classNames, this.options.classNames);
-    this.axis = {
-      x: {
-        scrollOffsetAttr: 'scrollLeft',
-        sizeAttr: 'width',
-        scrollSizeAttr: 'scrollWidth',
-        offsetSizeAttr: 'offsetWidth',
-        offsetAttr: 'left',
-        overflowAttr: 'overflowX',
-        dragOffset: 0,
-        isOverflowing: true,
-        isVisible: false,
-        forceVisible: false,
-        track: {},
-        scrollbar: {}
-      },
-      y: {
-        scrollOffsetAttr: 'scrollTop',
-        sizeAttr: 'height',
-        scrollSizeAttr: 'scrollHeight',
-        offsetSizeAttr: 'offsetHeight',
-        offsetAttr: 'top',
-        overflowAttr: 'overflowY',
-        dragOffset: 0,
-        isOverflowing: true,
-        isVisible: false,
-        forceVisible: false,
-        track: {},
-        scrollbar: {}
-      }
-    };
-    this.removePreventClickId = null; // Don't re-instantiate over an existing one
-
-    if (SimpleBar.instances.has(this.el)) {
-      return;
-    }
-
-    this.recalculate = throttle$1(this.recalculate.bind(this), 64);
-    this.onMouseMove = throttle$1(this.onMouseMove.bind(this), 64);
-    this.hideScrollbars = debounce$1(this.hideScrollbars.bind(this), this.options.timeout);
-    this.onWindowResize = debounce$1(this.onWindowResize.bind(this), 64, {
-      leading: true
-    });
-    SimpleBar.getRtlHelpers = memoize$1(SimpleBar.getRtlHelpers);
-    this.init();
-  }
-  /**
-   * Static properties
-   */
-
-  /**
-   * Helper to fix browsers inconsistency on RTL:
-   *  - Firefox inverts the scrollbar initial position
-   *  - IE11 inverts both scrollbar position and scrolling offset
-   * Directly inspired by @KingSora's OverlayScrollbars https://github.com/KingSora/OverlayScrollbars/blob/master/js/OverlayScrollbars.js#L1634
-   */
-
-
-  SimpleBar.getRtlHelpers = function getRtlHelpers() {
-    var dummyDiv = document.createElement('div');
-    dummyDiv.innerHTML = '<div class="hs-dummy-scrollbar-size"><div style="height: 200%; width: 200%; margin: 10px 0;"></div></div>';
-    var scrollbarDummyEl = dummyDiv.firstElementChild;
-    document.body.appendChild(scrollbarDummyEl);
-    var dummyContainerChild = scrollbarDummyEl.firstElementChild;
-    scrollbarDummyEl.scrollLeft = 0;
-    var dummyContainerOffset = SimpleBar.getOffset(scrollbarDummyEl);
-    var dummyContainerChildOffset = SimpleBar.getOffset(dummyContainerChild);
-    scrollbarDummyEl.scrollLeft = 999;
-    var dummyContainerScrollOffsetAfterScroll = SimpleBar.getOffset(dummyContainerChild);
-    return {
-      // determines if the scrolling is responding with negative values
-      isRtlScrollingInverted: dummyContainerOffset.left !== dummyContainerChildOffset.left && dummyContainerChildOffset.left - dummyContainerScrollOffsetAfterScroll.left !== 0,
-      // determines if the origin scrollbar position is inverted or not (positioned on left or right)
-      isRtlScrollbarInverted: dummyContainerOffset.left !== dummyContainerChildOffset.left
-    };
-  };
-
-  SimpleBar.getOffset = function getOffset(el) {
-    var rect = el.getBoundingClientRect();
-    var elDocument = getElementDocument(el);
-    var elWindow = getElementWindow(el);
-    return {
-      top: rect.top + (elWindow.pageYOffset || elDocument.documentElement.scrollTop),
-      left: rect.left + (elWindow.pageXOffset || elDocument.documentElement.scrollLeft)
-    };
-  };
-
-  var _proto = SimpleBar.prototype;
-
-  _proto.init = function init() {
-    // Save a reference to the instance, so we know this DOM node has already been instancied
-    SimpleBar.instances.set(this.el, this); // We stop here on server-side
-
-    if (canUseDOM$1) {
-      this.initDOM();
-      this.setAccessibilityAttributes();
-      this.scrollbarWidth = this.getScrollbarWidth();
-      this.recalculate();
-      this.initListeners();
-    }
-  };
-
-  _proto.initDOM = function initDOM() {
-    var _this2 = this;
-
-    // make sure this element doesn't have the elements yet
-    if (Array.prototype.filter.call(this.el.children, function (child) {
-      return child.classList.contains(_this2.classNames.wrapper);
-    }).length) {
-      // assume that element has his DOM already initiated
-      this.wrapperEl = this.el.querySelector("." + this.classNames.wrapper);
-      this.contentWrapperEl = this.options.scrollableNode || this.el.querySelector("." + this.classNames.contentWrapper);
-      this.contentEl = this.options.contentNode || this.el.querySelector("." + this.classNames.contentEl);
-      this.offsetEl = this.el.querySelector("." + this.classNames.offset);
-      this.maskEl = this.el.querySelector("." + this.classNames.mask);
-      this.placeholderEl = this.findChild(this.wrapperEl, "." + this.classNames.placeholder);
-      this.heightAutoObserverWrapperEl = this.el.querySelector("." + this.classNames.heightAutoObserverWrapperEl);
-      this.heightAutoObserverEl = this.el.querySelector("." + this.classNames.heightAutoObserverEl);
-      this.axis.x.track.el = this.findChild(this.el, "." + this.classNames.track + "." + this.classNames.horizontal);
-      this.axis.y.track.el = this.findChild(this.el, "." + this.classNames.track + "." + this.classNames.vertical);
-    } else {
-      // Prepare DOM
-      this.wrapperEl = document.createElement('div');
-      this.contentWrapperEl = document.createElement('div');
-      this.offsetEl = document.createElement('div');
-      this.maskEl = document.createElement('div');
-      this.contentEl = document.createElement('div');
-      this.placeholderEl = document.createElement('div');
-      this.heightAutoObserverWrapperEl = document.createElement('div');
-      this.heightAutoObserverEl = document.createElement('div');
-      this.wrapperEl.classList.add(this.classNames.wrapper);
-      this.contentWrapperEl.classList.add(this.classNames.contentWrapper);
-      this.offsetEl.classList.add(this.classNames.offset);
-      this.maskEl.classList.add(this.classNames.mask);
-      this.contentEl.classList.add(this.classNames.contentEl);
-      this.placeholderEl.classList.add(this.classNames.placeholder);
-      this.heightAutoObserverWrapperEl.classList.add(this.classNames.heightAutoObserverWrapperEl);
-      this.heightAutoObserverEl.classList.add(this.classNames.heightAutoObserverEl);
-
-      while (this.el.firstChild) {
-        this.contentEl.appendChild(this.el.firstChild);
-      }
-
-      this.contentWrapperEl.appendChild(this.contentEl);
-      this.offsetEl.appendChild(this.contentWrapperEl);
-      this.maskEl.appendChild(this.offsetEl);
-      this.heightAutoObserverWrapperEl.appendChild(this.heightAutoObserverEl);
-      this.wrapperEl.appendChild(this.heightAutoObserverWrapperEl);
-      this.wrapperEl.appendChild(this.maskEl);
-      this.wrapperEl.appendChild(this.placeholderEl);
-      this.el.appendChild(this.wrapperEl);
-    }
-
-    if (!this.axis.x.track.el || !this.axis.y.track.el) {
-      var track = document.createElement('div');
-      var scrollbar = document.createElement('div');
-      track.classList.add(this.classNames.track);
-      scrollbar.classList.add(this.classNames.scrollbar);
-      track.appendChild(scrollbar);
-      this.axis.x.track.el = track.cloneNode(true);
-      this.axis.x.track.el.classList.add(this.classNames.horizontal);
-      this.axis.y.track.el = track.cloneNode(true);
-      this.axis.y.track.el.classList.add(this.classNames.vertical);
-      this.el.appendChild(this.axis.x.track.el);
-      this.el.appendChild(this.axis.y.track.el);
-    }
-
-    this.axis.x.scrollbar.el = this.axis.x.track.el.querySelector("." + this.classNames.scrollbar);
-    this.axis.y.scrollbar.el = this.axis.y.track.el.querySelector("." + this.classNames.scrollbar);
-
-    if (!this.options.autoHide) {
-      this.axis.x.scrollbar.el.classList.add(this.classNames.visible);
-      this.axis.y.scrollbar.el.classList.add(this.classNames.visible);
-    }
-
-    this.el.setAttribute('data-simplebar', 'init');
-  };
-
-  _proto.setAccessibilityAttributes = function setAccessibilityAttributes() {
-    var ariaLabel = this.options.ariaLabel || 'scrollable content';
-    this.contentWrapperEl.setAttribute('tabindex', '0');
-    this.contentWrapperEl.setAttribute('role', 'region');
-    this.contentWrapperEl.setAttribute('aria-label', ariaLabel);
-  };
-
-  _proto.initListeners = function initListeners() {
-    var _this3 = this;
-
-    var elWindow = getElementWindow(this.el); // Event listeners
-
-    if (this.options.autoHide) {
-      this.el.addEventListener('mouseenter', this.onMouseEnter);
-    }
-
-    ['mousedown', 'click', 'dblclick'].forEach(function (e) {
-      _this3.el.addEventListener(e, _this3.onPointerEvent, true);
-    });
-    ['touchstart', 'touchend', 'touchmove'].forEach(function (e) {
-      _this3.el.addEventListener(e, _this3.onPointerEvent, {
-        capture: true,
-        passive: true
-      });
-    });
-    this.el.addEventListener('mousemove', this.onMouseMove);
-    this.el.addEventListener('mouseleave', this.onMouseLeave);
-    this.contentWrapperEl.addEventListener('scroll', this.onScroll); // Browser zoom triggers a window resize
-
-    elWindow.addEventListener('resize', this.onWindowResize); // Hack for https://github.com/WICG/ResizeObserver/issues/38
-
-    var resizeObserverStarted = false;
-    var resizeAnimationFrameId = null;
-    var resizeObserver = elWindow.ResizeObserver || ResizeObserver;
-    this.resizeObserver = new resizeObserver(function () {
-      if (!resizeObserverStarted || resizeAnimationFrameId !== null) return;
-      resizeAnimationFrameId = elWindow.requestAnimationFrame(function () {
-        _this3.recalculate();
-
-        resizeAnimationFrameId = null;
-      });
-    });
-    this.resizeObserver.observe(this.el);
-    this.resizeObserver.observe(this.contentEl);
-    elWindow.requestAnimationFrame(function () {
-      resizeObserverStarted = true;
-    }); // This is required to detect horizontal scroll. Vertical scroll only needs the resizeObserver.
-
-    this.mutationObserver = new elWindow.MutationObserver(this.recalculate);
-    this.mutationObserver.observe(this.contentEl, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-  };
-
-  _proto.recalculate = function recalculate() {
-    var elWindow = getElementWindow(this.el);
-    this.elStyles = elWindow.getComputedStyle(this.el);
-    this.isRtl = this.elStyles.direction === 'rtl';
-    var isHeightAuto = this.heightAutoObserverEl.offsetHeight <= 1;
-    var isWidthAuto = this.heightAutoObserverEl.offsetWidth <= 1;
-    var contentElOffsetWidth = this.contentEl.offsetWidth;
-    var contentWrapperElOffsetWidth = this.contentWrapperEl.offsetWidth;
-    var elOverflowX = this.elStyles.overflowX;
-    var elOverflowY = this.elStyles.overflowY;
-    this.contentEl.style.padding = this.elStyles.paddingTop + " " + this.elStyles.paddingRight + " " + this.elStyles.paddingBottom + " " + this.elStyles.paddingLeft;
-    this.wrapperEl.style.margin = "-" + this.elStyles.paddingTop + " -" + this.elStyles.paddingRight + " -" + this.elStyles.paddingBottom + " -" + this.elStyles.paddingLeft;
-    var contentElScrollHeight = this.contentEl.scrollHeight;
-    var contentElScrollWidth = this.contentEl.scrollWidth;
-    this.contentWrapperEl.style.height = isHeightAuto ? 'auto' : '100%'; // Determine placeholder size
-
-    this.placeholderEl.style.width = isWidthAuto ? contentElOffsetWidth + "px" : 'auto';
-    this.placeholderEl.style.height = contentElScrollHeight + "px";
-    var contentWrapperElOffsetHeight = this.contentWrapperEl.offsetHeight;
-    this.axis.x.isOverflowing = contentElScrollWidth > contentElOffsetWidth;
-    this.axis.y.isOverflowing = contentElScrollHeight > contentWrapperElOffsetHeight; // Set isOverflowing to false if user explicitely set hidden overflow
-
-    this.axis.x.isOverflowing = elOverflowX === 'hidden' ? false : this.axis.x.isOverflowing;
-    this.axis.y.isOverflowing = elOverflowY === 'hidden' ? false : this.axis.y.isOverflowing;
-    this.axis.x.forceVisible = this.options.forceVisible === 'x' || this.options.forceVisible === true;
-    this.axis.y.forceVisible = this.options.forceVisible === 'y' || this.options.forceVisible === true;
-    this.hideNativeScrollbar(); // Set isOverflowing to false if scrollbar is not necessary (content is shorter than offset)
-
-    var offsetForXScrollbar = this.axis.x.isOverflowing ? this.scrollbarWidth : 0;
-    var offsetForYScrollbar = this.axis.y.isOverflowing ? this.scrollbarWidth : 0;
-    this.axis.x.isOverflowing = this.axis.x.isOverflowing && contentElScrollWidth > contentWrapperElOffsetWidth - offsetForYScrollbar;
-    this.axis.y.isOverflowing = this.axis.y.isOverflowing && contentElScrollHeight > contentWrapperElOffsetHeight - offsetForXScrollbar;
-    this.axis.x.scrollbar.size = this.getScrollbarSize('x');
-    this.axis.y.scrollbar.size = this.getScrollbarSize('y');
-    this.axis.x.scrollbar.el.style.width = this.axis.x.scrollbar.size + "px";
-    this.axis.y.scrollbar.el.style.height = this.axis.y.scrollbar.size + "px";
-    this.positionScrollbar('x');
-    this.positionScrollbar('y');
-    this.toggleTrackVisibility('x');
-    this.toggleTrackVisibility('y');
-  }
-  /**
-   * Calculate scrollbar size
-   */
-  ;
-
-  _proto.getScrollbarSize = function getScrollbarSize(axis) {
-    if (axis === void 0) {
-      axis = 'y';
-    }
-
-    if (!this.axis[axis].isOverflowing) {
-      return 0;
-    }
-
-    var contentSize = this.contentEl[this.axis[axis].scrollSizeAttr];
-    var trackSize = this.axis[axis].track.el[this.axis[axis].offsetSizeAttr];
-    var scrollbarSize;
-    var scrollbarRatio = trackSize / contentSize; // Calculate new height/position of drag handle.
-
-    scrollbarSize = Math.max(~~(scrollbarRatio * trackSize), this.options.scrollbarMinSize);
-
-    if (this.options.scrollbarMaxSize) {
-      scrollbarSize = Math.min(scrollbarSize, this.options.scrollbarMaxSize);
-    }
-
-    return scrollbarSize;
-  };
-
-  _proto.positionScrollbar = function positionScrollbar(axis) {
-    if (axis === void 0) {
-      axis = 'y';
-    }
-
-    if (!this.axis[axis].isOverflowing) {
-      return;
-    }
-
-    var contentSize = this.contentWrapperEl[this.axis[axis].scrollSizeAttr];
-    var trackSize = this.axis[axis].track.el[this.axis[axis].offsetSizeAttr];
-    var hostSize = parseInt(this.elStyles[this.axis[axis].sizeAttr], 10);
-    var scrollbar = this.axis[axis].scrollbar;
-    var scrollOffset = this.contentWrapperEl[this.axis[axis].scrollOffsetAttr];
-    scrollOffset = axis === 'x' && this.isRtl && SimpleBar.getRtlHelpers().isRtlScrollingInverted ? -scrollOffset : scrollOffset;
-    var scrollPourcent = scrollOffset / (contentSize - hostSize);
-    var handleOffset = ~~((trackSize - scrollbar.size) * scrollPourcent);
-    handleOffset = axis === 'x' && this.isRtl && SimpleBar.getRtlHelpers().isRtlScrollbarInverted ? handleOffset + (trackSize - scrollbar.size) : handleOffset;
-    scrollbar.el.style.transform = axis === 'x' ? "translate3d(" + handleOffset + "px, 0, 0)" : "translate3d(0, " + handleOffset + "px, 0)";
-  };
-
-  _proto.toggleTrackVisibility = function toggleTrackVisibility(axis) {
-    if (axis === void 0) {
-      axis = 'y';
-    }
-
-    var track = this.axis[axis].track.el;
-    var scrollbar = this.axis[axis].scrollbar.el;
-
-    if (this.axis[axis].isOverflowing || this.axis[axis].forceVisible) {
-      track.style.visibility = 'visible';
-      this.contentWrapperEl.style[this.axis[axis].overflowAttr] = 'scroll';
-    } else {
-      track.style.visibility = 'hidden';
-      this.contentWrapperEl.style[this.axis[axis].overflowAttr] = 'hidden';
-    } // Even if forceVisible is enabled, scrollbar itself should be hidden
-
-
-    if (this.axis[axis].isOverflowing) {
-      scrollbar.style.display = 'block';
-    } else {
-      scrollbar.style.display = 'none';
-    }
-  };
-
-  _proto.hideNativeScrollbar = function hideNativeScrollbar() {
-    this.offsetEl.style[this.isRtl ? 'left' : 'right'] = this.axis.y.isOverflowing || this.axis.y.forceVisible ? "-" + this.scrollbarWidth + "px" : 0;
-    this.offsetEl.style.bottom = this.axis.x.isOverflowing || this.axis.x.forceVisible ? "-" + this.scrollbarWidth + "px" : 0;
-  }
-  /**
-   * On scroll event handling
-   */
-  ;
-
-  _proto.onMouseMoveForAxis = function onMouseMoveForAxis(axis) {
-    if (axis === void 0) {
-      axis = 'y';
-    }
-
-    this.axis[axis].track.rect = this.axis[axis].track.el.getBoundingClientRect();
-    this.axis[axis].scrollbar.rect = this.axis[axis].scrollbar.el.getBoundingClientRect();
-    var isWithinScrollbarBoundsX = this.isWithinBounds(this.axis[axis].scrollbar.rect);
-
-    if (isWithinScrollbarBoundsX) {
-      this.axis[axis].scrollbar.el.classList.add(this.classNames.hover);
-    } else {
-      this.axis[axis].scrollbar.el.classList.remove(this.classNames.hover);
-    }
-
-    if (this.isWithinBounds(this.axis[axis].track.rect)) {
-      this.showScrollbar(axis);
-      this.axis[axis].track.el.classList.add(this.classNames.hover);
-    } else {
-      this.axis[axis].track.el.classList.remove(this.classNames.hover);
-    }
-  };
-
-  _proto.onMouseLeaveForAxis = function onMouseLeaveForAxis(axis) {
-    if (axis === void 0) {
-      axis = 'y';
-    }
-
-    this.axis[axis].track.el.classList.remove(this.classNames.hover);
-    this.axis[axis].scrollbar.el.classList.remove(this.classNames.hover);
-  };
-
-  /**
-   * Show scrollbar
-   */
-  _proto.showScrollbar = function showScrollbar(axis) {
-    if (axis === void 0) {
-      axis = 'y';
-    }
-
-    var scrollbar = this.axis[axis].scrollbar.el;
-
-    if (!this.axis[axis].isVisible) {
-      scrollbar.classList.add(this.classNames.visible);
-      this.axis[axis].isVisible = true;
-    }
-
-    if (this.options.autoHide) {
-      this.hideScrollbars();
-    }
-  }
-  /**
-   * Hide Scrollbar
-   */
-  ;
-
-  /**
-   * on scrollbar handle drag movement starts
-   */
-  _proto.onDragStart = function onDragStart(e, axis) {
-    if (axis === void 0) {
-      axis = 'y';
-    }
-
-    var elDocument = getElementDocument(this.el);
-    var elWindow = getElementWindow(this.el);
-    var scrollbar = this.axis[axis].scrollbar; // Measure how far the user's mouse is from the top of the scrollbar drag handle.
-
-    var eventOffset = axis === 'y' ? e.pageY : e.pageX;
-    this.axis[axis].dragOffset = eventOffset - scrollbar.rect[this.axis[axis].offsetAttr];
-    this.draggedAxis = axis;
-    this.el.classList.add(this.classNames.dragging);
-    elDocument.addEventListener('mousemove', this.drag, true);
-    elDocument.addEventListener('mouseup', this.onEndDrag, true);
-
-    if (this.removePreventClickId === null) {
-      elDocument.addEventListener('click', this.preventClick, true);
-      elDocument.addEventListener('dblclick', this.preventClick, true);
-    } else {
-      elWindow.clearTimeout(this.removePreventClickId);
-      this.removePreventClickId = null;
-    }
-  }
-  /**
-   * Drag scrollbar handle
-   */
-  ;
-
-  _proto.onTrackClick = function onTrackClick(e, axis) {
-    var _this4 = this;
-
-    if (axis === void 0) {
-      axis = 'y';
-    }
-
-    if (!this.options.clickOnTrack) return;
-    var elWindow = getElementWindow(this.el);
-    this.axis[axis].scrollbar.rect = this.axis[axis].scrollbar.el.getBoundingClientRect();
-    var scrollbar = this.axis[axis].scrollbar;
-    var scrollbarOffset = scrollbar.rect[this.axis[axis].offsetAttr];
-    var hostSize = parseInt(this.elStyles[this.axis[axis].sizeAttr], 10);
-    var scrolled = this.contentWrapperEl[this.axis[axis].scrollOffsetAttr];
-    var t = axis === 'y' ? this.mouseY - scrollbarOffset : this.mouseX - scrollbarOffset;
-    var dir = t < 0 ? -1 : 1;
-    var scrollSize = dir === -1 ? scrolled - hostSize : scrolled + hostSize;
-
-    var scrollTo = function scrollTo() {
-      if (dir === -1) {
-        if (scrolled > scrollSize) {
-          var _this4$contentWrapper;
-
-          scrolled -= _this4.options.clickOnTrackSpeed;
-
-          _this4.contentWrapperEl.scrollTo((_this4$contentWrapper = {}, _this4$contentWrapper[_this4.axis[axis].offsetAttr] = scrolled, _this4$contentWrapper));
-
-          elWindow.requestAnimationFrame(scrollTo);
+        if (!this.axis.x.track.el || !this.axis.y.track.el) {
+            var track = document.createElement('div');
+            var scrollbar = document.createElement('div');
+            addClasses(track, this.classNames.track);
+            addClasses(scrollbar, this.classNames.scrollbar);
+            track.appendChild(scrollbar);
+            this.axis.x.track.el = track.cloneNode(true);
+            addClasses(this.axis.x.track.el, this.classNames.horizontal);
+            this.axis.y.track.el = track.cloneNode(true);
+            addClasses(this.axis.y.track.el, this.classNames.vertical);
+            this.el.appendChild(this.axis.x.track.el);
+            this.el.appendChild(this.axis.y.track.el);
         }
-      } else {
-        if (scrolled < scrollSize) {
-          var _this4$contentWrapper2;
-
-          scrolled += _this4.options.clickOnTrackSpeed;
-
-          _this4.contentWrapperEl.scrollTo((_this4$contentWrapper2 = {}, _this4$contentWrapper2[_this4.axis[axis].offsetAttr] = scrolled, _this4$contentWrapper2));
-
-          elWindow.requestAnimationFrame(scrollTo);
-        }
-      }
+        SimpleBarCore.prototype.initDOM.call(this);
+        this.el.setAttribute('data-simplebar', 'init');
     };
-
-    scrollTo();
-  }
-  /**
-   * Getter for content element
-   */
-  ;
-
-  _proto.getContentElement = function getContentElement() {
-    return this.contentEl;
-  }
-  /**
-   * Getter for original scrolling element
-   */
-  ;
-
-  _proto.getScrollElement = function getScrollElement() {
-    return this.contentWrapperEl;
-  };
-
-  _proto.getScrollbarWidth = function getScrollbarWidth() {
-    // Try/catch for FF 56 throwing on undefined computedStyles
-    try {
-      // Detect browsers supporting CSS scrollbar styling and do not calculate
-      if (getComputedStyle(this.contentWrapperEl, '::-webkit-scrollbar').display === 'none' || 'scrollbarWidth' in document.documentElement.style || '-ms-overflow-style' in document.documentElement.style) {
-        return 0;
-      } else {
-        return scrollbarWidth(this.el);
-      }
-    } catch (e) {
-      return scrollbarWidth(this.el);
-    }
-  };
-
-  _proto.removeListeners = function removeListeners() {
-    var _this5 = this;
-
-    var elWindow = getElementWindow(this.el); // Event listeners
-
-    if (this.options.autoHide) {
-      this.el.removeEventListener('mouseenter', this.onMouseEnter);
-    }
-
-    ['mousedown', 'click', 'dblclick'].forEach(function (e) {
-      _this5.el.removeEventListener(e, _this5.onPointerEvent, true);
-    });
-    ['touchstart', 'touchend', 'touchmove'].forEach(function (e) {
-      _this5.el.removeEventListener(e, _this5.onPointerEvent, {
-        capture: true,
-        passive: true
-      });
-    });
-    this.el.removeEventListener('mousemove', this.onMouseMove);
-    this.el.removeEventListener('mouseleave', this.onMouseLeave);
-
-    if (this.contentWrapperEl) {
-      this.contentWrapperEl.removeEventListener('scroll', this.onScroll);
-    }
-
-    elWindow.removeEventListener('resize', this.onWindowResize);
-
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-    }
-
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-    } // Cancel all debounced functions
-
-
-    this.recalculate.cancel();
-    this.onMouseMove.cancel();
-    this.hideScrollbars.cancel();
-    this.onWindowResize.cancel();
-  }
-  /**
-   * UnMount mutation observer and delete SimpleBar instance from DOM element
-   */
-  ;
-
-  _proto.unMount = function unMount() {
-    this.removeListeners();
-    SimpleBar.instances.delete(this.el);
-  }
-  /**
-   * Check if mouse is within bounds
-   */
-  ;
-
-  _proto.isWithinBounds = function isWithinBounds(bbox) {
-    return this.mouseX >= bbox.left && this.mouseX <= bbox.left + bbox.width && this.mouseY >= bbox.top && this.mouseY <= bbox.top + bbox.height;
-  }
-  /**
-   * Find element children matches query
-   */
-  ;
-
-  _proto.findChild = function findChild(el, query) {
-    var matches = el.matches || el.webkitMatchesSelector || el.mozMatchesSelector || el.msMatchesSelector;
-    return Array.prototype.filter.call(el.children, function (child) {
-      return matches.call(child, query);
-    })[0];
-  };
-
-  return SimpleBar;
-}();
-
-SimpleBar.defaultOptions = {
-  autoHide: true,
-  forceVisible: false,
-  clickOnTrack: true,
-  clickOnTrackSpeed: 40,
-  classNames: {
-    contentEl: 'simplebar-content',
-    contentWrapper: 'simplebar-content-wrapper',
-    offset: 'simplebar-offset',
-    mask: 'simplebar-mask',
-    wrapper: 'simplebar-wrapper',
-    placeholder: 'simplebar-placeholder',
-    scrollbar: 'simplebar-scrollbar',
-    track: 'simplebar-track',
-    heightAutoObserverWrapperEl: 'simplebar-height-auto-observer-wrapper',
-    heightAutoObserverEl: 'simplebar-height-auto-observer',
-    visible: 'simplebar-visible',
-    horizontal: 'simplebar-horizontal',
-    vertical: 'simplebar-vertical',
-    hover: 'simplebar-hover',
-    dragging: 'simplebar-dragging'
-  },
-  scrollbarMinSize: 25,
-  scrollbarMaxSize: 0,
-  timeout: 1000
-};
-SimpleBar.instances = new WeakMap();
-
-SimpleBar.initDOMLoadedElements = function () {
-  document.removeEventListener('DOMContentLoaded', this.initDOMLoadedElements);
-  window.removeEventListener('load', this.initDOMLoadedElements);
-  Array.prototype.forEach.call(document.querySelectorAll('[data-simplebar]'), function (el) {
-    if (el.getAttribute('data-simplebar') !== 'init' && !SimpleBar.instances.has(el)) new SimpleBar(el, getOptions(el.attributes));
-  });
-};
-
-SimpleBar.removeObserver = function () {
-  this.globalObserver.disconnect();
-};
-
-SimpleBar.initHtmlApi = function () {
-  this.initDOMLoadedElements = this.initDOMLoadedElements.bind(this); // MutationObserver is IE11+
-
-  if (typeof MutationObserver !== 'undefined') {
-    // Mutation observer to observe dynamically added elements
-    this.globalObserver = new MutationObserver(SimpleBar.handleMutations);
-    this.globalObserver.observe(document, {
-      childList: true,
-      subtree: true
-    });
-  } // Taken from jQuery `ready` function
-  // Instantiate elements already present on the page
-
-
-  if (document.readyState === 'complete' || document.readyState !== 'loading' && !document.documentElement.doScroll) {
-    // Handle it asynchronously to allow scripts the opportunity to delay init
-    window.setTimeout(this.initDOMLoadedElements);
-  } else {
-    document.addEventListener('DOMContentLoaded', this.initDOMLoadedElements);
-    window.addEventListener('load', this.initDOMLoadedElements);
-  }
-};
-
-SimpleBar.handleMutations = function (mutations) {
-  mutations.forEach(function (mutation) {
-    Array.prototype.forEach.call(mutation.addedNodes, function (addedNode) {
-      if (addedNode.nodeType === 1) {
-        if (addedNode.hasAttribute('data-simplebar')) {
-          !SimpleBar.instances.has(addedNode) && document.documentElement.contains(addedNode) && new SimpleBar(addedNode, getOptions(addedNode.attributes));
-        } else {
-          Array.prototype.forEach.call(addedNode.querySelectorAll('[data-simplebar]'), function (el) {
-            if (el.getAttribute('data-simplebar') !== 'init' && !SimpleBar.instances.has(el) && document.documentElement.contains(el)) new SimpleBar(el, getOptions(el.attributes));
-          });
+    SimpleBar.prototype.unMount = function () {
+        SimpleBarCore.prototype.unMount.call(this);
+        SimpleBar.instances["delete"](this.el);
+    };
+    SimpleBar.initHtmlApi = function () {
+        this.initDOMLoadedElements = this.initDOMLoadedElements.bind(this);
+        // MutationObserver is IE11+
+        if (typeof MutationObserver !== 'undefined') {
+            // Mutation observer to observe dynamically added elements
+            this.globalObserver = new MutationObserver(SimpleBar.handleMutations);
+            this.globalObserver.observe(document, { childList: true, subtree: true });
         }
-      }
-    });
-    Array.prototype.forEach.call(mutation.removedNodes, function (removedNode) {
-      if (removedNode.nodeType === 1) {
-        if (removedNode.getAttribute('data-simplebar') === 'init') {
-          SimpleBar.instances.has(removedNode) && !document.documentElement.contains(removedNode) && SimpleBar.instances.get(removedNode).unMount();
-        } else {
-          Array.prototype.forEach.call(removedNode.querySelectorAll('[data-simplebar="init"]'), function (el) {
-            SimpleBar.instances.has(el) && !document.documentElement.contains(el) && SimpleBar.instances.get(el).unMount();
-          });
+        // Taken from jQuery `ready` function
+        // Instantiate elements already present on the page
+        if (document.readyState === 'complete' || // @ts-ignore: IE specific
+            (document.readyState !== 'loading' && !document.documentElement.doScroll)) {
+            // Handle it asynchronously to allow scripts the opportunity to delay init
+            window.setTimeout(this.initDOMLoadedElements);
         }
-      }
-    });
-  });
-};
-
-SimpleBar.getOptions = getOptions;
+        else {
+            document.addEventListener('DOMContentLoaded', this.initDOMLoadedElements);
+            window.addEventListener('load', this.initDOMLoadedElements);
+        }
+    };
+    SimpleBar.handleMutations = function (mutations) {
+        mutations.forEach(function (mutation) {
+            mutation.addedNodes.forEach(function (addedNode) {
+                if (addedNode.nodeType === 1) {
+                    if (addedNode.hasAttribute('data-simplebar')) {
+                        !SimpleBar.instances.has(addedNode) &&
+                            document.documentElement.contains(addedNode) &&
+                            new SimpleBar(addedNode, getOptions(addedNode.attributes));
+                    }
+                    else {
+                        addedNode
+                            .querySelectorAll('[data-simplebar]')
+                            .forEach(function (el) {
+                            if (el.getAttribute('data-simplebar') !== 'init' &&
+                                !SimpleBar.instances.has(el) &&
+                                document.documentElement.contains(el))
+                                new SimpleBar(el, getOptions(el.attributes));
+                        });
+                    }
+                }
+            });
+            mutation.removedNodes.forEach(function (removedNode) {
+                var _a;
+                if (removedNode.nodeType === 1) {
+                    if (removedNode.getAttribute('data-simplebar') === 'init') {
+                        !document.documentElement.contains(removedNode) &&
+                            ((_a = SimpleBar.instances.get(removedNode)) === null || _a === void 0 ? void 0 : _a.unMount());
+                    }
+                    else {
+                        Array.prototype.forEach.call(removedNode.querySelectorAll('[data-simplebar="init"]'), function (el) {
+                            var _a;
+                            !document.documentElement.contains(el) &&
+                                ((_a = SimpleBar.instances.get(el)) === null || _a === void 0 ? void 0 : _a.unMount());
+                        });
+                    }
+                }
+            });
+        });
+    };
+    SimpleBar.instances = new WeakMap();
+    return SimpleBar;
+}(SimpleBarCore));
 /**
  * HTML API
  * Called only in a browser env.
  */
+if (canUseDOM) {
+    SimpleBar.initHtmlApi();
+}
 
-if (canUseDOM$1) {
-  SimpleBar.initHtmlApi();
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
+function getDefaultExportFromNamespaceIfPresent (n) {
+	return n && Object.prototype.hasOwnProperty.call(n, 'default') ? n['default'] : n;
+}
+
+function getDefaultExportFromNamespaceIfNotNamed (n) {
+	return n && Object.prototype.hasOwnProperty.call(n, 'default') && Object.keys(n).length === 1 ? n['default'] : n;
+}
+
+function getAugmentedNamespace(n) {
+  if (Object.prototype.hasOwnProperty.call(n, '__esModule')) return n;
+  var f = n.default;
+	if (typeof f == "function") {
+		var a = function a () {
+			var isInstance = false;
+      try {
+        isInstance = this instanceof a;
+      } catch {}
+			if (isInstance) {
+        return Reflect.construct(f, arguments, this.constructor);
+			}
+			return f.apply(this, arguments);
+		};
+		a.prototype = f.prototype;
+  } else a = {};
+  Object.defineProperty(a, '__esModule', {value: true});
+	Object.keys(n).forEach(function (k) {
+		var d = Object.getOwnPropertyDescriptor(n, k);
+		Object.defineProperty(a, k, d.get ? d : {
+			enumerable: true,
+			get: function () {
+				return n[k];
+			}
+		});
+	});
+	return a;
 }
 
 /* eslint-disable no-multi-assign */
 
-function deepFreeze(obj) {
-  if (obj instanceof Map) {
-    obj.clear =
-      obj.delete =
-      obj.set =
-        function () {
-          throw new Error('map is read-only');
-        };
-  } else if (obj instanceof Set) {
-    obj.add =
-      obj.clear =
-      obj.delete =
-        function () {
-          throw new Error('set is read-only');
-        };
-  }
+var core;
+var hasRequiredCore;
 
-  // Freeze self
-  Object.freeze(obj);
+function requireCore () {
+	if (hasRequiredCore) return core;
+	hasRequiredCore = 1;
+	function deepFreeze(obj) {
+	  if (obj instanceof Map) {
+	    obj.clear =
+	      obj.delete =
+	      obj.set =
+	        function () {
+	          throw new Error('map is read-only');
+	        };
+	  } else if (obj instanceof Set) {
+	    obj.add =
+	      obj.clear =
+	      obj.delete =
+	        function () {
+	          throw new Error('set is read-only');
+	        };
+	  }
 
-  Object.getOwnPropertyNames(obj).forEach((name) => {
-    const prop = obj[name];
-    const type = typeof prop;
+	  // Freeze self
+	  Object.freeze(obj);
 
-    // Freeze prop if it is an object or function and also not already frozen
-    if ((type === 'object' || type === 'function') && !Object.isFrozen(prop)) {
-      deepFreeze(prop);
-    }
-  });
+	  Object.getOwnPropertyNames(obj).forEach((name) => {
+	    const prop = obj[name];
+	    const type = typeof prop;
 
-  return obj;
+	    // Freeze prop if it is an object or function and also not already frozen
+	    if ((type === 'object' || type === 'function') && !Object.isFrozen(prop)) {
+	      deepFreeze(prop);
+	    }
+	  });
+
+	  return obj;
+	}
+
+	/** @typedef {import('highlight.js').CallbackResponse} CallbackResponse */
+	/** @typedef {import('highlight.js').CompiledMode} CompiledMode */
+	/** @implements CallbackResponse */
+
+	class Response {
+	  /**
+	   * @param {CompiledMode} mode
+	   */
+	  constructor(mode) {
+	    // eslint-disable-next-line no-undefined
+	    if (mode.data === undefined) mode.data = {};
+
+	    this.data = mode.data;
+	    this.isMatchIgnored = false;
+	  }
+
+	  ignoreMatch() {
+	    this.isMatchIgnored = true;
+	  }
+	}
+
+	/**
+	 * @param {string} value
+	 * @returns {string}
+	 */
+	function escapeHTML(value) {
+	  return value
+	    .replace(/&/g, '&amp;')
+	    .replace(/</g, '&lt;')
+	    .replace(/>/g, '&gt;')
+	    .replace(/"/g, '&quot;')
+	    .replace(/'/g, '&#x27;');
+	}
+
+	/**
+	 * performs a shallow merge of multiple objects into one
+	 *
+	 * @template T
+	 * @param {T} original
+	 * @param {Record<string,any>[]} objects
+	 * @returns {T} a single new object
+	 */
+	function inherit$1(original, ...objects) {
+	  /** @type Record<string,any> */
+	  const result = Object.create(null);
+
+	  for (const key in original) {
+	    result[key] = original[key];
+	  }
+	  objects.forEach(function(obj) {
+	    for (const key in obj) {
+	      result[key] = obj[key];
+	    }
+	  });
+	  return /** @type {T} */ (result);
+	}
+
+	/**
+	 * @typedef {object} Renderer
+	 * @property {(text: string) => void} addText
+	 * @property {(node: Node) => void} openNode
+	 * @property {(node: Node) => void} closeNode
+	 * @property {() => string} value
+	 */
+
+	/** @typedef {{scope?: string, language?: string, sublanguage?: boolean}} Node */
+	/** @typedef {{walk: (r: Renderer) => void}} Tree */
+	/** */
+
+	const SPAN_CLOSE = '</span>';
+
+	/**
+	 * Determines if a node needs to be wrapped in <span>
+	 *
+	 * @param {Node} node */
+	const emitsWrappingTags = (node) => {
+	  // rarely we can have a sublanguage where language is undefined
+	  // TODO: track down why
+	  return !!node.scope;
+	};
+
+	/**
+	 *
+	 * @param {string} name
+	 * @param {{prefix:string}} options
+	 */
+	const scopeToCSSClass = (name, { prefix }) => {
+	  // sub-language
+	  if (name.startsWith("language:")) {
+	    return name.replace("language:", "language-");
+	  }
+	  // tiered scope: comment.line
+	  if (name.includes(".")) {
+	    const pieces = name.split(".");
+	    return [
+	      `${prefix}${pieces.shift()}`,
+	      ...(pieces.map((x, i) => `${x}${"_".repeat(i + 1)}`))
+	    ].join(" ");
+	  }
+	  // simple scope
+	  return `${prefix}${name}`;
+	};
+
+	/** @type {Renderer} */
+	class HTMLRenderer {
+	  /**
+	   * Creates a new HTMLRenderer
+	   *
+	   * @param {Tree} parseTree - the parse tree (must support `walk` API)
+	   * @param {{classPrefix: string}} options
+	   */
+	  constructor(parseTree, options) {
+	    this.buffer = "";
+	    this.classPrefix = options.classPrefix;
+	    parseTree.walk(this);
+	  }
+
+	  /**
+	   * Adds texts to the output stream
+	   *
+	   * @param {string} text */
+	  addText(text) {
+	    this.buffer += escapeHTML(text);
+	  }
+
+	  /**
+	   * Adds a node open to the output stream (if needed)
+	   *
+	   * @param {Node} node */
+	  openNode(node) {
+	    if (!emitsWrappingTags(node)) return;
+
+	    const className = scopeToCSSClass(node.scope,
+	      { prefix: this.classPrefix });
+	    this.span(className);
+	  }
+
+	  /**
+	   * Adds a node close to the output stream (if needed)
+	   *
+	   * @param {Node} node */
+	  closeNode(node) {
+	    if (!emitsWrappingTags(node)) return;
+
+	    this.buffer += SPAN_CLOSE;
+	  }
+
+	  /**
+	   * returns the accumulated buffer
+	  */
+	  value() {
+	    return this.buffer;
+	  }
+
+	  // helpers
+
+	  /**
+	   * Builds a span element
+	   *
+	   * @param {string} className */
+	  span(className) {
+	    this.buffer += `<span class="${className}">`;
+	  }
+	}
+
+	/** @typedef {{scope?: string, language?: string, children: Node[]} | string} Node */
+	/** @typedef {{scope?: string, language?: string, children: Node[]} } DataNode */
+	/** @typedef {import('highlight.js').Emitter} Emitter */
+	/**  */
+
+	/** @returns {DataNode} */
+	const newNode = (opts = {}) => {
+	  /** @type DataNode */
+	  const result = { children: [] };
+	  Object.assign(result, opts);
+	  return result;
+	};
+
+	class TokenTree {
+	  constructor() {
+	    /** @type DataNode */
+	    this.rootNode = newNode();
+	    this.stack = [this.rootNode];
+	  }
+
+	  get top() {
+	    return this.stack[this.stack.length - 1];
+	  }
+
+	  get root() { return this.rootNode; }
+
+	  /** @param {Node} node */
+	  add(node) {
+	    this.top.children.push(node);
+	  }
+
+	  /** @param {string} scope */
+	  openNode(scope) {
+	    /** @type Node */
+	    const node = newNode({ scope });
+	    this.add(node);
+	    this.stack.push(node);
+	  }
+
+	  closeNode() {
+	    if (this.stack.length > 1) {
+	      return this.stack.pop();
+	    }
+	    // eslint-disable-next-line no-undefined
+	    return undefined;
+	  }
+
+	  closeAllNodes() {
+	    while (this.closeNode());
+	  }
+
+	  toJSON() {
+	    return JSON.stringify(this.rootNode, null, 4);
+	  }
+
+	  /**
+	   * @typedef { import("./html_renderer").Renderer } Renderer
+	   * @param {Renderer} builder
+	   */
+	  walk(builder) {
+	    // this does not
+	    return this.constructor._walk(builder, this.rootNode);
+	    // this works
+	    // return TokenTree._walk(builder, this.rootNode);
+	  }
+
+	  /**
+	   * @param {Renderer} builder
+	   * @param {Node} node
+	   */
+	  static _walk(builder, node) {
+	    if (typeof node === "string") {
+	      builder.addText(node);
+	    } else if (node.children) {
+	      builder.openNode(node);
+	      node.children.forEach((child) => this._walk(builder, child));
+	      builder.closeNode(node);
+	    }
+	    return builder;
+	  }
+
+	  /**
+	   * @param {Node} node
+	   */
+	  static _collapse(node) {
+	    if (typeof node === "string") return;
+	    if (!node.children) return;
+
+	    if (node.children.every(el => typeof el === "string")) {
+	      // node.text = node.children.join("");
+	      // delete node.children;
+	      node.children = [node.children.join("")];
+	    } else {
+	      node.children.forEach((child) => {
+	        TokenTree._collapse(child);
+	      });
+	    }
+	  }
+	}
+
+	/**
+	  Currently this is all private API, but this is the minimal API necessary
+	  that an Emitter must implement to fully support the parser.
+
+	  Minimal interface:
+
+	  - addText(text)
+	  - __addSublanguage(emitter, subLanguageName)
+	  - startScope(scope)
+	  - endScope()
+	  - finalize()
+	  - toHTML()
+
+	*/
+
+	/**
+	 * @implements {Emitter}
+	 */
+	class TokenTreeEmitter extends TokenTree {
+	  /**
+	   * @param {*} options
+	   */
+	  constructor(options) {
+	    super();
+	    this.options = options;
+	  }
+
+	  /**
+	   * @param {string} text
+	   */
+	  addText(text) {
+	    if (text === "") { return; }
+
+	    this.add(text);
+	  }
+
+	  /** @param {string} scope */
+	  startScope(scope) {
+	    this.openNode(scope);
+	  }
+
+	  endScope() {
+	    this.closeNode();
+	  }
+
+	  /**
+	   * @param {Emitter & {root: DataNode}} emitter
+	   * @param {string} name
+	   */
+	  __addSublanguage(emitter, name) {
+	    /** @type DataNode */
+	    const node = emitter.root;
+	    if (name) node.scope = `language:${name}`;
+
+	    this.add(node);
+	  }
+
+	  toHTML() {
+	    const renderer = new HTMLRenderer(this, this.options);
+	    return renderer.value();
+	  }
+
+	  finalize() {
+	    this.closeAllNodes();
+	    return true;
+	  }
+	}
+
+	/**
+	 * @param {string} value
+	 * @returns {RegExp}
+	 * */
+
+	/**
+	 * @param {RegExp | string } re
+	 * @returns {string}
+	 */
+	function source(re) {
+	  if (!re) return null;
+	  if (typeof re === "string") return re;
+
+	  return re.source;
+	}
+
+	/**
+	 * @param {RegExp | string } re
+	 * @returns {string}
+	 */
+	function lookahead(re) {
+	  return concat('(?=', re, ')');
+	}
+
+	/**
+	 * @param {RegExp | string } re
+	 * @returns {string}
+	 */
+	function anyNumberOfTimes(re) {
+	  return concat('(?:', re, ')*');
+	}
+
+	/**
+	 * @param {RegExp | string } re
+	 * @returns {string}
+	 */
+	function optional(re) {
+	  return concat('(?:', re, ')?');
+	}
+
+	/**
+	 * @param {...(RegExp | string) } args
+	 * @returns {string}
+	 */
+	function concat(...args) {
+	  const joined = args.map((x) => source(x)).join("");
+	  return joined;
+	}
+
+	/**
+	 * @param { Array<string | RegExp | Object> } args
+	 * @returns {object}
+	 */
+	function stripOptionsFromArgs(args) {
+	  const opts = args[args.length - 1];
+
+	  if (typeof opts === 'object' && opts.constructor === Object) {
+	    args.splice(args.length - 1, 1);
+	    return opts;
+	  } else {
+	    return {};
+	  }
+	}
+
+	/** @typedef { {capture?: boolean} } RegexEitherOptions */
+
+	/**
+	 * Any of the passed expresssions may match
+	 *
+	 * Creates a huge this | this | that | that match
+	 * @param {(RegExp | string)[] | [...(RegExp | string)[], RegexEitherOptions]} args
+	 * @returns {string}
+	 */
+	function either(...args) {
+	  /** @type { object & {capture?: boolean} }  */
+	  const opts = stripOptionsFromArgs(args);
+	  const joined = '('
+	    + (opts.capture ? "" : "?:")
+	    + args.map((x) => source(x)).join("|") + ")";
+	  return joined;
+	}
+
+	/**
+	 * @param {RegExp | string} re
+	 * @returns {number}
+	 */
+	function countMatchGroups(re) {
+	  return (new RegExp(re.toString() + '|')).exec('').length - 1;
+	}
+
+	/**
+	 * Does lexeme start with a regular expression match at the beginning
+	 * @param {RegExp} re
+	 * @param {string} lexeme
+	 */
+	function startsWith(re, lexeme) {
+	  const match = re && re.exec(lexeme);
+	  return match && match.index === 0;
+	}
+
+	// BACKREF_RE matches an open parenthesis or backreference. To avoid
+	// an incorrect parse, it additionally matches the following:
+	// - [...] elements, where the meaning of parentheses and escapes change
+	// - other escape sequences, so we do not misparse escape sequences as
+	//   interesting elements
+	// - non-matching or lookahead parentheses, which do not capture. These
+	//   follow the '(' with a '?'.
+	const BACKREF_RE = /\[(?:[^\\\]]|\\.)*\]|\(\??|\\([1-9][0-9]*)|\\./;
+
+	// **INTERNAL** Not intended for outside usage
+	// join logically computes regexps.join(separator), but fixes the
+	// backreferences so they continue to match.
+	// it also places each individual regular expression into it's own
+	// match group, keeping track of the sequencing of those match groups
+	// is currently an exercise for the caller. :-)
+	/**
+	 * @param {(string | RegExp)[]} regexps
+	 * @param {{joinWith: string}} opts
+	 * @returns {string}
+	 */
+	function _rewriteBackreferences(regexps, { joinWith }) {
+	  let numCaptures = 0;
+
+	  return regexps.map((regex) => {
+	    numCaptures += 1;
+	    const offset = numCaptures;
+	    let re = source(regex);
+	    let out = '';
+
+	    while (re.length > 0) {
+	      const match = BACKREF_RE.exec(re);
+	      if (!match) {
+	        out += re;
+	        break;
+	      }
+	      out += re.substring(0, match.index);
+	      re = re.substring(match.index + match[0].length);
+	      if (match[0][0] === '\\' && match[1]) {
+	        // Adjust the backreference.
+	        out += '\\' + String(Number(match[1]) + offset);
+	      } else {
+	        out += match[0];
+	        if (match[0] === '(') {
+	          numCaptures++;
+	        }
+	      }
+	    }
+	    return out;
+	  }).map(re => `(${re})`).join(joinWith);
+	}
+
+	/** @typedef {import('highlight.js').Mode} Mode */
+	/** @typedef {import('highlight.js').ModeCallback} ModeCallback */
+
+	// Common regexps
+	const MATCH_NOTHING_RE = /\b\B/;
+	const IDENT_RE = '[a-zA-Z]\\w*';
+	const UNDERSCORE_IDENT_RE = '[a-zA-Z_]\\w*';
+	const NUMBER_RE = '\\b\\d+(\\.\\d+)?';
+	const C_NUMBER_RE = '(-?)(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)'; // 0x..., 0..., decimal, float
+	const BINARY_NUMBER_RE = '\\b(0b[01]+)'; // 0b...
+	const RE_STARTERS_RE = '!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|-|-=|/=|/|:|;|<<|<<=|<=|<|===|==|=|>>>=|>>=|>=|>>>|>>|>|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~';
+
+	/**
+	* @param { Partial<Mode> & {binary?: string | RegExp} } opts
+	*/
+	const SHEBANG = (opts = {}) => {
+	  const beginShebang = /^#![ ]*\//;
+	  if (opts.binary) {
+	    opts.begin = concat(
+	      beginShebang,
+	      /.*\b/,
+	      opts.binary,
+	      /\b.*/);
+	  }
+	  return inherit$1({
+	    scope: 'meta',
+	    begin: beginShebang,
+	    end: /$/,
+	    relevance: 0,
+	    /** @type {ModeCallback} */
+	    "on:begin": (m, resp) => {
+	      if (m.index !== 0) resp.ignoreMatch();
+	    }
+	  }, opts);
+	};
+
+	// Common modes
+	const BACKSLASH_ESCAPE = {
+	  begin: '\\\\[\\s\\S]', relevance: 0
+	};
+	const APOS_STRING_MODE = {
+	  scope: 'string',
+	  begin: '\'',
+	  end: '\'',
+	  illegal: '\\n',
+	  contains: [BACKSLASH_ESCAPE]
+	};
+	const QUOTE_STRING_MODE = {
+	  scope: 'string',
+	  begin: '"',
+	  end: '"',
+	  illegal: '\\n',
+	  contains: [BACKSLASH_ESCAPE]
+	};
+	const PHRASAL_WORDS_MODE = {
+	  begin: /\b(a|an|the|are|I'm|isn't|don't|doesn't|won't|but|just|should|pretty|simply|enough|gonna|going|wtf|so|such|will|you|your|they|like|more)\b/
+	};
+	/**
+	 * Creates a comment mode
+	 *
+	 * @param {string | RegExp} begin
+	 * @param {string | RegExp} end
+	 * @param {Mode | {}} [modeOptions]
+	 * @returns {Partial<Mode>}
+	 */
+	const COMMENT = function(begin, end, modeOptions = {}) {
+	  const mode = inherit$1(
+	    {
+	      scope: 'comment',
+	      begin,
+	      end,
+	      contains: []
+	    },
+	    modeOptions
+	  );
+	  mode.contains.push({
+	    scope: 'doctag',
+	    // hack to avoid the space from being included. the space is necessary to
+	    // match here to prevent the plain text rule below from gobbling up doctags
+	    begin: '[ ]*(?=(TODO|FIXME|NOTE|BUG|OPTIMIZE|HACK|XXX):)',
+	    end: /(TODO|FIXME|NOTE|BUG|OPTIMIZE|HACK|XXX):/,
+	    excludeBegin: true,
+	    relevance: 0
+	  });
+	  const ENGLISH_WORD = either(
+	    // list of common 1 and 2 letter words in English
+	    "I",
+	    "a",
+	    "is",
+	    "so",
+	    "us",
+	    "to",
+	    "at",
+	    "if",
+	    "in",
+	    "it",
+	    "on",
+	    // note: this is not an exhaustive list of contractions, just popular ones
+	    /[A-Za-z]+['](d|ve|re|ll|t|s|n)/, // contractions - can't we'd they're let's, etc
+	    /[A-Za-z]+[-][a-z]+/, // `no-way`, etc.
+	    /[A-Za-z][a-z]{2,}/ // allow capitalized words at beginning of sentences
+	  );
+	  // looking like plain text, more likely to be a comment
+	  mode.contains.push(
+	    {
+	      // TODO: how to include ", (, ) without breaking grammars that use these for
+	      // comment delimiters?
+	      // begin: /[ ]+([()"]?([A-Za-z'-]{3,}|is|a|I|so|us|[tT][oO]|at|if|in|it|on)[.]?[()":]?([.][ ]|[ ]|\))){3}/
+	      // ---
+
+	      // this tries to find sequences of 3 english words in a row (without any
+	      // "programming" type syntax) this gives us a strong signal that we've
+	      // TRULY found a comment - vs perhaps scanning with the wrong language.
+	      // It's possible to find something that LOOKS like the start of the
+	      // comment - but then if there is no readable text - good chance it is a
+	      // false match and not a comment.
+	      //
+	      // for a visual example please see:
+	      // https://github.com/highlightjs/highlight.js/issues/2827
+
+	      begin: concat(
+	        /[ ]+/, // necessary to prevent us gobbling up doctags like /* @author Bob Mcgill */
+	        '(',
+	        ENGLISH_WORD,
+	        /[.]?[:]?([.][ ]|[ ])/,
+	        '){3}') // look for 3 words in a row
+	    }
+	  );
+	  return mode;
+	};
+	const C_LINE_COMMENT_MODE = COMMENT('//', '$');
+	const C_BLOCK_COMMENT_MODE = COMMENT('/\\*', '\\*/');
+	const HASH_COMMENT_MODE = COMMENT('#', '$');
+	const NUMBER_MODE = {
+	  scope: 'number',
+	  begin: NUMBER_RE,
+	  relevance: 0
+	};
+	const C_NUMBER_MODE = {
+	  scope: 'number',
+	  begin: C_NUMBER_RE,
+	  relevance: 0
+	};
+	const BINARY_NUMBER_MODE = {
+	  scope: 'number',
+	  begin: BINARY_NUMBER_RE,
+	  relevance: 0
+	};
+	const REGEXP_MODE = {
+	  scope: "regexp",
+	  begin: /\/(?=[^/\n]*\/)/,
+	  end: /\/[gimuy]*/,
+	  contains: [
+	    BACKSLASH_ESCAPE,
+	    {
+	      begin: /\[/,
+	      end: /\]/,
+	      relevance: 0,
+	      contains: [BACKSLASH_ESCAPE]
+	    }
+	  ]
+	};
+	const TITLE_MODE = {
+	  scope: 'title',
+	  begin: IDENT_RE,
+	  relevance: 0
+	};
+	const UNDERSCORE_TITLE_MODE = {
+	  scope: 'title',
+	  begin: UNDERSCORE_IDENT_RE,
+	  relevance: 0
+	};
+	const METHOD_GUARD = {
+	  // excludes method names from keyword processing
+	  begin: '\\.\\s*' + UNDERSCORE_IDENT_RE,
+	  relevance: 0
+	};
+
+	/**
+	 * Adds end same as begin mechanics to a mode
+	 *
+	 * Your mode must include at least a single () match group as that first match
+	 * group is what is used for comparison
+	 * @param {Partial<Mode>} mode
+	 */
+	const END_SAME_AS_BEGIN = function(mode) {
+	  return Object.assign(mode,
+	    {
+	      /** @type {ModeCallback} */
+	      'on:begin': (m, resp) => { resp.data._beginMatch = m[1]; },
+	      /** @type {ModeCallback} */
+	      'on:end': (m, resp) => { if (resp.data._beginMatch !== m[1]) resp.ignoreMatch(); }
+	    });
+	};
+
+	var MODES = /*#__PURE__*/Object.freeze({
+	  __proto__: null,
+	  APOS_STRING_MODE: APOS_STRING_MODE,
+	  BACKSLASH_ESCAPE: BACKSLASH_ESCAPE,
+	  BINARY_NUMBER_MODE: BINARY_NUMBER_MODE,
+	  BINARY_NUMBER_RE: BINARY_NUMBER_RE,
+	  COMMENT: COMMENT,
+	  C_BLOCK_COMMENT_MODE: C_BLOCK_COMMENT_MODE,
+	  C_LINE_COMMENT_MODE: C_LINE_COMMENT_MODE,
+	  C_NUMBER_MODE: C_NUMBER_MODE,
+	  C_NUMBER_RE: C_NUMBER_RE,
+	  END_SAME_AS_BEGIN: END_SAME_AS_BEGIN,
+	  HASH_COMMENT_MODE: HASH_COMMENT_MODE,
+	  IDENT_RE: IDENT_RE,
+	  MATCH_NOTHING_RE: MATCH_NOTHING_RE,
+	  METHOD_GUARD: METHOD_GUARD,
+	  NUMBER_MODE: NUMBER_MODE,
+	  NUMBER_RE: NUMBER_RE,
+	  PHRASAL_WORDS_MODE: PHRASAL_WORDS_MODE,
+	  QUOTE_STRING_MODE: QUOTE_STRING_MODE,
+	  REGEXP_MODE: REGEXP_MODE,
+	  RE_STARTERS_RE: RE_STARTERS_RE,
+	  SHEBANG: SHEBANG,
+	  TITLE_MODE: TITLE_MODE,
+	  UNDERSCORE_IDENT_RE: UNDERSCORE_IDENT_RE,
+	  UNDERSCORE_TITLE_MODE: UNDERSCORE_TITLE_MODE
+	});
+
+	/**
+	@typedef {import('highlight.js').CallbackResponse} CallbackResponse
+	@typedef {import('highlight.js').CompilerExt} CompilerExt
+	*/
+
+	// Grammar extensions / plugins
+	// See: https://github.com/highlightjs/highlight.js/issues/2833
+
+	// Grammar extensions allow "syntactic sugar" to be added to the grammar modes
+	// without requiring any underlying changes to the compiler internals.
+
+	// `compileMatch` being the perfect small example of now allowing a grammar
+	// author to write `match` when they desire to match a single expression rather
+	// than being forced to use `begin`.  The extension then just moves `match` into
+	// `begin` when it runs.  Ie, no features have been added, but we've just made
+	// the experience of writing (and reading grammars) a little bit nicer.
+
+	// ------
+
+	// TODO: We need negative look-behind support to do this properly
+	/**
+	 * Skip a match if it has a preceding dot
+	 *
+	 * This is used for `beginKeywords` to prevent matching expressions such as
+	 * `bob.keyword.do()`. The mode compiler automatically wires this up as a
+	 * special _internal_ 'on:begin' callback for modes with `beginKeywords`
+	 * @param {RegExpMatchArray} match
+	 * @param {CallbackResponse} response
+	 */
+	function skipIfHasPrecedingDot(match, response) {
+	  const before = match.input[match.index - 1];
+	  if (before === ".") {
+	    response.ignoreMatch();
+	  }
+	}
+
+	/**
+	 *
+	 * @type {CompilerExt}
+	 */
+	function scopeClassName(mode, _parent) {
+	  // eslint-disable-next-line no-undefined
+	  if (mode.className !== undefined) {
+	    mode.scope = mode.className;
+	    delete mode.className;
+	  }
+	}
+
+	/**
+	 * `beginKeywords` syntactic sugar
+	 * @type {CompilerExt}
+	 */
+	function beginKeywords(mode, parent) {
+	  if (!parent) return;
+	  if (!mode.beginKeywords) return;
+
+	  // for languages with keywords that include non-word characters checking for
+	  // a word boundary is not sufficient, so instead we check for a word boundary
+	  // or whitespace - this does no harm in any case since our keyword engine
+	  // doesn't allow spaces in keywords anyways and we still check for the boundary
+	  // first
+	  mode.begin = '\\b(' + mode.beginKeywords.split(' ').join('|') + ')(?!\\.)(?=\\b|\\s)';
+	  mode.__beforeBegin = skipIfHasPrecedingDot;
+	  mode.keywords = mode.keywords || mode.beginKeywords;
+	  delete mode.beginKeywords;
+
+	  // prevents double relevance, the keywords themselves provide
+	  // relevance, the mode doesn't need to double it
+	  // eslint-disable-next-line no-undefined
+	  if (mode.relevance === undefined) mode.relevance = 0;
+	}
+
+	/**
+	 * Allow `illegal` to contain an array of illegal values
+	 * @type {CompilerExt}
+	 */
+	function compileIllegal(mode, _parent) {
+	  if (!Array.isArray(mode.illegal)) return;
+
+	  mode.illegal = either(...mode.illegal);
+	}
+
+	/**
+	 * `match` to match a single expression for readability
+	 * @type {CompilerExt}
+	 */
+	function compileMatch(mode, _parent) {
+	  if (!mode.match) return;
+	  if (mode.begin || mode.end) throw new Error("begin & end are not supported with match");
+
+	  mode.begin = mode.match;
+	  delete mode.match;
+	}
+
+	/**
+	 * provides the default 1 relevance to all modes
+	 * @type {CompilerExt}
+	 */
+	function compileRelevance(mode, _parent) {
+	  // eslint-disable-next-line no-undefined
+	  if (mode.relevance === undefined) mode.relevance = 1;
+	}
+
+	// allow beforeMatch to act as a "qualifier" for the match
+	// the full match begin must be [beforeMatch][begin]
+	const beforeMatchExt = (mode, parent) => {
+	  if (!mode.beforeMatch) return;
+	  // starts conflicts with endsParent which we need to make sure the child
+	  // rule is not matched multiple times
+	  if (mode.starts) throw new Error("beforeMatch cannot be used with starts");
+
+	  const originalMode = Object.assign({}, mode);
+	  Object.keys(mode).forEach((key) => { delete mode[key]; });
+
+	  mode.keywords = originalMode.keywords;
+	  mode.begin = concat(originalMode.beforeMatch, lookahead(originalMode.begin));
+	  mode.starts = {
+	    relevance: 0,
+	    contains: [
+	      Object.assign(originalMode, { endsParent: true })
+	    ]
+	  };
+	  mode.relevance = 0;
+
+	  delete originalMode.beforeMatch;
+	};
+
+	// keywords that should have no default relevance value
+	const COMMON_KEYWORDS = [
+	  'of',
+	  'and',
+	  'for',
+	  'in',
+	  'not',
+	  'or',
+	  'if',
+	  'then',
+	  'parent', // common variable name
+	  'list', // common variable name
+	  'value' // common variable name
+	];
+
+	const DEFAULT_KEYWORD_SCOPE = "keyword";
+
+	/**
+	 * Given raw keywords from a language definition, compile them.
+	 *
+	 * @param {string | Record<string,string|string[]> | Array<string>} rawKeywords
+	 * @param {boolean} caseInsensitive
+	 */
+	function compileKeywords(rawKeywords, caseInsensitive, scopeName = DEFAULT_KEYWORD_SCOPE) {
+	  /** @type {import("highlight.js/private").KeywordDict} */
+	  const compiledKeywords = Object.create(null);
+
+	  // input can be a string of keywords, an array of keywords, or a object with
+	  // named keys representing scopeName (which can then point to a string or array)
+	  if (typeof rawKeywords === 'string') {
+	    compileList(scopeName, rawKeywords.split(" "));
+	  } else if (Array.isArray(rawKeywords)) {
+	    compileList(scopeName, rawKeywords);
+	  } else {
+	    Object.keys(rawKeywords).forEach(function(scopeName) {
+	      // collapse all our objects back into the parent object
+	      Object.assign(
+	        compiledKeywords,
+	        compileKeywords(rawKeywords[scopeName], caseInsensitive, scopeName)
+	      );
+	    });
+	  }
+	  return compiledKeywords;
+
+	  // ---
+
+	  /**
+	   * Compiles an individual list of keywords
+	   *
+	   * Ex: "for if when while|5"
+	   *
+	   * @param {string} scopeName
+	   * @param {Array<string>} keywordList
+	   */
+	  function compileList(scopeName, keywordList) {
+	    if (caseInsensitive) {
+	      keywordList = keywordList.map(x => x.toLowerCase());
+	    }
+	    keywordList.forEach(function(keyword) {
+	      const pair = keyword.split('|');
+	      compiledKeywords[pair[0]] = [scopeName, scoreForKeyword(pair[0], pair[1])];
+	    });
+	  }
+	}
+
+	/**
+	 * Returns the proper score for a given keyword
+	 *
+	 * Also takes into account comment keywords, which will be scored 0 UNLESS
+	 * another score has been manually assigned.
+	 * @param {string} keyword
+	 * @param {string} [providedScore]
+	 */
+	function scoreForKeyword(keyword, providedScore) {
+	  // manual scores always win over common keywords
+	  // so you can force a score of 1 if you really insist
+	  if (providedScore) {
+	    return Number(providedScore);
+	  }
+
+	  return commonKeyword(keyword) ? 0 : 1;
+	}
+
+	/**
+	 * Determines if a given keyword is common or not
+	 *
+	 * @param {string} keyword */
+	function commonKeyword(keyword) {
+	  return COMMON_KEYWORDS.includes(keyword.toLowerCase());
+	}
+
+	/*
+
+	For the reasoning behind this please see:
+	https://github.com/highlightjs/highlight.js/issues/2880#issuecomment-747275419
+
+	*/
+
+	/**
+	 * @type {Record<string, boolean>}
+	 */
+	const seenDeprecations = {};
+
+	/**
+	 * @param {string} message
+	 */
+	const error = (message) => {
+	  console.error(message);
+	};
+
+	/**
+	 * @param {string} message
+	 * @param {any} args
+	 */
+	const warn = (message, ...args) => {
+	  console.log(`WARN: ${message}`, ...args);
+	};
+
+	/**
+	 * @param {string} version
+	 * @param {string} message
+	 */
+	const deprecated = (version, message) => {
+	  if (seenDeprecations[`${version}/${message}`]) return;
+
+	  console.log(`Deprecated as of ${version}. ${message}`);
+	  seenDeprecations[`${version}/${message}`] = true;
+	};
+
+	/* eslint-disable no-throw-literal */
+
+	/**
+	@typedef {import('highlight.js').CompiledMode} CompiledMode
+	*/
+
+	const MultiClassError = new Error();
+
+	/**
+	 * Renumbers labeled scope names to account for additional inner match
+	 * groups that otherwise would break everything.
+	 *
+	 * Lets say we 3 match scopes:
+	 *
+	 *   { 1 => ..., 2 => ..., 3 => ... }
+	 *
+	 * So what we need is a clean match like this:
+	 *
+	 *   (a)(b)(c) => [ "a", "b", "c" ]
+	 *
+	 * But this falls apart with inner match groups:
+	 *
+	 * (a)(((b)))(c) => ["a", "b", "b", "b", "c" ]
+	 *
+	 * Our scopes are now "out of alignment" and we're repeating `b` 3 times.
+	 * What needs to happen is the numbers are remapped:
+	 *
+	 *   { 1 => ..., 2 => ..., 5 => ... }
+	 *
+	 * We also need to know that the ONLY groups that should be output
+	 * are 1, 2, and 5.  This function handles this behavior.
+	 *
+	 * @param {CompiledMode} mode
+	 * @param {Array<RegExp | string>} regexes
+	 * @param {{key: "beginScope"|"endScope"}} opts
+	 */
+	function remapScopeNames(mode, regexes, { key }) {
+	  let offset = 0;
+	  const scopeNames = mode[key];
+	  /** @type Record<number,boolean> */
+	  const emit = {};
+	  /** @type Record<number,string> */
+	  const positions = {};
+
+	  for (let i = 1; i <= regexes.length; i++) {
+	    positions[i + offset] = scopeNames[i];
+	    emit[i + offset] = true;
+	    offset += countMatchGroups(regexes[i - 1]);
+	  }
+	  // we use _emit to keep track of which match groups are "top-level" to avoid double
+	  // output from inside match groups
+	  mode[key] = positions;
+	  mode[key]._emit = emit;
+	  mode[key]._multi = true;
+	}
+
+	/**
+	 * @param {CompiledMode} mode
+	 */
+	function beginMultiClass(mode) {
+	  if (!Array.isArray(mode.begin)) return;
+
+	  if (mode.skip || mode.excludeBegin || mode.returnBegin) {
+	    error("skip, excludeBegin, returnBegin not compatible with beginScope: {}");
+	    throw MultiClassError;
+	  }
+
+	  if (typeof mode.beginScope !== "object" || mode.beginScope === null) {
+	    error("beginScope must be object");
+	    throw MultiClassError;
+	  }
+
+	  remapScopeNames(mode, mode.begin, { key: "beginScope" });
+	  mode.begin = _rewriteBackreferences(mode.begin, { joinWith: "" });
+	}
+
+	/**
+	 * @param {CompiledMode} mode
+	 */
+	function endMultiClass(mode) {
+	  if (!Array.isArray(mode.end)) return;
+
+	  if (mode.skip || mode.excludeEnd || mode.returnEnd) {
+	    error("skip, excludeEnd, returnEnd not compatible with endScope: {}");
+	    throw MultiClassError;
+	  }
+
+	  if (typeof mode.endScope !== "object" || mode.endScope === null) {
+	    error("endScope must be object");
+	    throw MultiClassError;
+	  }
+
+	  remapScopeNames(mode, mode.end, { key: "endScope" });
+	  mode.end = _rewriteBackreferences(mode.end, { joinWith: "" });
+	}
+
+	/**
+	 * this exists only to allow `scope: {}` to be used beside `match:`
+	 * Otherwise `beginScope` would necessary and that would look weird
+
+	  {
+	    match: [ /def/, /\w+/ ]
+	    scope: { 1: "keyword" , 2: "title" }
+	  }
+
+	 * @param {CompiledMode} mode
+	 */
+	function scopeSugar(mode) {
+	  if (mode.scope && typeof mode.scope === "object" && mode.scope !== null) {
+	    mode.beginScope = mode.scope;
+	    delete mode.scope;
+	  }
+	}
+
+	/**
+	 * @param {CompiledMode} mode
+	 */
+	function MultiClass(mode) {
+	  scopeSugar(mode);
+
+	  if (typeof mode.beginScope === "string") {
+	    mode.beginScope = { _wrap: mode.beginScope };
+	  }
+	  if (typeof mode.endScope === "string") {
+	    mode.endScope = { _wrap: mode.endScope };
+	  }
+
+	  beginMultiClass(mode);
+	  endMultiClass(mode);
+	}
+
+	/**
+	@typedef {import('highlight.js').Mode} Mode
+	@typedef {import('highlight.js').CompiledMode} CompiledMode
+	@typedef {import('highlight.js').Language} Language
+	@typedef {import('highlight.js').HLJSPlugin} HLJSPlugin
+	@typedef {import('highlight.js').CompiledLanguage} CompiledLanguage
+	*/
+
+	// compilation
+
+	/**
+	 * Compiles a language definition result
+	 *
+	 * Given the raw result of a language definition (Language), compiles this so
+	 * that it is ready for highlighting code.
+	 * @param {Language} language
+	 * @returns {CompiledLanguage}
+	 */
+	function compileLanguage(language) {
+	  /**
+	   * Builds a regex with the case sensitivity of the current language
+	   *
+	   * @param {RegExp | string} value
+	   * @param {boolean} [global]
+	   */
+	  function langRe(value, global) {
+	    return new RegExp(
+	      source(value),
+	      'm'
+	      + (language.case_insensitive ? 'i' : '')
+	      + (language.unicodeRegex ? 'u' : '')
+	      + (global ? 'g' : '')
+	    );
+	  }
+
+	  /**
+	    Stores multiple regular expressions and allows you to quickly search for
+	    them all in a string simultaneously - returning the first match.  It does
+	    this by creating a huge (a|b|c) regex - each individual item wrapped with ()
+	    and joined by `|` - using match groups to track position.  When a match is
+	    found checking which position in the array has content allows us to figure
+	    out which of the original regexes / match groups triggered the match.
+
+	    The match object itself (the result of `Regex.exec`) is returned but also
+	    enhanced by merging in any meta-data that was registered with the regex.
+	    This is how we keep track of which mode matched, and what type of rule
+	    (`illegal`, `begin`, end, etc).
+	  */
+	  class MultiRegex {
+	    constructor() {
+	      this.matchIndexes = {};
+	      // @ts-ignore
+	      this.regexes = [];
+	      this.matchAt = 1;
+	      this.position = 0;
+	    }
+
+	    // @ts-ignore
+	    addRule(re, opts) {
+	      opts.position = this.position++;
+	      // @ts-ignore
+	      this.matchIndexes[this.matchAt] = opts;
+	      this.regexes.push([opts, re]);
+	      this.matchAt += countMatchGroups(re) + 1;
+	    }
+
+	    compile() {
+	      if (this.regexes.length === 0) {
+	        // avoids the need to check length every time exec is called
+	        // @ts-ignore
+	        this.exec = () => null;
+	      }
+	      const terminators = this.regexes.map(el => el[1]);
+	      this.matcherRe = langRe(_rewriteBackreferences(terminators, { joinWith: '|' }), true);
+	      this.lastIndex = 0;
+	    }
+
+	    /** @param {string} s */
+	    exec(s) {
+	      this.matcherRe.lastIndex = this.lastIndex;
+	      const match = this.matcherRe.exec(s);
+	      if (!match) { return null; }
+
+	      // eslint-disable-next-line no-undefined
+	      const i = match.findIndex((el, i) => i > 0 && el !== undefined);
+	      // @ts-ignore
+	      const matchData = this.matchIndexes[i];
+	      // trim off any earlier non-relevant match groups (ie, the other regex
+	      // match groups that make up the multi-matcher)
+	      match.splice(0, i);
+
+	      return Object.assign(match, matchData);
+	    }
+	  }
+
+	  /*
+	    Created to solve the key deficiently with MultiRegex - there is no way to
+	    test for multiple matches at a single location.  Why would we need to do
+	    that?  In the future a more dynamic engine will allow certain matches to be
+	    ignored.  An example: if we matched say the 3rd regex in a large group but
+	    decided to ignore it - we'd need to started testing again at the 4th
+	    regex... but MultiRegex itself gives us no real way to do that.
+
+	    So what this class creates MultiRegexs on the fly for whatever search
+	    position they are needed.
+
+	    NOTE: These additional MultiRegex objects are created dynamically.  For most
+	    grammars most of the time we will never actually need anything more than the
+	    first MultiRegex - so this shouldn't have too much overhead.
+
+	    Say this is our search group, and we match regex3, but wish to ignore it.
+
+	      regex1 | regex2 | regex3 | regex4 | regex5    ' ie, startAt = 0
+
+	    What we need is a new MultiRegex that only includes the remaining
+	    possibilities:
+
+	      regex4 | regex5                               ' ie, startAt = 3
+
+	    This class wraps all that complexity up in a simple API... `startAt` decides
+	    where in the array of expressions to start doing the matching. It
+	    auto-increments, so if a match is found at position 2, then startAt will be
+	    set to 3.  If the end is reached startAt will return to 0.
+
+	    MOST of the time the parser will be setting startAt manually to 0.
+	  */
+	  class ResumableMultiRegex {
+	    constructor() {
+	      // @ts-ignore
+	      this.rules = [];
+	      // @ts-ignore
+	      this.multiRegexes = [];
+	      this.count = 0;
+
+	      this.lastIndex = 0;
+	      this.regexIndex = 0;
+	    }
+
+	    // @ts-ignore
+	    getMatcher(index) {
+	      if (this.multiRegexes[index]) return this.multiRegexes[index];
+
+	      const matcher = new MultiRegex();
+	      this.rules.slice(index).forEach(([re, opts]) => matcher.addRule(re, opts));
+	      matcher.compile();
+	      this.multiRegexes[index] = matcher;
+	      return matcher;
+	    }
+
+	    resumingScanAtSamePosition() {
+	      return this.regexIndex !== 0;
+	    }
+
+	    considerAll() {
+	      this.regexIndex = 0;
+	    }
+
+	    // @ts-ignore
+	    addRule(re, opts) {
+	      this.rules.push([re, opts]);
+	      if (opts.type === "begin") this.count++;
+	    }
+
+	    /** @param {string} s */
+	    exec(s) {
+	      const m = this.getMatcher(this.regexIndex);
+	      m.lastIndex = this.lastIndex;
+	      let result = m.exec(s);
+
+	      // The following is because we have no easy way to say "resume scanning at the
+	      // existing position but also skip the current rule ONLY". What happens is
+	      // all prior rules are also skipped which can result in matching the wrong
+	      // thing. Example of matching "booger":
+
+	      // our matcher is [string, "booger", number]
+	      //
+	      // ....booger....
+
+	      // if "booger" is ignored then we'd really need a regex to scan from the
+	      // SAME position for only: [string, number] but ignoring "booger" (if it
+	      // was the first match), a simple resume would scan ahead who knows how
+	      // far looking only for "number", ignoring potential string matches (or
+	      // future "booger" matches that might be valid.)
+
+	      // So what we do: We execute two matchers, one resuming at the same
+	      // position, but the second full matcher starting at the position after:
+
+	      //     /--- resume first regex match here (for [number])
+	      //     |/---- full match here for [string, "booger", number]
+	      //     vv
+	      // ....booger....
+
+	      // Which ever results in a match first is then used. So this 3-4 step
+	      // process essentially allows us to say "match at this position, excluding
+	      // a prior rule that was ignored".
+	      //
+	      // 1. Match "booger" first, ignore. Also proves that [string] does non match.
+	      // 2. Resume matching for [number]
+	      // 3. Match at index + 1 for [string, "booger", number]
+	      // 4. If #2 and #3 result in matches, which came first?
+	      if (this.resumingScanAtSamePosition()) {
+	        if (result && result.index === this.lastIndex) ; else { // use the second matcher result
+	          const m2 = this.getMatcher(0);
+	          m2.lastIndex = this.lastIndex + 1;
+	          result = m2.exec(s);
+	        }
+	      }
+
+	      if (result) {
+	        this.regexIndex += result.position + 1;
+	        if (this.regexIndex === this.count) {
+	          // wrap-around to considering all matches again
+	          this.considerAll();
+	        }
+	      }
+
+	      return result;
+	    }
+	  }
+
+	  /**
+	   * Given a mode, builds a huge ResumableMultiRegex that can be used to walk
+	   * the content and find matches.
+	   *
+	   * @param {CompiledMode} mode
+	   * @returns {ResumableMultiRegex}
+	   */
+	  function buildModeRegex(mode) {
+	    const mm = new ResumableMultiRegex();
+
+	    mode.contains.forEach(term => mm.addRule(term.begin, { rule: term, type: "begin" }));
+
+	    if (mode.terminatorEnd) {
+	      mm.addRule(mode.terminatorEnd, { type: "end" });
+	    }
+	    if (mode.illegal) {
+	      mm.addRule(mode.illegal, { type: "illegal" });
+	    }
+
+	    return mm;
+	  }
+
+	  /** skip vs abort vs ignore
+	   *
+	   * @skip   - The mode is still entered and exited normally (and contains rules apply),
+	   *           but all content is held and added to the parent buffer rather than being
+	   *           output when the mode ends.  Mostly used with `sublanguage` to build up
+	   *           a single large buffer than can be parsed by sublanguage.
+	   *
+	   *             - The mode begin ands ends normally.
+	   *             - Content matched is added to the parent mode buffer.
+	   *             - The parser cursor is moved forward normally.
+	   *
+	   * @abort  - A hack placeholder until we have ignore.  Aborts the mode (as if it
+	   *           never matched) but DOES NOT continue to match subsequent `contains`
+	   *           modes.  Abort is bad/suboptimal because it can result in modes
+	   *           farther down not getting applied because an earlier rule eats the
+	   *           content but then aborts.
+	   *
+	   *             - The mode does not begin.
+	   *             - Content matched by `begin` is added to the mode buffer.
+	   *             - The parser cursor is moved forward accordingly.
+	   *
+	   * @ignore - Ignores the mode (as if it never matched) and continues to match any
+	   *           subsequent `contains` modes.  Ignore isn't technically possible with
+	   *           the current parser implementation.
+	   *
+	   *             - The mode does not begin.
+	   *             - Content matched by `begin` is ignored.
+	   *             - The parser cursor is not moved forward.
+	   */
+
+	  /**
+	   * Compiles an individual mode
+	   *
+	   * This can raise an error if the mode contains certain detectable known logic
+	   * issues.
+	   * @param {Mode} mode
+	   * @param {CompiledMode | null} [parent]
+	   * @returns {CompiledMode | never}
+	   */
+	  function compileMode(mode, parent) {
+	    const cmode = /** @type CompiledMode */ (mode);
+	    if (mode.isCompiled) return cmode;
+
+	    [
+	      scopeClassName,
+	      // do this early so compiler extensions generally don't have to worry about
+	      // the distinction between match/begin
+	      compileMatch,
+	      MultiClass,
+	      beforeMatchExt
+	    ].forEach(ext => ext(mode, parent));
+
+	    language.compilerExtensions.forEach(ext => ext(mode, parent));
+
+	    // __beforeBegin is considered private API, internal use only
+	    mode.__beforeBegin = null;
+
+	    [
+	      beginKeywords,
+	      // do this later so compiler extensions that come earlier have access to the
+	      // raw array if they wanted to perhaps manipulate it, etc.
+	      compileIllegal,
+	      // default to 1 relevance if not specified
+	      compileRelevance
+	    ].forEach(ext => ext(mode, parent));
+
+	    mode.isCompiled = true;
+
+	    let keywordPattern = null;
+	    if (typeof mode.keywords === "object" && mode.keywords.$pattern) {
+	      // we need a copy because keywords might be compiled multiple times
+	      // so we can't go deleting $pattern from the original on the first
+	      // pass
+	      mode.keywords = Object.assign({}, mode.keywords);
+	      keywordPattern = mode.keywords.$pattern;
+	      delete mode.keywords.$pattern;
+	    }
+	    keywordPattern = keywordPattern || /\w+/;
+
+	    if (mode.keywords) {
+	      mode.keywords = compileKeywords(mode.keywords, language.case_insensitive);
+	    }
+
+	    cmode.keywordPatternRe = langRe(keywordPattern, true);
+
+	    if (parent) {
+	      if (!mode.begin) mode.begin = /\B|\b/;
+	      cmode.beginRe = langRe(cmode.begin);
+	      if (!mode.end && !mode.endsWithParent) mode.end = /\B|\b/;
+	      if (mode.end) cmode.endRe = langRe(cmode.end);
+	      cmode.terminatorEnd = source(cmode.end) || '';
+	      if (mode.endsWithParent && parent.terminatorEnd) {
+	        cmode.terminatorEnd += (mode.end ? '|' : '') + parent.terminatorEnd;
+	      }
+	    }
+	    if (mode.illegal) cmode.illegalRe = langRe(/** @type {RegExp | string} */ (mode.illegal));
+	    if (!mode.contains) mode.contains = [];
+
+	    mode.contains = [].concat(...mode.contains.map(function(c) {
+	      return expandOrCloneMode(c === 'self' ? mode : c);
+	    }));
+	    mode.contains.forEach(function(c) { compileMode(/** @type Mode */ (c), cmode); });
+
+	    if (mode.starts) {
+	      compileMode(mode.starts, parent);
+	    }
+
+	    cmode.matcher = buildModeRegex(cmode);
+	    return cmode;
+	  }
+
+	  if (!language.compilerExtensions) language.compilerExtensions = [];
+
+	  // self is not valid at the top-level
+	  if (language.contains && language.contains.includes('self')) {
+	    throw new Error("ERR: contains `self` is not supported at the top-level of a language.  See documentation.");
+	  }
+
+	  // we need a null object, which inherit will guarantee
+	  language.classNameAliases = inherit$1(language.classNameAliases || {});
+
+	  return compileMode(/** @type Mode */ (language));
+	}
+
+	/**
+	 * Determines if a mode has a dependency on it's parent or not
+	 *
+	 * If a mode does have a parent dependency then often we need to clone it if
+	 * it's used in multiple places so that each copy points to the correct parent,
+	 * where-as modes without a parent can often safely be re-used at the bottom of
+	 * a mode chain.
+	 *
+	 * @param {Mode | null} mode
+	 * @returns {boolean} - is there a dependency on the parent?
+	 * */
+	function dependencyOnParent(mode) {
+	  if (!mode) return false;
+
+	  return mode.endsWithParent || dependencyOnParent(mode.starts);
+	}
+
+	/**
+	 * Expands a mode or clones it if necessary
+	 *
+	 * This is necessary for modes with parental dependenceis (see notes on
+	 * `dependencyOnParent`) and for nodes that have `variants` - which must then be
+	 * exploded into their own individual modes at compile time.
+	 *
+	 * @param {Mode} mode
+	 * @returns {Mode | Mode[]}
+	 * */
+	function expandOrCloneMode(mode) {
+	  if (mode.variants && !mode.cachedVariants) {
+	    mode.cachedVariants = mode.variants.map(function(variant) {
+	      return inherit$1(mode, { variants: null }, variant);
+	    });
+	  }
+
+	  // EXPAND
+	  // if we have variants then essentially "replace" the mode with the variants
+	  // this happens in compileMode, where this function is called from
+	  if (mode.cachedVariants) {
+	    return mode.cachedVariants;
+	  }
+
+	  // CLONE
+	  // if we have dependencies on parents then we need a unique
+	  // instance of ourselves, so we can be reused with many
+	  // different parents without issue
+	  if (dependencyOnParent(mode)) {
+	    return inherit$1(mode, { starts: mode.starts ? inherit$1(mode.starts) : null });
+	  }
+
+	  if (Object.isFrozen(mode)) {
+	    return inherit$1(mode);
+	  }
+
+	  // no special dependency issues, just return ourselves
+	  return mode;
+	}
+
+	var version = "11.11.1";
+
+	class HTMLInjectionError extends Error {
+	  constructor(reason, html) {
+	    super(reason);
+	    this.name = "HTMLInjectionError";
+	    this.html = html;
+	  }
+	}
+
+	/*
+	Syntax highlighting with language autodetection.
+	https://highlightjs.org/
+	*/
+
+
+
+	/**
+	@typedef {import('highlight.js').Mode} Mode
+	@typedef {import('highlight.js').CompiledMode} CompiledMode
+	@typedef {import('highlight.js').CompiledScope} CompiledScope
+	@typedef {import('highlight.js').Language} Language
+	@typedef {import('highlight.js').HLJSApi} HLJSApi
+	@typedef {import('highlight.js').HLJSPlugin} HLJSPlugin
+	@typedef {import('highlight.js').PluginEvent} PluginEvent
+	@typedef {import('highlight.js').HLJSOptions} HLJSOptions
+	@typedef {import('highlight.js').LanguageFn} LanguageFn
+	@typedef {import('highlight.js').HighlightedHTMLElement} HighlightedHTMLElement
+	@typedef {import('highlight.js').BeforeHighlightContext} BeforeHighlightContext
+	@typedef {import('highlight.js/private').MatchType} MatchType
+	@typedef {import('highlight.js/private').KeywordData} KeywordData
+	@typedef {import('highlight.js/private').EnhancedMatch} EnhancedMatch
+	@typedef {import('highlight.js/private').AnnotatedError} AnnotatedError
+	@typedef {import('highlight.js').AutoHighlightResult} AutoHighlightResult
+	@typedef {import('highlight.js').HighlightOptions} HighlightOptions
+	@typedef {import('highlight.js').HighlightResult} HighlightResult
+	*/
+
+
+	const escape = escapeHTML;
+	const inherit = inherit$1;
+	const NO_MATCH = Symbol("nomatch");
+	const MAX_KEYWORD_HITS = 7;
+
+	/**
+	 * @param {any} hljs - object that is extended (legacy)
+	 * @returns {HLJSApi}
+	 */
+	const HLJS = function(hljs) {
+	  // Global internal variables used within the highlight.js library.
+	  /** @type {Record<string, Language>} */
+	  const languages = Object.create(null);
+	  /** @type {Record<string, string>} */
+	  const aliases = Object.create(null);
+	  /** @type {HLJSPlugin[]} */
+	  const plugins = [];
+
+	  // safe/production mode - swallows more errors, tries to keep running
+	  // even if a single syntax or parse hits a fatal error
+	  let SAFE_MODE = true;
+	  const LANGUAGE_NOT_FOUND = "Could not find the language '{}', did you forget to load/include a language module?";
+	  /** @type {Language} */
+	  const PLAINTEXT_LANGUAGE = { disableAutodetect: true, name: 'Plain text', contains: [] };
+
+	  // Global options used when within external APIs. This is modified when
+	  // calling the `hljs.configure` function.
+	  /** @type HLJSOptions */
+	  let options = {
+	    ignoreUnescapedHTML: false,
+	    throwUnescapedHTML: false,
+	    noHighlightRe: /^(no-?highlight)$/i,
+	    languageDetectRe: /\blang(?:uage)?-([\w-]+)\b/i,
+	    classPrefix: 'hljs-',
+	    cssSelector: 'pre code',
+	    languages: null,
+	    // beta configuration options, subject to change, welcome to discuss
+	    // https://github.com/highlightjs/highlight.js/issues/1086
+	    __emitter: TokenTreeEmitter
+	  };
+
+	  /* Utility functions */
+
+	  /**
+	   * Tests a language name to see if highlighting should be skipped
+	   * @param {string} languageName
+	   */
+	  function shouldNotHighlight(languageName) {
+	    return options.noHighlightRe.test(languageName);
+	  }
+
+	  /**
+	   * @param {HighlightedHTMLElement} block - the HTML element to determine language for
+	   */
+	  function blockLanguage(block) {
+	    let classes = block.className + ' ';
+
+	    classes += block.parentNode ? block.parentNode.className : '';
+
+	    // language-* takes precedence over non-prefixed class names.
+	    const match = options.languageDetectRe.exec(classes);
+	    if (match) {
+	      const language = getLanguage(match[1]);
+	      if (!language) {
+	        warn(LANGUAGE_NOT_FOUND.replace("{}", match[1]));
+	        warn("Falling back to no-highlight mode for this block.", block);
+	      }
+	      return language ? match[1] : 'no-highlight';
+	    }
+
+	    return classes
+	      .split(/\s+/)
+	      .find((_class) => shouldNotHighlight(_class) || getLanguage(_class));
+	  }
+
+	  /**
+	   * Core highlighting function.
+	   *
+	   * OLD API
+	   * highlight(lang, code, ignoreIllegals, continuation)
+	   *
+	   * NEW API
+	   * highlight(code, {lang, ignoreIllegals})
+	   *
+	   * @param {string} codeOrLanguageName - the language to use for highlighting
+	   * @param {string | HighlightOptions} optionsOrCode - the code to highlight
+	   * @param {boolean} [ignoreIllegals] - whether to ignore illegal matches, default is to bail
+	   *
+	   * @returns {HighlightResult} Result - an object that represents the result
+	   * @property {string} language - the language name
+	   * @property {number} relevance - the relevance score
+	   * @property {string} value - the highlighted HTML code
+	   * @property {string} code - the original raw code
+	   * @property {CompiledMode} top - top of the current mode stack
+	   * @property {boolean} illegal - indicates whether any illegal matches were found
+	  */
+	  function highlight(codeOrLanguageName, optionsOrCode, ignoreIllegals) {
+	    let code = "";
+	    let languageName = "";
+	    if (typeof optionsOrCode === "object") {
+	      code = codeOrLanguageName;
+	      ignoreIllegals = optionsOrCode.ignoreIllegals;
+	      languageName = optionsOrCode.language;
+	    } else {
+	      // old API
+	      deprecated("10.7.0", "highlight(lang, code, ...args) has been deprecated.");
+	      deprecated("10.7.0", "Please use highlight(code, options) instead.\nhttps://github.com/highlightjs/highlight.js/issues/2277");
+	      languageName = codeOrLanguageName;
+	      code = optionsOrCode;
+	    }
+
+	    // https://github.com/highlightjs/highlight.js/issues/3149
+	    // eslint-disable-next-line no-undefined
+	    if (ignoreIllegals === undefined) { ignoreIllegals = true; }
+
+	    /** @type {BeforeHighlightContext} */
+	    const context = {
+	      code,
+	      language: languageName
+	    };
+	    // the plugin can change the desired language or the code to be highlighted
+	    // just be changing the object it was passed
+	    fire("before:highlight", context);
+
+	    // a before plugin can usurp the result completely by providing it's own
+	    // in which case we don't even need to call highlight
+	    const result = context.result
+	      ? context.result
+	      : _highlight(context.language, context.code, ignoreIllegals);
+
+	    result.code = context.code;
+	    // the plugin can change anything in result to suite it
+	    fire("after:highlight", result);
+
+	    return result;
+	  }
+
+	  /**
+	   * private highlight that's used internally and does not fire callbacks
+	   *
+	   * @param {string} languageName - the language to use for highlighting
+	   * @param {string} codeToHighlight - the code to highlight
+	   * @param {boolean?} [ignoreIllegals] - whether to ignore illegal matches, default is to bail
+	   * @param {CompiledMode?} [continuation] - current continuation mode, if any
+	   * @returns {HighlightResult} - result of the highlight operation
+	  */
+	  function _highlight(languageName, codeToHighlight, ignoreIllegals, continuation) {
+	    const keywordHits = Object.create(null);
+
+	    /**
+	     * Return keyword data if a match is a keyword
+	     * @param {CompiledMode} mode - current mode
+	     * @param {string} matchText - the textual match
+	     * @returns {KeywordData | false}
+	     */
+	    function keywordData(mode, matchText) {
+	      return mode.keywords[matchText];
+	    }
+
+	    function processKeywords() {
+	      if (!top.keywords) {
+	        emitter.addText(modeBuffer);
+	        return;
+	      }
+
+	      let lastIndex = 0;
+	      top.keywordPatternRe.lastIndex = 0;
+	      let match = top.keywordPatternRe.exec(modeBuffer);
+	      let buf = "";
+
+	      while (match) {
+	        buf += modeBuffer.substring(lastIndex, match.index);
+	        const word = language.case_insensitive ? match[0].toLowerCase() : match[0];
+	        const data = keywordData(top, word);
+	        if (data) {
+	          const [kind, keywordRelevance] = data;
+	          emitter.addText(buf);
+	          buf = "";
+
+	          keywordHits[word] = (keywordHits[word] || 0) + 1;
+	          if (keywordHits[word] <= MAX_KEYWORD_HITS) relevance += keywordRelevance;
+	          if (kind.startsWith("_")) {
+	            // _ implied for relevance only, do not highlight
+	            // by applying a class name
+	            buf += match[0];
+	          } else {
+	            const cssClass = language.classNameAliases[kind] || kind;
+	            emitKeyword(match[0], cssClass);
+	          }
+	        } else {
+	          buf += match[0];
+	        }
+	        lastIndex = top.keywordPatternRe.lastIndex;
+	        match = top.keywordPatternRe.exec(modeBuffer);
+	      }
+	      buf += modeBuffer.substring(lastIndex);
+	      emitter.addText(buf);
+	    }
+
+	    function processSubLanguage() {
+	      if (modeBuffer === "") return;
+	      /** @type HighlightResult */
+	      let result = null;
+
+	      if (typeof top.subLanguage === 'string') {
+	        if (!languages[top.subLanguage]) {
+	          emitter.addText(modeBuffer);
+	          return;
+	        }
+	        result = _highlight(top.subLanguage, modeBuffer, true, continuations[top.subLanguage]);
+	        continuations[top.subLanguage] = /** @type {CompiledMode} */ (result._top);
+	      } else {
+	        result = highlightAuto(modeBuffer, top.subLanguage.length ? top.subLanguage : null);
+	      }
+
+	      // Counting embedded language score towards the host language may be disabled
+	      // with zeroing the containing mode relevance. Use case in point is Markdown that
+	      // allows XML everywhere and makes every XML snippet to have a much larger Markdown
+	      // score.
+	      if (top.relevance > 0) {
+	        relevance += result.relevance;
+	      }
+	      emitter.__addSublanguage(result._emitter, result.language);
+	    }
+
+	    function processBuffer() {
+	      if (top.subLanguage != null) {
+	        processSubLanguage();
+	      } else {
+	        processKeywords();
+	      }
+	      modeBuffer = '';
+	    }
+
+	    /**
+	     * @param {string} text
+	     * @param {string} scope
+	     */
+	    function emitKeyword(keyword, scope) {
+	      if (keyword === "") return;
+
+	      emitter.startScope(scope);
+	      emitter.addText(keyword);
+	      emitter.endScope();
+	    }
+
+	    /**
+	     * @param {CompiledScope} scope
+	     * @param {RegExpMatchArray} match
+	     */
+	    function emitMultiClass(scope, match) {
+	      let i = 1;
+	      const max = match.length - 1;
+	      while (i <= max) {
+	        if (!scope._emit[i]) { i++; continue; }
+	        const klass = language.classNameAliases[scope[i]] || scope[i];
+	        const text = match[i];
+	        if (klass) {
+	          emitKeyword(text, klass);
+	        } else {
+	          modeBuffer = text;
+	          processKeywords();
+	          modeBuffer = "";
+	        }
+	        i++;
+	      }
+	    }
+
+	    /**
+	     * @param {CompiledMode} mode - new mode to start
+	     * @param {RegExpMatchArray} match
+	     */
+	    function startNewMode(mode, match) {
+	      if (mode.scope && typeof mode.scope === "string") {
+	        emitter.openNode(language.classNameAliases[mode.scope] || mode.scope);
+	      }
+	      if (mode.beginScope) {
+	        // beginScope just wraps the begin match itself in a scope
+	        if (mode.beginScope._wrap) {
+	          emitKeyword(modeBuffer, language.classNameAliases[mode.beginScope._wrap] || mode.beginScope._wrap);
+	          modeBuffer = "";
+	        } else if (mode.beginScope._multi) {
+	          // at this point modeBuffer should just be the match
+	          emitMultiClass(mode.beginScope, match);
+	          modeBuffer = "";
+	        }
+	      }
+
+	      top = Object.create(mode, { parent: { value: top } });
+	      return top;
+	    }
+
+	    /**
+	     * @param {CompiledMode } mode - the mode to potentially end
+	     * @param {RegExpMatchArray} match - the latest match
+	     * @param {string} matchPlusRemainder - match plus remainder of content
+	     * @returns {CompiledMode | void} - the next mode, or if void continue on in current mode
+	     */
+	    function endOfMode(mode, match, matchPlusRemainder) {
+	      let matched = startsWith(mode.endRe, matchPlusRemainder);
+
+	      if (matched) {
+	        if (mode["on:end"]) {
+	          const resp = new Response(mode);
+	          mode["on:end"](match, resp);
+	          if (resp.isMatchIgnored) matched = false;
+	        }
+
+	        if (matched) {
+	          while (mode.endsParent && mode.parent) {
+	            mode = mode.parent;
+	          }
+	          return mode;
+	        }
+	      }
+	      // even if on:end fires an `ignore` it's still possible
+	      // that we might trigger the end node because of a parent mode
+	      if (mode.endsWithParent) {
+	        return endOfMode(mode.parent, match, matchPlusRemainder);
+	      }
+	    }
+
+	    /**
+	     * Handle matching but then ignoring a sequence of text
+	     *
+	     * @param {string} lexeme - string containing full match text
+	     */
+	    function doIgnore(lexeme) {
+	      if (top.matcher.regexIndex === 0) {
+	        // no more regexes to potentially match here, so we move the cursor forward one
+	        // space
+	        modeBuffer += lexeme[0];
+	        return 1;
+	      } else {
+	        // no need to move the cursor, we still have additional regexes to try and
+	        // match at this very spot
+	        resumeScanAtSamePosition = true;
+	        return 0;
+	      }
+	    }
+
+	    /**
+	     * Handle the start of a new potential mode match
+	     *
+	     * @param {EnhancedMatch} match - the current match
+	     * @returns {number} how far to advance the parse cursor
+	     */
+	    function doBeginMatch(match) {
+	      const lexeme = match[0];
+	      const newMode = match.rule;
+
+	      const resp = new Response(newMode);
+	      // first internal before callbacks, then the public ones
+	      const beforeCallbacks = [newMode.__beforeBegin, newMode["on:begin"]];
+	      for (const cb of beforeCallbacks) {
+	        if (!cb) continue;
+	        cb(match, resp);
+	        if (resp.isMatchIgnored) return doIgnore(lexeme);
+	      }
+
+	      if (newMode.skip) {
+	        modeBuffer += lexeme;
+	      } else {
+	        if (newMode.excludeBegin) {
+	          modeBuffer += lexeme;
+	        }
+	        processBuffer();
+	        if (!newMode.returnBegin && !newMode.excludeBegin) {
+	          modeBuffer = lexeme;
+	        }
+	      }
+	      startNewMode(newMode, match);
+	      return newMode.returnBegin ? 0 : lexeme.length;
+	    }
+
+	    /**
+	     * Handle the potential end of mode
+	     *
+	     * @param {RegExpMatchArray} match - the current match
+	     */
+	    function doEndMatch(match) {
+	      const lexeme = match[0];
+	      const matchPlusRemainder = codeToHighlight.substring(match.index);
+
+	      const endMode = endOfMode(top, match, matchPlusRemainder);
+	      if (!endMode) { return NO_MATCH; }
+
+	      const origin = top;
+	      if (top.endScope && top.endScope._wrap) {
+	        processBuffer();
+	        emitKeyword(lexeme, top.endScope._wrap);
+	      } else if (top.endScope && top.endScope._multi) {
+	        processBuffer();
+	        emitMultiClass(top.endScope, match);
+	      } else if (origin.skip) {
+	        modeBuffer += lexeme;
+	      } else {
+	        if (!(origin.returnEnd || origin.excludeEnd)) {
+	          modeBuffer += lexeme;
+	        }
+	        processBuffer();
+	        if (origin.excludeEnd) {
+	          modeBuffer = lexeme;
+	        }
+	      }
+	      do {
+	        if (top.scope) {
+	          emitter.closeNode();
+	        }
+	        if (!top.skip && !top.subLanguage) {
+	          relevance += top.relevance;
+	        }
+	        top = top.parent;
+	      } while (top !== endMode.parent);
+	      if (endMode.starts) {
+	        startNewMode(endMode.starts, match);
+	      }
+	      return origin.returnEnd ? 0 : lexeme.length;
+	    }
+
+	    function processContinuations() {
+	      const list = [];
+	      for (let current = top; current !== language; current = current.parent) {
+	        if (current.scope) {
+	          list.unshift(current.scope);
+	        }
+	      }
+	      list.forEach(item => emitter.openNode(item));
+	    }
+
+	    /** @type {{type?: MatchType, index?: number, rule?: Mode}}} */
+	    let lastMatch = {};
+
+	    /**
+	     *  Process an individual match
+	     *
+	     * @param {string} textBeforeMatch - text preceding the match (since the last match)
+	     * @param {EnhancedMatch} [match] - the match itself
+	     */
+	    function processLexeme(textBeforeMatch, match) {
+	      const lexeme = match && match[0];
+
+	      // add non-matched text to the current mode buffer
+	      modeBuffer += textBeforeMatch;
+
+	      if (lexeme == null) {
+	        processBuffer();
+	        return 0;
+	      }
+
+	      // we've found a 0 width match and we're stuck, so we need to advance
+	      // this happens when we have badly behaved rules that have optional matchers to the degree that
+	      // sometimes they can end up matching nothing at all
+	      // Ref: https://github.com/highlightjs/highlight.js/issues/2140
+	      if (lastMatch.type === "begin" && match.type === "end" && lastMatch.index === match.index && lexeme === "") {
+	        // spit the "skipped" character that our regex choked on back into the output sequence
+	        modeBuffer += codeToHighlight.slice(match.index, match.index + 1);
+	        if (!SAFE_MODE) {
+	          /** @type {AnnotatedError} */
+	          const err = new Error(`0 width match regex (${languageName})`);
+	          err.languageName = languageName;
+	          err.badRule = lastMatch.rule;
+	          throw err;
+	        }
+	        return 1;
+	      }
+	      lastMatch = match;
+
+	      if (match.type === "begin") {
+	        return doBeginMatch(match);
+	      } else if (match.type === "illegal" && !ignoreIllegals) {
+	        // illegal match, we do not continue processing
+	        /** @type {AnnotatedError} */
+	        const err = new Error('Illegal lexeme "' + lexeme + '" for mode "' + (top.scope || '<unnamed>') + '"');
+	        err.mode = top;
+	        throw err;
+	      } else if (match.type === "end") {
+	        const processed = doEndMatch(match);
+	        if (processed !== NO_MATCH) {
+	          return processed;
+	        }
+	      }
+
+	      // edge case for when illegal matches $ (end of line) which is technically
+	      // a 0 width match but not a begin/end match so it's not caught by the
+	      // first handler (when ignoreIllegals is true)
+	      if (match.type === "illegal" && lexeme === "") {
+	        // advance so we aren't stuck in an infinite loop
+	        modeBuffer += "\n";
+	        return 1;
+	      }
+
+	      // infinite loops are BAD, this is a last ditch catch all. if we have a
+	      // decent number of iterations yet our index (cursor position in our
+	      // parsing) still 3x behind our index then something is very wrong
+	      // so we bail
+	      if (iterations > 100000 && iterations > match.index * 3) {
+	        const err = new Error('potential infinite loop, way more iterations than matches');
+	        throw err;
+	      }
+
+	      /*
+	      Why might be find ourselves here?  An potential end match that was
+	      triggered but could not be completed.  IE, `doEndMatch` returned NO_MATCH.
+	      (this could be because a callback requests the match be ignored, etc)
+
+	      This causes no real harm other than stopping a few times too many.
+	      */
+
+	      modeBuffer += lexeme;
+	      return lexeme.length;
+	    }
+
+	    const language = getLanguage(languageName);
+	    if (!language) {
+	      error(LANGUAGE_NOT_FOUND.replace("{}", languageName));
+	      throw new Error('Unknown language: "' + languageName + '"');
+	    }
+
+	    const md = compileLanguage(language);
+	    let result = '';
+	    /** @type {CompiledMode} */
+	    let top = continuation || md;
+	    /** @type Record<string,CompiledMode> */
+	    const continuations = {}; // keep continuations for sub-languages
+	    const emitter = new options.__emitter(options);
+	    processContinuations();
+	    let modeBuffer = '';
+	    let relevance = 0;
+	    let index = 0;
+	    let iterations = 0;
+	    let resumeScanAtSamePosition = false;
+
+	    try {
+	      if (!language.__emitTokens) {
+	        top.matcher.considerAll();
+
+	        for (;;) {
+	          iterations++;
+	          if (resumeScanAtSamePosition) {
+	            // only regexes not matched previously will now be
+	            // considered for a potential match
+	            resumeScanAtSamePosition = false;
+	          } else {
+	            top.matcher.considerAll();
+	          }
+	          top.matcher.lastIndex = index;
+
+	          const match = top.matcher.exec(codeToHighlight);
+	          // console.log("match", match[0], match.rule && match.rule.begin)
+
+	          if (!match) break;
+
+	          const beforeMatch = codeToHighlight.substring(index, match.index);
+	          const processedCount = processLexeme(beforeMatch, match);
+	          index = match.index + processedCount;
+	        }
+	        processLexeme(codeToHighlight.substring(index));
+	      } else {
+	        language.__emitTokens(codeToHighlight, emitter);
+	      }
+
+	      emitter.finalize();
+	      result = emitter.toHTML();
+
+	      return {
+	        language: languageName,
+	        value: result,
+	        relevance,
+	        illegal: false,
+	        _emitter: emitter,
+	        _top: top
+	      };
+	    } catch (err) {
+	      if (err.message && err.message.includes('Illegal')) {
+	        return {
+	          language: languageName,
+	          value: escape(codeToHighlight),
+	          illegal: true,
+	          relevance: 0,
+	          _illegalBy: {
+	            message: err.message,
+	            index,
+	            context: codeToHighlight.slice(index - 100, index + 100),
+	            mode: err.mode,
+	            resultSoFar: result
+	          },
+	          _emitter: emitter
+	        };
+	      } else if (SAFE_MODE) {
+	        return {
+	          language: languageName,
+	          value: escape(codeToHighlight),
+	          illegal: false,
+	          relevance: 0,
+	          errorRaised: err,
+	          _emitter: emitter,
+	          _top: top
+	        };
+	      } else {
+	        throw err;
+	      }
+	    }
+	  }
+
+	  /**
+	   * returns a valid highlight result, without actually doing any actual work,
+	   * auto highlight starts with this and it's possible for small snippets that
+	   * auto-detection may not find a better match
+	   * @param {string} code
+	   * @returns {HighlightResult}
+	   */
+	  function justTextHighlightResult(code) {
+	    const result = {
+	      value: escape(code),
+	      illegal: false,
+	      relevance: 0,
+	      _top: PLAINTEXT_LANGUAGE,
+	      _emitter: new options.__emitter(options)
+	    };
+	    result._emitter.addText(code);
+	    return result;
+	  }
+
+	  /**
+	  Highlighting with language detection. Accepts a string with the code to
+	  highlight. Returns an object with the following properties:
+
+	  - language (detected language)
+	  - relevance (int)
+	  - value (an HTML string with highlighting markup)
+	  - secondBest (object with the same structure for second-best heuristically
+	    detected language, may be absent)
+
+	    @param {string} code
+	    @param {Array<string>} [languageSubset]
+	    @returns {AutoHighlightResult}
+	  */
+	  function highlightAuto(code, languageSubset) {
+	    languageSubset = languageSubset || options.languages || Object.keys(languages);
+	    const plaintext = justTextHighlightResult(code);
+
+	    const results = languageSubset.filter(getLanguage).filter(autoDetection).map(name =>
+	      _highlight(name, code, false)
+	    );
+	    results.unshift(plaintext); // plaintext is always an option
+
+	    const sorted = results.sort((a, b) => {
+	      // sort base on relevance
+	      if (a.relevance !== b.relevance) return b.relevance - a.relevance;
+
+	      // always award the tie to the base language
+	      // ie if C++ and Arduino are tied, it's more likely to be C++
+	      if (a.language && b.language) {
+	        if (getLanguage(a.language).supersetOf === b.language) {
+	          return 1;
+	        } else if (getLanguage(b.language).supersetOf === a.language) {
+	          return -1;
+	        }
+	      }
+
+	      // otherwise say they are equal, which has the effect of sorting on
+	      // relevance while preserving the original ordering - which is how ties
+	      // have historically been settled, ie the language that comes first always
+	      // wins in the case of a tie
+	      return 0;
+	    });
+
+	    const [best, secondBest] = sorted;
+
+	    /** @type {AutoHighlightResult} */
+	    const result = best;
+	    result.secondBest = secondBest;
+
+	    return result;
+	  }
+
+	  /**
+	   * Builds new class name for block given the language name
+	   *
+	   * @param {HTMLElement} element
+	   * @param {string} [currentLang]
+	   * @param {string} [resultLang]
+	   */
+	  function updateClassName(element, currentLang, resultLang) {
+	    const language = (currentLang && aliases[currentLang]) || resultLang;
+
+	    element.classList.add("hljs");
+	    element.classList.add(`language-${language}`);
+	  }
+
+	  /**
+	   * Applies highlighting to a DOM node containing code.
+	   *
+	   * @param {HighlightedHTMLElement} element - the HTML element to highlight
+	  */
+	  function highlightElement(element) {
+	    /** @type HTMLElement */
+	    let node = null;
+	    const language = blockLanguage(element);
+
+	    if (shouldNotHighlight(language)) return;
+
+	    fire("before:highlightElement",
+	      { el: element, language });
+
+	    if (element.dataset.highlighted) {
+	      console.log("Element previously highlighted. To highlight again, first unset `dataset.highlighted`.", element);
+	      return;
+	    }
+
+	    // we should be all text, no child nodes (unescaped HTML) - this is possibly
+	    // an HTML injection attack - it's likely too late if this is already in
+	    // production (the code has likely already done its damage by the time
+	    // we're seeing it)... but we yell loudly about this so that hopefully it's
+	    // more likely to be caught in development before making it to production
+	    if (element.children.length > 0) {
+	      if (!options.ignoreUnescapedHTML) {
+	        console.warn("One of your code blocks includes unescaped HTML. This is a potentially serious security risk.");
+	        console.warn("https://github.com/highlightjs/highlight.js/wiki/security");
+	        console.warn("The element with unescaped HTML:");
+	        console.warn(element);
+	      }
+	      if (options.throwUnescapedHTML) {
+	        const err = new HTMLInjectionError(
+	          "One of your code blocks includes unescaped HTML.",
+	          element.innerHTML
+	        );
+	        throw err;
+	      }
+	    }
+
+	    node = element;
+	    const text = node.textContent;
+	    const result = language ? highlight(text, { language, ignoreIllegals: true }) : highlightAuto(text);
+
+	    element.innerHTML = result.value;
+	    element.dataset.highlighted = "yes";
+	    updateClassName(element, language, result.language);
+	    element.result = {
+	      language: result.language,
+	      // TODO: remove with version 11.0
+	      re: result.relevance,
+	      relevance: result.relevance
+	    };
+	    if (result.secondBest) {
+	      element.secondBest = {
+	        language: result.secondBest.language,
+	        relevance: result.secondBest.relevance
+	      };
+	    }
+
+	    fire("after:highlightElement", { el: element, result, text });
+	  }
+
+	  /**
+	   * Updates highlight.js global options with the passed options
+	   *
+	   * @param {Partial<HLJSOptions>} userOptions
+	   */
+	  function configure(userOptions) {
+	    options = inherit(options, userOptions);
+	  }
+
+	  // TODO: remove v12, deprecated
+	  const initHighlighting = () => {
+	    highlightAll();
+	    deprecated("10.6.0", "initHighlighting() deprecated.  Use highlightAll() now.");
+	  };
+
+	  // TODO: remove v12, deprecated
+	  function initHighlightingOnLoad() {
+	    highlightAll();
+	    deprecated("10.6.0", "initHighlightingOnLoad() deprecated.  Use highlightAll() now.");
+	  }
+
+	  let wantsHighlight = false;
+
+	  /**
+	   * auto-highlights all pre>code elements on the page
+	   */
+	  function highlightAll() {
+	    function boot() {
+	      // if a highlight was requested before DOM was loaded, do now
+	      highlightAll();
+	    }
+
+	    // if we are called too early in the loading process
+	    if (document.readyState === "loading") {
+	      // make sure the event listener is only added once
+	      if (!wantsHighlight) {
+	        window.addEventListener('DOMContentLoaded', boot, false);
+	      }
+	      wantsHighlight = true;
+	      return;
+	    }
+
+	    const blocks = document.querySelectorAll(options.cssSelector);
+	    blocks.forEach(highlightElement);
+	  }
+
+	  /**
+	   * Register a language grammar module
+	   *
+	   * @param {string} languageName
+	   * @param {LanguageFn} languageDefinition
+	   */
+	  function registerLanguage(languageName, languageDefinition) {
+	    let lang = null;
+	    try {
+	      lang = languageDefinition(hljs);
+	    } catch (error$1) {
+	      error("Language definition for '{}' could not be registered.".replace("{}", languageName));
+	      // hard or soft error
+	      if (!SAFE_MODE) { throw error$1; } else { error(error$1); }
+	      // languages that have serious errors are replaced with essentially a
+	      // "plaintext" stand-in so that the code blocks will still get normal
+	      // css classes applied to them - and one bad language won't break the
+	      // entire highlighter
+	      lang = PLAINTEXT_LANGUAGE;
+	    }
+	    // give it a temporary name if it doesn't have one in the meta-data
+	    if (!lang.name) lang.name = languageName;
+	    languages[languageName] = lang;
+	    lang.rawDefinition = languageDefinition.bind(null, hljs);
+
+	    if (lang.aliases) {
+	      registerAliases(lang.aliases, { languageName });
+	    }
+	  }
+
+	  /**
+	   * Remove a language grammar module
+	   *
+	   * @param {string} languageName
+	   */
+	  function unregisterLanguage(languageName) {
+	    delete languages[languageName];
+	    for (const alias of Object.keys(aliases)) {
+	      if (aliases[alias] === languageName) {
+	        delete aliases[alias];
+	      }
+	    }
+	  }
+
+	  /**
+	   * @returns {string[]} List of language internal names
+	   */
+	  function listLanguages() {
+	    return Object.keys(languages);
+	  }
+
+	  /**
+	   * @param {string} name - name of the language to retrieve
+	   * @returns {Language | undefined}
+	   */
+	  function getLanguage(name) {
+	    name = (name || '').toLowerCase();
+	    return languages[name] || languages[aliases[name]];
+	  }
+
+	  /**
+	   *
+	   * @param {string|string[]} aliasList - single alias or list of aliases
+	   * @param {{languageName: string}} opts
+	   */
+	  function registerAliases(aliasList, { languageName }) {
+	    if (typeof aliasList === 'string') {
+	      aliasList = [aliasList];
+	    }
+	    aliasList.forEach(alias => { aliases[alias.toLowerCase()] = languageName; });
+	  }
+
+	  /**
+	   * Determines if a given language has auto-detection enabled
+	   * @param {string} name - name of the language
+	   */
+	  function autoDetection(name) {
+	    const lang = getLanguage(name);
+	    return lang && !lang.disableAutodetect;
+	  }
+
+	  /**
+	   * Upgrades the old highlightBlock plugins to the new
+	   * highlightElement API
+	   * @param {HLJSPlugin} plugin
+	   */
+	  function upgradePluginAPI(plugin) {
+	    // TODO: remove with v12
+	    if (plugin["before:highlightBlock"] && !plugin["before:highlightElement"]) {
+	      plugin["before:highlightElement"] = (data) => {
+	        plugin["before:highlightBlock"](
+	          Object.assign({ block: data.el }, data)
+	        );
+	      };
+	    }
+	    if (plugin["after:highlightBlock"] && !plugin["after:highlightElement"]) {
+	      plugin["after:highlightElement"] = (data) => {
+	        plugin["after:highlightBlock"](
+	          Object.assign({ block: data.el }, data)
+	        );
+	      };
+	    }
+	  }
+
+	  /**
+	   * @param {HLJSPlugin} plugin
+	   */
+	  function addPlugin(plugin) {
+	    upgradePluginAPI(plugin);
+	    plugins.push(plugin);
+	  }
+
+	  /**
+	   * @param {HLJSPlugin} plugin
+	   */
+	  function removePlugin(plugin) {
+	    const index = plugins.indexOf(plugin);
+	    if (index !== -1) {
+	      plugins.splice(index, 1);
+	    }
+	  }
+
+	  /**
+	   *
+	   * @param {PluginEvent} event
+	   * @param {any} args
+	   */
+	  function fire(event, args) {
+	    const cb = event;
+	    plugins.forEach(function(plugin) {
+	      if (plugin[cb]) {
+	        plugin[cb](args);
+	      }
+	    });
+	  }
+
+	  /**
+	   * DEPRECATED
+	   * @param {HighlightedHTMLElement} el
+	   */
+	  function deprecateHighlightBlock(el) {
+	    deprecated("10.7.0", "highlightBlock will be removed entirely in v12.0");
+	    deprecated("10.7.0", "Please use highlightElement now.");
+
+	    return highlightElement(el);
+	  }
+
+	  /* Interface definition */
+	  Object.assign(hljs, {
+	    highlight,
+	    highlightAuto,
+	    highlightAll,
+	    highlightElement,
+	    // TODO: Remove with v12 API
+	    highlightBlock: deprecateHighlightBlock,
+	    configure,
+	    initHighlighting,
+	    initHighlightingOnLoad,
+	    registerLanguage,
+	    unregisterLanguage,
+	    listLanguages,
+	    getLanguage,
+	    registerAliases,
+	    autoDetection,
+	    inherit,
+	    addPlugin,
+	    removePlugin
+	  });
+
+	  hljs.debugMode = function() { SAFE_MODE = false; };
+	  hljs.safeMode = function() { SAFE_MODE = true; };
+	  hljs.versionString = version;
+
+	  hljs.regex = {
+	    concat: concat,
+	    lookahead: lookahead,
+	    either: either,
+	    optional: optional,
+	    anyNumberOfTimes: anyNumberOfTimes
+	  };
+
+	  for (const key in MODES) {
+	    // @ts-ignore
+	    if (typeof MODES[key] === "object") {
+	      // @ts-ignore
+	      deepFreeze(MODES[key]);
+	    }
+	  }
+
+	  // merge all the modes/regexes into our main object
+	  Object.assign(hljs, MODES);
+
+	  return hljs;
+	};
+
+	// Other names for the variable may break build script
+	const highlight = HLJS({});
+
+	// returns a new instance of the highlighter to be used for extensions
+	// check https://github.com/wooorm/lowlight/issues/47
+	highlight.newInstance = () => HLJS({});
+
+	core = highlight;
+	highlight.HighlightJS = highlight;
+	highlight.default = highlight;
+	return core;
 }
-
-/** @typedef {import('highlight.js').CallbackResponse} CallbackResponse */
-/** @typedef {import('highlight.js').CompiledMode} CompiledMode */
-/** @implements CallbackResponse */
-
-class Response {
-  /**
-   * @param {CompiledMode} mode
-   */
-  constructor(mode) {
-    // eslint-disable-next-line no-undefined
-    if (mode.data === undefined) mode.data = {};
-
-    this.data = mode.data;
-    this.isMatchIgnored = false;
-  }
-
-  ignoreMatch() {
-    this.isMatchIgnored = true;
-  }
-}
-
-/**
- * @param {string} value
- * @returns {string}
- */
-function escapeHTML(value) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
-}
-
-/**
- * performs a shallow merge of multiple objects into one
- *
- * @template T
- * @param {T} original
- * @param {Record<string,any>[]} objects
- * @returns {T} a single new object
- */
-function inherit$1(original, ...objects) {
-  /** @type Record<string,any> */
-  const result = Object.create(null);
-
-  for (const key in original) {
-    result[key] = original[key];
-  }
-  objects.forEach(function(obj) {
-    for (const key in obj) {
-      result[key] = obj[key];
-    }
-  });
-  return /** @type {T} */ (result);
-}
-
-/**
- * @typedef {object} Renderer
- * @property {(text: string) => void} addText
- * @property {(node: Node) => void} openNode
- * @property {(node: Node) => void} closeNode
- * @property {() => string} value
- */
-
-/** @typedef {{scope?: string, language?: string, sublanguage?: boolean}} Node */
-/** @typedef {{walk: (r: Renderer) => void}} Tree */
-/** */
-
-const SPAN_CLOSE = '</span>';
-
-/**
- * Determines if a node needs to be wrapped in <span>
- *
- * @param {Node} node */
-const emitsWrappingTags = (node) => {
-  // rarely we can have a sublanguage where language is undefined
-  // TODO: track down why
-  return !!node.scope;
-};
-
-/**
- *
- * @param {string} name
- * @param {{prefix:string}} options
- */
-const scopeToCSSClass = (name, { prefix }) => {
-  // sub-language
-  if (name.startsWith("language:")) {
-    return name.replace("language:", "language-");
-  }
-  // tiered scope: comment.line
-  if (name.includes(".")) {
-    const pieces = name.split(".");
-    return [
-      `${prefix}${pieces.shift()}`,
-      ...(pieces.map((x, i) => `${x}${"_".repeat(i + 1)}`))
-    ].join(" ");
-  }
-  // simple scope
-  return `${prefix}${name}`;
-};
-
-/** @type {Renderer} */
-class HTMLRenderer {
-  /**
-   * Creates a new HTMLRenderer
-   *
-   * @param {Tree} parseTree - the parse tree (must support `walk` API)
-   * @param {{classPrefix: string}} options
-   */
-  constructor(parseTree, options) {
-    this.buffer = "";
-    this.classPrefix = options.classPrefix;
-    parseTree.walk(this);
-  }
-
-  /**
-   * Adds texts to the output stream
-   *
-   * @param {string} text */
-  addText(text) {
-    this.buffer += escapeHTML(text);
-  }
-
-  /**
-   * Adds a node open to the output stream (if needed)
-   *
-   * @param {Node} node */
-  openNode(node) {
-    if (!emitsWrappingTags(node)) return;
-
-    const className = scopeToCSSClass(node.scope,
-      { prefix: this.classPrefix });
-    this.span(className);
-  }
-
-  /**
-   * Adds a node close to the output stream (if needed)
-   *
-   * @param {Node} node */
-  closeNode(node) {
-    if (!emitsWrappingTags(node)) return;
-
-    this.buffer += SPAN_CLOSE;
-  }
-
-  /**
-   * returns the accumulated buffer
-  */
-  value() {
-    return this.buffer;
-  }
-
-  // helpers
-
-  /**
-   * Builds a span element
-   *
-   * @param {string} className */
-  span(className) {
-    this.buffer += `<span class="${className}">`;
-  }
-}
-
-/** @typedef {{scope?: string, language?: string, children: Node[]} | string} Node */
-/** @typedef {{scope?: string, language?: string, children: Node[]} } DataNode */
-/** @typedef {import('highlight.js').Emitter} Emitter */
-/**  */
-
-/** @returns {DataNode} */
-const newNode = (opts = {}) => {
-  /** @type DataNode */
-  const result = { children: [] };
-  Object.assign(result, opts);
-  return result;
-};
-
-class TokenTree {
-  constructor() {
-    /** @type DataNode */
-    this.rootNode = newNode();
-    this.stack = [this.rootNode];
-  }
-
-  get top() {
-    return this.stack[this.stack.length - 1];
-  }
-
-  get root() { return this.rootNode; }
-
-  /** @param {Node} node */
-  add(node) {
-    this.top.children.push(node);
-  }
-
-  /** @param {string} scope */
-  openNode(scope) {
-    /** @type Node */
-    const node = newNode({ scope });
-    this.add(node);
-    this.stack.push(node);
-  }
-
-  closeNode() {
-    if (this.stack.length > 1) {
-      return this.stack.pop();
-    }
-    // eslint-disable-next-line no-undefined
-    return undefined;
-  }
-
-  closeAllNodes() {
-    while (this.closeNode());
-  }
-
-  toJSON() {
-    return JSON.stringify(this.rootNode, null, 4);
-  }
-
-  /**
-   * @typedef { import("./html_renderer").Renderer } Renderer
-   * @param {Renderer} builder
-   */
-  walk(builder) {
-    // this does not
-    return this.constructor._walk(builder, this.rootNode);
-    // this works
-    // return TokenTree._walk(builder, this.rootNode);
-  }
-
-  /**
-   * @param {Renderer} builder
-   * @param {Node} node
-   */
-  static _walk(builder, node) {
-    if (typeof node === "string") {
-      builder.addText(node);
-    } else if (node.children) {
-      builder.openNode(node);
-      node.children.forEach((child) => this._walk(builder, child));
-      builder.closeNode(node);
-    }
-    return builder;
-  }
-
-  /**
-   * @param {Node} node
-   */
-  static _collapse(node) {
-    if (typeof node === "string") return;
-    if (!node.children) return;
-
-    if (node.children.every(el => typeof el === "string")) {
-      // node.text = node.children.join("");
-      // delete node.children;
-      node.children = [node.children.join("")];
-    } else {
-      node.children.forEach((child) => {
-        TokenTree._collapse(child);
-      });
-    }
-  }
-}
-
-/**
-  Currently this is all private API, but this is the minimal API necessary
-  that an Emitter must implement to fully support the parser.
-
-  Minimal interface:
-
-  - addText(text)
-  - __addSublanguage(emitter, subLanguageName)
-  - startScope(scope)
-  - endScope()
-  - finalize()
-  - toHTML()
-
-*/
-
-/**
- * @implements {Emitter}
- */
-class TokenTreeEmitter extends TokenTree {
-  /**
-   * @param {*} options
-   */
-  constructor(options) {
-    super();
-    this.options = options;
-  }
-
-  /**
-   * @param {string} text
-   */
-  addText(text) {
-    if (text === "") { return; }
-
-    this.add(text);
-  }
-
-  /** @param {string} scope */
-  startScope(scope) {
-    this.openNode(scope);
-  }
-
-  endScope() {
-    this.closeNode();
-  }
-
-  /**
-   * @param {Emitter & {root: DataNode}} emitter
-   * @param {string} name
-   */
-  __addSublanguage(emitter, name) {
-    /** @type DataNode */
-    const node = emitter.root;
-    if (name) node.scope = `language:${name}`;
-
-    this.add(node);
-  }
-
-  toHTML() {
-    const renderer = new HTMLRenderer(this, this.options);
-    return renderer.value();
-  }
-
-  finalize() {
-    this.closeAllNodes();
-    return true;
-  }
-}
-
-/**
- * @param {string} value
- * @returns {RegExp}
- * */
-
-/**
- * @param {RegExp | string } re
- * @returns {string}
- */
-function source(re) {
-  if (!re) return null;
-  if (typeof re === "string") return re;
-
-  return re.source;
-}
-
-/**
- * @param {RegExp | string } re
- * @returns {string}
- */
-function lookahead(re) {
-  return concat('(?=', re, ')');
-}
-
-/**
- * @param {RegExp | string } re
- * @returns {string}
- */
-function anyNumberOfTimes(re) {
-  return concat('(?:', re, ')*');
-}
-
-/**
- * @param {RegExp | string } re
- * @returns {string}
- */
-function optional(re) {
-  return concat('(?:', re, ')?');
-}
-
-/**
- * @param {...(RegExp | string) } args
- * @returns {string}
- */
-function concat(...args) {
-  const joined = args.map((x) => source(x)).join("");
-  return joined;
-}
-
-/**
- * @param { Array<string | RegExp | Object> } args
- * @returns {object}
- */
-function stripOptionsFromArgs(args) {
-  const opts = args[args.length - 1];
-
-  if (typeof opts === 'object' && opts.constructor === Object) {
-    args.splice(args.length - 1, 1);
-    return opts;
-  } else {
-    return {};
-  }
-}
-
-/** @typedef { {capture?: boolean} } RegexEitherOptions */
-
-/**
- * Any of the passed expresssions may match
- *
- * Creates a huge this | this | that | that match
- * @param {(RegExp | string)[] | [...(RegExp | string)[], RegexEitherOptions]} args
- * @returns {string}
- */
-function either(...args) {
-  /** @type { object & {capture?: boolean} }  */
-  const opts = stripOptionsFromArgs(args);
-  const joined = '('
-    + (opts.capture ? "" : "?:")
-    + args.map((x) => source(x)).join("|") + ")";
-  return joined;
-}
-
-/**
- * @param {RegExp | string} re
- * @returns {number}
- */
-function countMatchGroups(re) {
-  return (new RegExp(re.toString() + '|')).exec('').length - 1;
-}
-
-/**
- * Does lexeme start with a regular expression match at the beginning
- * @param {RegExp} re
- * @param {string} lexeme
- */
-function startsWith(re, lexeme) {
-  const match = re && re.exec(lexeme);
-  return match && match.index === 0;
-}
-
-// BACKREF_RE matches an open parenthesis or backreference. To avoid
-// an incorrect parse, it additionally matches the following:
-// - [...] elements, where the meaning of parentheses and escapes change
-// - other escape sequences, so we do not misparse escape sequences as
-//   interesting elements
-// - non-matching or lookahead parentheses, which do not capture. These
-//   follow the '(' with a '?'.
-const BACKREF_RE = /\[(?:[^\\\]]|\\.)*\]|\(\??|\\([1-9][0-9]*)|\\./;
-
-// **INTERNAL** Not intended for outside usage
-// join logically computes regexps.join(separator), but fixes the
-// backreferences so they continue to match.
-// it also places each individual regular expression into it's own
-// match group, keeping track of the sequencing of those match groups
-// is currently an exercise for the caller. :-)
-/**
- * @param {(string | RegExp)[]} regexps
- * @param {{joinWith: string}} opts
- * @returns {string}
- */
-function _rewriteBackreferences(regexps, { joinWith }) {
-  let numCaptures = 0;
-
-  return regexps.map((regex) => {
-    numCaptures += 1;
-    const offset = numCaptures;
-    let re = source(regex);
-    let out = '';
-
-    while (re.length > 0) {
-      const match = BACKREF_RE.exec(re);
-      if (!match) {
-        out += re;
-        break;
-      }
-      out += re.substring(0, match.index);
-      re = re.substring(match.index + match[0].length);
-      if (match[0][0] === '\\' && match[1]) {
-        // Adjust the backreference.
-        out += '\\' + String(Number(match[1]) + offset);
-      } else {
-        out += match[0];
-        if (match[0] === '(') {
-          numCaptures++;
-        }
-      }
-    }
-    return out;
-  }).map(re => `(${re})`).join(joinWith);
-}
-
-/** @typedef {import('highlight.js').Mode} Mode */
-/** @typedef {import('highlight.js').ModeCallback} ModeCallback */
-
-// Common regexps
-const MATCH_NOTHING_RE = /\b\B/;
-const IDENT_RE = '[a-zA-Z]\\w*';
-const UNDERSCORE_IDENT_RE = '[a-zA-Z_]\\w*';
-const NUMBER_RE = '\\b\\d+(\\.\\d+)?';
-const C_NUMBER_RE = '(-?)(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)'; // 0x..., 0..., decimal, float
-const BINARY_NUMBER_RE = '\\b(0b[01]+)'; // 0b...
-const RE_STARTERS_RE = '!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|-|-=|/=|/|:|;|<<|<<=|<=|<|===|==|=|>>>=|>>=|>=|>>>|>>|>|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~';
-
-/**
-* @param { Partial<Mode> & {binary?: string | RegExp} } opts
-*/
-const SHEBANG = (opts = {}) => {
-  const beginShebang = /^#![ ]*\//;
-  if (opts.binary) {
-    opts.begin = concat(
-      beginShebang,
-      /.*\b/,
-      opts.binary,
-      /\b.*/);
-  }
-  return inherit$1({
-    scope: 'meta',
-    begin: beginShebang,
-    end: /$/,
-    relevance: 0,
-    /** @type {ModeCallback} */
-    "on:begin": (m, resp) => {
-      if (m.index !== 0) resp.ignoreMatch();
-    }
-  }, opts);
-};
-
-// Common modes
-const BACKSLASH_ESCAPE = {
-  begin: '\\\\[\\s\\S]', relevance: 0
-};
-const APOS_STRING_MODE = {
-  scope: 'string',
-  begin: '\'',
-  end: '\'',
-  illegal: '\\n',
-  contains: [BACKSLASH_ESCAPE]
-};
-const QUOTE_STRING_MODE = {
-  scope: 'string',
-  begin: '"',
-  end: '"',
-  illegal: '\\n',
-  contains: [BACKSLASH_ESCAPE]
-};
-const PHRASAL_WORDS_MODE = {
-  begin: /\b(a|an|the|are|I'm|isn't|don't|doesn't|won't|but|just|should|pretty|simply|enough|gonna|going|wtf|so|such|will|you|your|they|like|more)\b/
-};
-/**
- * Creates a comment mode
- *
- * @param {string | RegExp} begin
- * @param {string | RegExp} end
- * @param {Mode | {}} [modeOptions]
- * @returns {Partial<Mode>}
- */
-const COMMENT = function(begin, end, modeOptions = {}) {
-  const mode = inherit$1(
-    {
-      scope: 'comment',
-      begin,
-      end,
-      contains: []
-    },
-    modeOptions
-  );
-  mode.contains.push({
-    scope: 'doctag',
-    // hack to avoid the space from being included. the space is necessary to
-    // match here to prevent the plain text rule below from gobbling up doctags
-    begin: '[ ]*(?=(TODO|FIXME|NOTE|BUG|OPTIMIZE|HACK|XXX):)',
-    end: /(TODO|FIXME|NOTE|BUG|OPTIMIZE|HACK|XXX):/,
-    excludeBegin: true,
-    relevance: 0
-  });
-  const ENGLISH_WORD = either(
-    // list of common 1 and 2 letter words in English
-    "I",
-    "a",
-    "is",
-    "so",
-    "us",
-    "to",
-    "at",
-    "if",
-    "in",
-    "it",
-    "on",
-    // note: this is not an exhaustive list of contractions, just popular ones
-    /[A-Za-z]+['](d|ve|re|ll|t|s|n)/, // contractions - can't we'd they're let's, etc
-    /[A-Za-z]+[-][a-z]+/, // `no-way`, etc.
-    /[A-Za-z][a-z]{2,}/ // allow capitalized words at beginning of sentences
-  );
-  // looking like plain text, more likely to be a comment
-  mode.contains.push(
-    {
-      // TODO: how to include ", (, ) without breaking grammars that use these for
-      // comment delimiters?
-      // begin: /[ ]+([()"]?([A-Za-z'-]{3,}|is|a|I|so|us|[tT][oO]|at|if|in|it|on)[.]?[()":]?([.][ ]|[ ]|\))){3}/
-      // ---
-
-      // this tries to find sequences of 3 english words in a row (without any
-      // "programming" type syntax) this gives us a strong signal that we've
-      // TRULY found a comment - vs perhaps scanning with the wrong language.
-      // It's possible to find something that LOOKS like the start of the
-      // comment - but then if there is no readable text - good chance it is a
-      // false match and not a comment.
-      //
-      // for a visual example please see:
-      // https://github.com/highlightjs/highlight.js/issues/2827
-
-      begin: concat(
-        /[ ]+/, // necessary to prevent us gobbling up doctags like /* @author Bob Mcgill */
-        '(',
-        ENGLISH_WORD,
-        /[.]?[:]?([.][ ]|[ ])/,
-        '){3}') // look for 3 words in a row
-    }
-  );
-  return mode;
-};
-const C_LINE_COMMENT_MODE = COMMENT('//', '$');
-const C_BLOCK_COMMENT_MODE = COMMENT('/\\*', '\\*/');
-const HASH_COMMENT_MODE = COMMENT('#', '$');
-const NUMBER_MODE = {
-  scope: 'number',
-  begin: NUMBER_RE,
-  relevance: 0
-};
-const C_NUMBER_MODE = {
-  scope: 'number',
-  begin: C_NUMBER_RE,
-  relevance: 0
-};
-const BINARY_NUMBER_MODE = {
-  scope: 'number',
-  begin: BINARY_NUMBER_RE,
-  relevance: 0
-};
-const REGEXP_MODE = {
-  scope: "regexp",
-  begin: /\/(?=[^/\n]*\/)/,
-  end: /\/[gimuy]*/,
-  contains: [
-    BACKSLASH_ESCAPE,
-    {
-      begin: /\[/,
-      end: /\]/,
-      relevance: 0,
-      contains: [BACKSLASH_ESCAPE]
-    }
-  ]
-};
-const TITLE_MODE = {
-  scope: 'title',
-  begin: IDENT_RE,
-  relevance: 0
-};
-const UNDERSCORE_TITLE_MODE = {
-  scope: 'title',
-  begin: UNDERSCORE_IDENT_RE,
-  relevance: 0
-};
-const METHOD_GUARD = {
-  // excludes method names from keyword processing
-  begin: '\\.\\s*' + UNDERSCORE_IDENT_RE,
-  relevance: 0
-};
-
-/**
- * Adds end same as begin mechanics to a mode
- *
- * Your mode must include at least a single () match group as that first match
- * group is what is used for comparison
- * @param {Partial<Mode>} mode
- */
-const END_SAME_AS_BEGIN = function(mode) {
-  return Object.assign(mode,
-    {
-      /** @type {ModeCallback} */
-      'on:begin': (m, resp) => { resp.data._beginMatch = m[1]; },
-      /** @type {ModeCallback} */
-      'on:end': (m, resp) => { if (resp.data._beginMatch !== m[1]) resp.ignoreMatch(); }
-    });
-};
-
-var MODES = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  APOS_STRING_MODE: APOS_STRING_MODE,
-  BACKSLASH_ESCAPE: BACKSLASH_ESCAPE,
-  BINARY_NUMBER_MODE: BINARY_NUMBER_MODE,
-  BINARY_NUMBER_RE: BINARY_NUMBER_RE,
-  COMMENT: COMMENT,
-  C_BLOCK_COMMENT_MODE: C_BLOCK_COMMENT_MODE,
-  C_LINE_COMMENT_MODE: C_LINE_COMMENT_MODE,
-  C_NUMBER_MODE: C_NUMBER_MODE,
-  C_NUMBER_RE: C_NUMBER_RE,
-  END_SAME_AS_BEGIN: END_SAME_AS_BEGIN,
-  HASH_COMMENT_MODE: HASH_COMMENT_MODE,
-  IDENT_RE: IDENT_RE,
-  MATCH_NOTHING_RE: MATCH_NOTHING_RE,
-  METHOD_GUARD: METHOD_GUARD,
-  NUMBER_MODE: NUMBER_MODE,
-  NUMBER_RE: NUMBER_RE,
-  PHRASAL_WORDS_MODE: PHRASAL_WORDS_MODE,
-  QUOTE_STRING_MODE: QUOTE_STRING_MODE,
-  REGEXP_MODE: REGEXP_MODE,
-  RE_STARTERS_RE: RE_STARTERS_RE,
-  SHEBANG: SHEBANG,
-  TITLE_MODE: TITLE_MODE,
-  UNDERSCORE_IDENT_RE: UNDERSCORE_IDENT_RE,
-  UNDERSCORE_TITLE_MODE: UNDERSCORE_TITLE_MODE
-});
-
-/**
-@typedef {import('highlight.js').CallbackResponse} CallbackResponse
-@typedef {import('highlight.js').CompilerExt} CompilerExt
-*/
-
-// Grammar extensions / plugins
-// See: https://github.com/highlightjs/highlight.js/issues/2833
-
-// Grammar extensions allow "syntactic sugar" to be added to the grammar modes
-// without requiring any underlying changes to the compiler internals.
-
-// `compileMatch` being the perfect small example of now allowing a grammar
-// author to write `match` when they desire to match a single expression rather
-// than being forced to use `begin`.  The extension then just moves `match` into
-// `begin` when it runs.  Ie, no features have been added, but we've just made
-// the experience of writing (and reading grammars) a little bit nicer.
-
-// ------
-
-// TODO: We need negative look-behind support to do this properly
-/**
- * Skip a match if it has a preceding dot
- *
- * This is used for `beginKeywords` to prevent matching expressions such as
- * `bob.keyword.do()`. The mode compiler automatically wires this up as a
- * special _internal_ 'on:begin' callback for modes with `beginKeywords`
- * @param {RegExpMatchArray} match
- * @param {CallbackResponse} response
- */
-function skipIfHasPrecedingDot(match, response) {
-  const before = match.input[match.index - 1];
-  if (before === ".") {
-    response.ignoreMatch();
-  }
-}
-
-/**
- *
- * @type {CompilerExt}
- */
-function scopeClassName(mode, _parent) {
-  // eslint-disable-next-line no-undefined
-  if (mode.className !== undefined) {
-    mode.scope = mode.className;
-    delete mode.className;
-  }
-}
-
-/**
- * `beginKeywords` syntactic sugar
- * @type {CompilerExt}
- */
-function beginKeywords(mode, parent) {
-  if (!parent) return;
-  if (!mode.beginKeywords) return;
-
-  // for languages with keywords that include non-word characters checking for
-  // a word boundary is not sufficient, so instead we check for a word boundary
-  // or whitespace - this does no harm in any case since our keyword engine
-  // doesn't allow spaces in keywords anyways and we still check for the boundary
-  // first
-  mode.begin = '\\b(' + mode.beginKeywords.split(' ').join('|') + ')(?!\\.)(?=\\b|\\s)';
-  mode.__beforeBegin = skipIfHasPrecedingDot;
-  mode.keywords = mode.keywords || mode.beginKeywords;
-  delete mode.beginKeywords;
-
-  // prevents double relevance, the keywords themselves provide
-  // relevance, the mode doesn't need to double it
-  // eslint-disable-next-line no-undefined
-  if (mode.relevance === undefined) mode.relevance = 0;
-}
-
-/**
- * Allow `illegal` to contain an array of illegal values
- * @type {CompilerExt}
- */
-function compileIllegal(mode, _parent) {
-  if (!Array.isArray(mode.illegal)) return;
-
-  mode.illegal = either(...mode.illegal);
-}
-
-/**
- * `match` to match a single expression for readability
- * @type {CompilerExt}
- */
-function compileMatch(mode, _parent) {
-  if (!mode.match) return;
-  if (mode.begin || mode.end) throw new Error("begin & end are not supported with match");
-
-  mode.begin = mode.match;
-  delete mode.match;
-}
-
-/**
- * provides the default 1 relevance to all modes
- * @type {CompilerExt}
- */
-function compileRelevance(mode, _parent) {
-  // eslint-disable-next-line no-undefined
-  if (mode.relevance === undefined) mode.relevance = 1;
-}
-
-// allow beforeMatch to act as a "qualifier" for the match
-// the full match begin must be [beforeMatch][begin]
-const beforeMatchExt = (mode, parent) => {
-  if (!mode.beforeMatch) return;
-  // starts conflicts with endsParent which we need to make sure the child
-  // rule is not matched multiple times
-  if (mode.starts) throw new Error("beforeMatch cannot be used with starts");
-
-  const originalMode = Object.assign({}, mode);
-  Object.keys(mode).forEach((key) => { delete mode[key]; });
-
-  mode.keywords = originalMode.keywords;
-  mode.begin = concat(originalMode.beforeMatch, lookahead(originalMode.begin));
-  mode.starts = {
-    relevance: 0,
-    contains: [
-      Object.assign(originalMode, { endsParent: true })
-    ]
-  };
-  mode.relevance = 0;
-
-  delete originalMode.beforeMatch;
-};
-
-// keywords that should have no default relevance value
-const COMMON_KEYWORDS = [
-  'of',
-  'and',
-  'for',
-  'in',
-  'not',
-  'or',
-  'if',
-  'then',
-  'parent', // common variable name
-  'list', // common variable name
-  'value' // common variable name
-];
-
-const DEFAULT_KEYWORD_SCOPE = "keyword";
-
-/**
- * Given raw keywords from a language definition, compile them.
- *
- * @param {string | Record<string,string|string[]> | Array<string>} rawKeywords
- * @param {boolean} caseInsensitive
- */
-function compileKeywords(rawKeywords, caseInsensitive, scopeName = DEFAULT_KEYWORD_SCOPE) {
-  /** @type {import("highlight.js/private").KeywordDict} */
-  const compiledKeywords = Object.create(null);
-
-  // input can be a string of keywords, an array of keywords, or a object with
-  // named keys representing scopeName (which can then point to a string or array)
-  if (typeof rawKeywords === 'string') {
-    compileList(scopeName, rawKeywords.split(" "));
-  } else if (Array.isArray(rawKeywords)) {
-    compileList(scopeName, rawKeywords);
-  } else {
-    Object.keys(rawKeywords).forEach(function(scopeName) {
-      // collapse all our objects back into the parent object
-      Object.assign(
-        compiledKeywords,
-        compileKeywords(rawKeywords[scopeName], caseInsensitive, scopeName)
-      );
-    });
-  }
-  return compiledKeywords;
-
-  // ---
-
-  /**
-   * Compiles an individual list of keywords
-   *
-   * Ex: "for if when while|5"
-   *
-   * @param {string} scopeName
-   * @param {Array<string>} keywordList
-   */
-  function compileList(scopeName, keywordList) {
-    if (caseInsensitive) {
-      keywordList = keywordList.map(x => x.toLowerCase());
-    }
-    keywordList.forEach(function(keyword) {
-      const pair = keyword.split('|');
-      compiledKeywords[pair[0]] = [scopeName, scoreForKeyword(pair[0], pair[1])];
-    });
-  }
-}
-
-/**
- * Returns the proper score for a given keyword
- *
- * Also takes into account comment keywords, which will be scored 0 UNLESS
- * another score has been manually assigned.
- * @param {string} keyword
- * @param {string} [providedScore]
- */
-function scoreForKeyword(keyword, providedScore) {
-  // manual scores always win over common keywords
-  // so you can force a score of 1 if you really insist
-  if (providedScore) {
-    return Number(providedScore);
-  }
-
-  return commonKeyword(keyword) ? 0 : 1;
-}
-
-/**
- * Determines if a given keyword is common or not
- *
- * @param {string} keyword */
-function commonKeyword(keyword) {
-  return COMMON_KEYWORDS.includes(keyword.toLowerCase());
-}
-
-/*
-
-For the reasoning behind this please see:
-https://github.com/highlightjs/highlight.js/issues/2880#issuecomment-747275419
-
-*/
-
-/**
- * @type {Record<string, boolean>}
- */
-const seenDeprecations = {};
-
-/**
- * @param {string} message
- */
-const error = (message) => {
-  console.error(message);
-};
-
-/**
- * @param {string} message
- * @param {any} args
- */
-const warn = (message, ...args) => {
-  console.log(`WARN: ${message}`, ...args);
-};
-
-/**
- * @param {string} version
- * @param {string} message
- */
-const deprecated = (version, message) => {
-  if (seenDeprecations[`${version}/${message}`]) return;
-
-  console.log(`Deprecated as of ${version}. ${message}`);
-  seenDeprecations[`${version}/${message}`] = true;
-};
-
-/* eslint-disable no-throw-literal */
-
-/**
-@typedef {import('highlight.js').CompiledMode} CompiledMode
-*/
-
-const MultiClassError = new Error();
-
-/**
- * Renumbers labeled scope names to account for additional inner match
- * groups that otherwise would break everything.
- *
- * Lets say we 3 match scopes:
- *
- *   { 1 => ..., 2 => ..., 3 => ... }
- *
- * So what we need is a clean match like this:
- *
- *   (a)(b)(c) => [ "a", "b", "c" ]
- *
- * But this falls apart with inner match groups:
- *
- * (a)(((b)))(c) => ["a", "b", "b", "b", "c" ]
- *
- * Our scopes are now "out of alignment" and we're repeating `b` 3 times.
- * What needs to happen is the numbers are remapped:
- *
- *   { 1 => ..., 2 => ..., 5 => ... }
- *
- * We also need to know that the ONLY groups that should be output
- * are 1, 2, and 5.  This function handles this behavior.
- *
- * @param {CompiledMode} mode
- * @param {Array<RegExp | string>} regexes
- * @param {{key: "beginScope"|"endScope"}} opts
- */
-function remapScopeNames(mode, regexes, { key }) {
-  let offset = 0;
-  const scopeNames = mode[key];
-  /** @type Record<number,boolean> */
-  const emit = {};
-  /** @type Record<number,string> */
-  const positions = {};
-
-  for (let i = 1; i <= regexes.length; i++) {
-    positions[i + offset] = scopeNames[i];
-    emit[i + offset] = true;
-    offset += countMatchGroups(regexes[i - 1]);
-  }
-  // we use _emit to keep track of which match groups are "top-level" to avoid double
-  // output from inside match groups
-  mode[key] = positions;
-  mode[key]._emit = emit;
-  mode[key]._multi = true;
-}
-
-/**
- * @param {CompiledMode} mode
- */
-function beginMultiClass(mode) {
-  if (!Array.isArray(mode.begin)) return;
-
-  if (mode.skip || mode.excludeBegin || mode.returnBegin) {
-    error("skip, excludeBegin, returnBegin not compatible with beginScope: {}");
-    throw MultiClassError;
-  }
-
-  if (typeof mode.beginScope !== "object" || mode.beginScope === null) {
-    error("beginScope must be object");
-    throw MultiClassError;
-  }
-
-  remapScopeNames(mode, mode.begin, { key: "beginScope" });
-  mode.begin = _rewriteBackreferences(mode.begin, { joinWith: "" });
-}
-
-/**
- * @param {CompiledMode} mode
- */
-function endMultiClass(mode) {
-  if (!Array.isArray(mode.end)) return;
-
-  if (mode.skip || mode.excludeEnd || mode.returnEnd) {
-    error("skip, excludeEnd, returnEnd not compatible with endScope: {}");
-    throw MultiClassError;
-  }
-
-  if (typeof mode.endScope !== "object" || mode.endScope === null) {
-    error("endScope must be object");
-    throw MultiClassError;
-  }
-
-  remapScopeNames(mode, mode.end, { key: "endScope" });
-  mode.end = _rewriteBackreferences(mode.end, { joinWith: "" });
-}
-
-/**
- * this exists only to allow `scope: {}` to be used beside `match:`
- * Otherwise `beginScope` would necessary and that would look weird
-
-  {
-    match: [ /def/, /\w+/ ]
-    scope: { 1: "keyword" , 2: "title" }
-  }
-
- * @param {CompiledMode} mode
- */
-function scopeSugar(mode) {
-  if (mode.scope && typeof mode.scope === "object" && mode.scope !== null) {
-    mode.beginScope = mode.scope;
-    delete mode.scope;
-  }
-}
-
-/**
- * @param {CompiledMode} mode
- */
-function MultiClass(mode) {
-  scopeSugar(mode);
-
-  if (typeof mode.beginScope === "string") {
-    mode.beginScope = { _wrap: mode.beginScope };
-  }
-  if (typeof mode.endScope === "string") {
-    mode.endScope = { _wrap: mode.endScope };
-  }
-
-  beginMultiClass(mode);
-  endMultiClass(mode);
-}
-
-/**
-@typedef {import('highlight.js').Mode} Mode
-@typedef {import('highlight.js').CompiledMode} CompiledMode
-@typedef {import('highlight.js').Language} Language
-@typedef {import('highlight.js').HLJSPlugin} HLJSPlugin
-@typedef {import('highlight.js').CompiledLanguage} CompiledLanguage
-*/
-
-// compilation
-
-/**
- * Compiles a language definition result
- *
- * Given the raw result of a language definition (Language), compiles this so
- * that it is ready for highlighting code.
- * @param {Language} language
- * @returns {CompiledLanguage}
- */
-function compileLanguage(language) {
-  /**
-   * Builds a regex with the case sensitivity of the current language
-   *
-   * @param {RegExp | string} value
-   * @param {boolean} [global]
-   */
-  function langRe(value, global) {
-    return new RegExp(
-      source(value),
-      'm'
-      + (language.case_insensitive ? 'i' : '')
-      + (language.unicodeRegex ? 'u' : '')
-      + (global ? 'g' : '')
-    );
-  }
-
-  /**
-    Stores multiple regular expressions and allows you to quickly search for
-    them all in a string simultaneously - returning the first match.  It does
-    this by creating a huge (a|b|c) regex - each individual item wrapped with ()
-    and joined by `|` - using match groups to track position.  When a match is
-    found checking which position in the array has content allows us to figure
-    out which of the original regexes / match groups triggered the match.
-
-    The match object itself (the result of `Regex.exec`) is returned but also
-    enhanced by merging in any meta-data that was registered with the regex.
-    This is how we keep track of which mode matched, and what type of rule
-    (`illegal`, `begin`, end, etc).
-  */
-  class MultiRegex {
-    constructor() {
-      this.matchIndexes = {};
-      // @ts-ignore
-      this.regexes = [];
-      this.matchAt = 1;
-      this.position = 0;
-    }
-
-    // @ts-ignore
-    addRule(re, opts) {
-      opts.position = this.position++;
-      // @ts-ignore
-      this.matchIndexes[this.matchAt] = opts;
-      this.regexes.push([opts, re]);
-      this.matchAt += countMatchGroups(re) + 1;
-    }
-
-    compile() {
-      if (this.regexes.length === 0) {
-        // avoids the need to check length every time exec is called
-        // @ts-ignore
-        this.exec = () => null;
-      }
-      const terminators = this.regexes.map(el => el[1]);
-      this.matcherRe = langRe(_rewriteBackreferences(terminators, { joinWith: '|' }), true);
-      this.lastIndex = 0;
-    }
-
-    /** @param {string} s */
-    exec(s) {
-      this.matcherRe.lastIndex = this.lastIndex;
-      const match = this.matcherRe.exec(s);
-      if (!match) { return null; }
-
-      // eslint-disable-next-line no-undefined
-      const i = match.findIndex((el, i) => i > 0 && el !== undefined);
-      // @ts-ignore
-      const matchData = this.matchIndexes[i];
-      // trim off any earlier non-relevant match groups (ie, the other regex
-      // match groups that make up the multi-matcher)
-      match.splice(0, i);
-
-      return Object.assign(match, matchData);
-    }
-  }
-
-  /*
-    Created to solve the key deficiently with MultiRegex - there is no way to
-    test for multiple matches at a single location.  Why would we need to do
-    that?  In the future a more dynamic engine will allow certain matches to be
-    ignored.  An example: if we matched say the 3rd regex in a large group but
-    decided to ignore it - we'd need to started testing again at the 4th
-    regex... but MultiRegex itself gives us no real way to do that.
-
-    So what this class creates MultiRegexs on the fly for whatever search
-    position they are needed.
-
-    NOTE: These additional MultiRegex objects are created dynamically.  For most
-    grammars most of the time we will never actually need anything more than the
-    first MultiRegex - so this shouldn't have too much overhead.
-
-    Say this is our search group, and we match regex3, but wish to ignore it.
-
-      regex1 | regex2 | regex3 | regex4 | regex5    ' ie, startAt = 0
-
-    What we need is a new MultiRegex that only includes the remaining
-    possibilities:
-
-      regex4 | regex5                               ' ie, startAt = 3
-
-    This class wraps all that complexity up in a simple API... `startAt` decides
-    where in the array of expressions to start doing the matching. It
-    auto-increments, so if a match is found at position 2, then startAt will be
-    set to 3.  If the end is reached startAt will return to 0.
-
-    MOST of the time the parser will be setting startAt manually to 0.
-  */
-  class ResumableMultiRegex {
-    constructor() {
-      // @ts-ignore
-      this.rules = [];
-      // @ts-ignore
-      this.multiRegexes = [];
-      this.count = 0;
-
-      this.lastIndex = 0;
-      this.regexIndex = 0;
-    }
-
-    // @ts-ignore
-    getMatcher(index) {
-      if (this.multiRegexes[index]) return this.multiRegexes[index];
-
-      const matcher = new MultiRegex();
-      this.rules.slice(index).forEach(([re, opts]) => matcher.addRule(re, opts));
-      matcher.compile();
-      this.multiRegexes[index] = matcher;
-      return matcher;
-    }
-
-    resumingScanAtSamePosition() {
-      return this.regexIndex !== 0;
-    }
-
-    considerAll() {
-      this.regexIndex = 0;
-    }
-
-    // @ts-ignore
-    addRule(re, opts) {
-      this.rules.push([re, opts]);
-      if (opts.type === "begin") this.count++;
-    }
-
-    /** @param {string} s */
-    exec(s) {
-      const m = this.getMatcher(this.regexIndex);
-      m.lastIndex = this.lastIndex;
-      let result = m.exec(s);
-
-      // The following is because we have no easy way to say "resume scanning at the
-      // existing position but also skip the current rule ONLY". What happens is
-      // all prior rules are also skipped which can result in matching the wrong
-      // thing. Example of matching "booger":
-
-      // our matcher is [string, "booger", number]
-      //
-      // ....booger....
-
-      // if "booger" is ignored then we'd really need a regex to scan from the
-      // SAME position for only: [string, number] but ignoring "booger" (if it
-      // was the first match), a simple resume would scan ahead who knows how
-      // far looking only for "number", ignoring potential string matches (or
-      // future "booger" matches that might be valid.)
-
-      // So what we do: We execute two matchers, one resuming at the same
-      // position, but the second full matcher starting at the position after:
-
-      //     /--- resume first regex match here (for [number])
-      //     |/---- full match here for [string, "booger", number]
-      //     vv
-      // ....booger....
-
-      // Which ever results in a match first is then used. So this 3-4 step
-      // process essentially allows us to say "match at this position, excluding
-      // a prior rule that was ignored".
-      //
-      // 1. Match "booger" first, ignore. Also proves that [string] does non match.
-      // 2. Resume matching for [number]
-      // 3. Match at index + 1 for [string, "booger", number]
-      // 4. If #2 and #3 result in matches, which came first?
-      if (this.resumingScanAtSamePosition()) {
-        if (result && result.index === this.lastIndex) ; else { // use the second matcher result
-          const m2 = this.getMatcher(0);
-          m2.lastIndex = this.lastIndex + 1;
-          result = m2.exec(s);
-        }
-      }
-
-      if (result) {
-        this.regexIndex += result.position + 1;
-        if (this.regexIndex === this.count) {
-          // wrap-around to considering all matches again
-          this.considerAll();
-        }
-      }
-
-      return result;
-    }
-  }
-
-  /**
-   * Given a mode, builds a huge ResumableMultiRegex that can be used to walk
-   * the content and find matches.
-   *
-   * @param {CompiledMode} mode
-   * @returns {ResumableMultiRegex}
-   */
-  function buildModeRegex(mode) {
-    const mm = new ResumableMultiRegex();
-
-    mode.contains.forEach(term => mm.addRule(term.begin, { rule: term, type: "begin" }));
-
-    if (mode.terminatorEnd) {
-      mm.addRule(mode.terminatorEnd, { type: "end" });
-    }
-    if (mode.illegal) {
-      mm.addRule(mode.illegal, { type: "illegal" });
-    }
-
-    return mm;
-  }
-
-  /** skip vs abort vs ignore
-   *
-   * @skip   - The mode is still entered and exited normally (and contains rules apply),
-   *           but all content is held and added to the parent buffer rather than being
-   *           output when the mode ends.  Mostly used with `sublanguage` to build up
-   *           a single large buffer than can be parsed by sublanguage.
-   *
-   *             - The mode begin ands ends normally.
-   *             - Content matched is added to the parent mode buffer.
-   *             - The parser cursor is moved forward normally.
-   *
-   * @abort  - A hack placeholder until we have ignore.  Aborts the mode (as if it
-   *           never matched) but DOES NOT continue to match subsequent `contains`
-   *           modes.  Abort is bad/suboptimal because it can result in modes
-   *           farther down not getting applied because an earlier rule eats the
-   *           content but then aborts.
-   *
-   *             - The mode does not begin.
-   *             - Content matched by `begin` is added to the mode buffer.
-   *             - The parser cursor is moved forward accordingly.
-   *
-   * @ignore - Ignores the mode (as if it never matched) and continues to match any
-   *           subsequent `contains` modes.  Ignore isn't technically possible with
-   *           the current parser implementation.
-   *
-   *             - The mode does not begin.
-   *             - Content matched by `begin` is ignored.
-   *             - The parser cursor is not moved forward.
-   */
-
-  /**
-   * Compiles an individual mode
-   *
-   * This can raise an error if the mode contains certain detectable known logic
-   * issues.
-   * @param {Mode} mode
-   * @param {CompiledMode | null} [parent]
-   * @returns {CompiledMode | never}
-   */
-  function compileMode(mode, parent) {
-    const cmode = /** @type CompiledMode */ (mode);
-    if (mode.isCompiled) return cmode;
-
-    [
-      scopeClassName,
-      // do this early so compiler extensions generally don't have to worry about
-      // the distinction between match/begin
-      compileMatch,
-      MultiClass,
-      beforeMatchExt
-    ].forEach(ext => ext(mode, parent));
-
-    language.compilerExtensions.forEach(ext => ext(mode, parent));
-
-    // __beforeBegin is considered private API, internal use only
-    mode.__beforeBegin = null;
-
-    [
-      beginKeywords,
-      // do this later so compiler extensions that come earlier have access to the
-      // raw array if they wanted to perhaps manipulate it, etc.
-      compileIllegal,
-      // default to 1 relevance if not specified
-      compileRelevance
-    ].forEach(ext => ext(mode, parent));
-
-    mode.isCompiled = true;
-
-    let keywordPattern = null;
-    if (typeof mode.keywords === "object" && mode.keywords.$pattern) {
-      // we need a copy because keywords might be compiled multiple times
-      // so we can't go deleting $pattern from the original on the first
-      // pass
-      mode.keywords = Object.assign({}, mode.keywords);
-      keywordPattern = mode.keywords.$pattern;
-      delete mode.keywords.$pattern;
-    }
-    keywordPattern = keywordPattern || /\w+/;
-
-    if (mode.keywords) {
-      mode.keywords = compileKeywords(mode.keywords, language.case_insensitive);
-    }
-
-    cmode.keywordPatternRe = langRe(keywordPattern, true);
-
-    if (parent) {
-      if (!mode.begin) mode.begin = /\B|\b/;
-      cmode.beginRe = langRe(cmode.begin);
-      if (!mode.end && !mode.endsWithParent) mode.end = /\B|\b/;
-      if (mode.end) cmode.endRe = langRe(cmode.end);
-      cmode.terminatorEnd = source(cmode.end) || '';
-      if (mode.endsWithParent && parent.terminatorEnd) {
-        cmode.terminatorEnd += (mode.end ? '|' : '') + parent.terminatorEnd;
-      }
-    }
-    if (mode.illegal) cmode.illegalRe = langRe(/** @type {RegExp | string} */ (mode.illegal));
-    if (!mode.contains) mode.contains = [];
-
-    mode.contains = [].concat(...mode.contains.map(function(c) {
-      return expandOrCloneMode(c === 'self' ? mode : c);
-    }));
-    mode.contains.forEach(function(c) { compileMode(/** @type Mode */ (c), cmode); });
-
-    if (mode.starts) {
-      compileMode(mode.starts, parent);
-    }
-
-    cmode.matcher = buildModeRegex(cmode);
-    return cmode;
-  }
-
-  if (!language.compilerExtensions) language.compilerExtensions = [];
-
-  // self is not valid at the top-level
-  if (language.contains && language.contains.includes('self')) {
-    throw new Error("ERR: contains `self` is not supported at the top-level of a language.  See documentation.");
-  }
-
-  // we need a null object, which inherit will guarantee
-  language.classNameAliases = inherit$1(language.classNameAliases || {});
-
-  return compileMode(/** @type Mode */ (language));
-}
-
-/**
- * Determines if a mode has a dependency on it's parent or not
- *
- * If a mode does have a parent dependency then often we need to clone it if
- * it's used in multiple places so that each copy points to the correct parent,
- * where-as modes without a parent can often safely be re-used at the bottom of
- * a mode chain.
- *
- * @param {Mode | null} mode
- * @returns {boolean} - is there a dependency on the parent?
- * */
-function dependencyOnParent(mode) {
-  if (!mode) return false;
-
-  return mode.endsWithParent || dependencyOnParent(mode.starts);
-}
-
-/**
- * Expands a mode or clones it if necessary
- *
- * This is necessary for modes with parental dependenceis (see notes on
- * `dependencyOnParent`) and for nodes that have `variants` - which must then be
- * exploded into their own individual modes at compile time.
- *
- * @param {Mode} mode
- * @returns {Mode | Mode[]}
- * */
-function expandOrCloneMode(mode) {
-  if (mode.variants && !mode.cachedVariants) {
-    mode.cachedVariants = mode.variants.map(function(variant) {
-      return inherit$1(mode, { variants: null }, variant);
-    });
-  }
-
-  // EXPAND
-  // if we have variants then essentially "replace" the mode with the variants
-  // this happens in compileMode, where this function is called from
-  if (mode.cachedVariants) {
-    return mode.cachedVariants;
-  }
-
-  // CLONE
-  // if we have dependencies on parents then we need a unique
-  // instance of ourselves, so we can be reused with many
-  // different parents without issue
-  if (dependencyOnParent(mode)) {
-    return inherit$1(mode, { starts: mode.starts ? inherit$1(mode.starts) : null });
-  }
-
-  if (Object.isFrozen(mode)) {
-    return inherit$1(mode);
-  }
-
-  // no special dependency issues, just return ourselves
-  return mode;
-}
-
-var version = "11.11.1";
-
-class HTMLInjectionError extends Error {
-  constructor(reason, html) {
-    super(reason);
-    this.name = "HTMLInjectionError";
-    this.html = html;
-  }
-}
-
-/*
-Syntax highlighting with language autodetection.
-https://highlightjs.org/
-*/
-
-
-
-/**
-@typedef {import('highlight.js').Mode} Mode
-@typedef {import('highlight.js').CompiledMode} CompiledMode
-@typedef {import('highlight.js').CompiledScope} CompiledScope
-@typedef {import('highlight.js').Language} Language
-@typedef {import('highlight.js').HLJSApi} HLJSApi
-@typedef {import('highlight.js').HLJSPlugin} HLJSPlugin
-@typedef {import('highlight.js').PluginEvent} PluginEvent
-@typedef {import('highlight.js').HLJSOptions} HLJSOptions
-@typedef {import('highlight.js').LanguageFn} LanguageFn
-@typedef {import('highlight.js').HighlightedHTMLElement} HighlightedHTMLElement
-@typedef {import('highlight.js').BeforeHighlightContext} BeforeHighlightContext
-@typedef {import('highlight.js/private').MatchType} MatchType
-@typedef {import('highlight.js/private').KeywordData} KeywordData
-@typedef {import('highlight.js/private').EnhancedMatch} EnhancedMatch
-@typedef {import('highlight.js/private').AnnotatedError} AnnotatedError
-@typedef {import('highlight.js').AutoHighlightResult} AutoHighlightResult
-@typedef {import('highlight.js').HighlightOptions} HighlightOptions
-@typedef {import('highlight.js').HighlightResult} HighlightResult
-*/
-
-
-const escape = escapeHTML;
-const inherit = inherit$1;
-const NO_MATCH = Symbol("nomatch");
-const MAX_KEYWORD_HITS = 7;
-
-/**
- * @param {any} hljs - object that is extended (legacy)
- * @returns {HLJSApi}
- */
-const HLJS = function(hljs) {
-  // Global internal variables used within the highlight.js library.
-  /** @type {Record<string, Language>} */
-  const languages = Object.create(null);
-  /** @type {Record<string, string>} */
-  const aliases = Object.create(null);
-  /** @type {HLJSPlugin[]} */
-  const plugins = [];
-
-  // safe/production mode - swallows more errors, tries to keep running
-  // even if a single syntax or parse hits a fatal error
-  let SAFE_MODE = true;
-  const LANGUAGE_NOT_FOUND = "Could not find the language '{}', did you forget to load/include a language module?";
-  /** @type {Language} */
-  const PLAINTEXT_LANGUAGE = { disableAutodetect: true, name: 'Plain text', contains: [] };
-
-  // Global options used when within external APIs. This is modified when
-  // calling the `hljs.configure` function.
-  /** @type HLJSOptions */
-  let options = {
-    ignoreUnescapedHTML: false,
-    throwUnescapedHTML: false,
-    noHighlightRe: /^(no-?highlight)$/i,
-    languageDetectRe: /\blang(?:uage)?-([\w-]+)\b/i,
-    classPrefix: 'hljs-',
-    cssSelector: 'pre code',
-    languages: null,
-    // beta configuration options, subject to change, welcome to discuss
-    // https://github.com/highlightjs/highlight.js/issues/1086
-    __emitter: TokenTreeEmitter
-  };
-
-  /* Utility functions */
-
-  /**
-   * Tests a language name to see if highlighting should be skipped
-   * @param {string} languageName
-   */
-  function shouldNotHighlight(languageName) {
-    return options.noHighlightRe.test(languageName);
-  }
-
-  /**
-   * @param {HighlightedHTMLElement} block - the HTML element to determine language for
-   */
-  function blockLanguage(block) {
-    let classes = block.className + ' ';
-
-    classes += block.parentNode ? block.parentNode.className : '';
-
-    // language-* takes precedence over non-prefixed class names.
-    const match = options.languageDetectRe.exec(classes);
-    if (match) {
-      const language = getLanguage(match[1]);
-      if (!language) {
-        warn(LANGUAGE_NOT_FOUND.replace("{}", match[1]));
-        warn("Falling back to no-highlight mode for this block.", block);
-      }
-      return language ? match[1] : 'no-highlight';
-    }
-
-    return classes
-      .split(/\s+/)
-      .find((_class) => shouldNotHighlight(_class) || getLanguage(_class));
-  }
-
-  /**
-   * Core highlighting function.
-   *
-   * OLD API
-   * highlight(lang, code, ignoreIllegals, continuation)
-   *
-   * NEW API
-   * highlight(code, {lang, ignoreIllegals})
-   *
-   * @param {string} codeOrLanguageName - the language to use for highlighting
-   * @param {string | HighlightOptions} optionsOrCode - the code to highlight
-   * @param {boolean} [ignoreIllegals] - whether to ignore illegal matches, default is to bail
-   *
-   * @returns {HighlightResult} Result - an object that represents the result
-   * @property {string} language - the language name
-   * @property {number} relevance - the relevance score
-   * @property {string} value - the highlighted HTML code
-   * @property {string} code - the original raw code
-   * @property {CompiledMode} top - top of the current mode stack
-   * @property {boolean} illegal - indicates whether any illegal matches were found
-  */
-  function highlight(codeOrLanguageName, optionsOrCode, ignoreIllegals) {
-    let code = "";
-    let languageName = "";
-    if (typeof optionsOrCode === "object") {
-      code = codeOrLanguageName;
-      ignoreIllegals = optionsOrCode.ignoreIllegals;
-      languageName = optionsOrCode.language;
-    } else {
-      // old API
-      deprecated("10.7.0", "highlight(lang, code, ...args) has been deprecated.");
-      deprecated("10.7.0", "Please use highlight(code, options) instead.\nhttps://github.com/highlightjs/highlight.js/issues/2277");
-      languageName = codeOrLanguageName;
-      code = optionsOrCode;
-    }
-
-    // https://github.com/highlightjs/highlight.js/issues/3149
-    // eslint-disable-next-line no-undefined
-    if (ignoreIllegals === undefined) { ignoreIllegals = true; }
-
-    /** @type {BeforeHighlightContext} */
-    const context = {
-      code,
-      language: languageName
-    };
-    // the plugin can change the desired language or the code to be highlighted
-    // just be changing the object it was passed
-    fire("before:highlight", context);
-
-    // a before plugin can usurp the result completely by providing it's own
-    // in which case we don't even need to call highlight
-    const result = context.result
-      ? context.result
-      : _highlight(context.language, context.code, ignoreIllegals);
-
-    result.code = context.code;
-    // the plugin can change anything in result to suite it
-    fire("after:highlight", result);
-
-    return result;
-  }
-
-  /**
-   * private highlight that's used internally and does not fire callbacks
-   *
-   * @param {string} languageName - the language to use for highlighting
-   * @param {string} codeToHighlight - the code to highlight
-   * @param {boolean?} [ignoreIllegals] - whether to ignore illegal matches, default is to bail
-   * @param {CompiledMode?} [continuation] - current continuation mode, if any
-   * @returns {HighlightResult} - result of the highlight operation
-  */
-  function _highlight(languageName, codeToHighlight, ignoreIllegals, continuation) {
-    const keywordHits = Object.create(null);
-
-    /**
-     * Return keyword data if a match is a keyword
-     * @param {CompiledMode} mode - current mode
-     * @param {string} matchText - the textual match
-     * @returns {KeywordData | false}
-     */
-    function keywordData(mode, matchText) {
-      return mode.keywords[matchText];
-    }
-
-    function processKeywords() {
-      if (!top.keywords) {
-        emitter.addText(modeBuffer);
-        return;
-      }
-
-      let lastIndex = 0;
-      top.keywordPatternRe.lastIndex = 0;
-      let match = top.keywordPatternRe.exec(modeBuffer);
-      let buf = "";
-
-      while (match) {
-        buf += modeBuffer.substring(lastIndex, match.index);
-        const word = language.case_insensitive ? match[0].toLowerCase() : match[0];
-        const data = keywordData(top, word);
-        if (data) {
-          const [kind, keywordRelevance] = data;
-          emitter.addText(buf);
-          buf = "";
-
-          keywordHits[word] = (keywordHits[word] || 0) + 1;
-          if (keywordHits[word] <= MAX_KEYWORD_HITS) relevance += keywordRelevance;
-          if (kind.startsWith("_")) {
-            // _ implied for relevance only, do not highlight
-            // by applying a class name
-            buf += match[0];
-          } else {
-            const cssClass = language.classNameAliases[kind] || kind;
-            emitKeyword(match[0], cssClass);
-          }
-        } else {
-          buf += match[0];
-        }
-        lastIndex = top.keywordPatternRe.lastIndex;
-        match = top.keywordPatternRe.exec(modeBuffer);
-      }
-      buf += modeBuffer.substring(lastIndex);
-      emitter.addText(buf);
-    }
-
-    function processSubLanguage() {
-      if (modeBuffer === "") return;
-      /** @type HighlightResult */
-      let result = null;
-
-      if (typeof top.subLanguage === 'string') {
-        if (!languages[top.subLanguage]) {
-          emitter.addText(modeBuffer);
-          return;
-        }
-        result = _highlight(top.subLanguage, modeBuffer, true, continuations[top.subLanguage]);
-        continuations[top.subLanguage] = /** @type {CompiledMode} */ (result._top);
-      } else {
-        result = highlightAuto(modeBuffer, top.subLanguage.length ? top.subLanguage : null);
-      }
-
-      // Counting embedded language score towards the host language may be disabled
-      // with zeroing the containing mode relevance. Use case in point is Markdown that
-      // allows XML everywhere and makes every XML snippet to have a much larger Markdown
-      // score.
-      if (top.relevance > 0) {
-        relevance += result.relevance;
-      }
-      emitter.__addSublanguage(result._emitter, result.language);
-    }
-
-    function processBuffer() {
-      if (top.subLanguage != null) {
-        processSubLanguage();
-      } else {
-        processKeywords();
-      }
-      modeBuffer = '';
-    }
-
-    /**
-     * @param {string} text
-     * @param {string} scope
-     */
-    function emitKeyword(keyword, scope) {
-      if (keyword === "") return;
-
-      emitter.startScope(scope);
-      emitter.addText(keyword);
-      emitter.endScope();
-    }
-
-    /**
-     * @param {CompiledScope} scope
-     * @param {RegExpMatchArray} match
-     */
-    function emitMultiClass(scope, match) {
-      let i = 1;
-      const max = match.length - 1;
-      while (i <= max) {
-        if (!scope._emit[i]) { i++; continue; }
-        const klass = language.classNameAliases[scope[i]] || scope[i];
-        const text = match[i];
-        if (klass) {
-          emitKeyword(text, klass);
-        } else {
-          modeBuffer = text;
-          processKeywords();
-          modeBuffer = "";
-        }
-        i++;
-      }
-    }
-
-    /**
-     * @param {CompiledMode} mode - new mode to start
-     * @param {RegExpMatchArray} match
-     */
-    function startNewMode(mode, match) {
-      if (mode.scope && typeof mode.scope === "string") {
-        emitter.openNode(language.classNameAliases[mode.scope] || mode.scope);
-      }
-      if (mode.beginScope) {
-        // beginScope just wraps the begin match itself in a scope
-        if (mode.beginScope._wrap) {
-          emitKeyword(modeBuffer, language.classNameAliases[mode.beginScope._wrap] || mode.beginScope._wrap);
-          modeBuffer = "";
-        } else if (mode.beginScope._multi) {
-          // at this point modeBuffer should just be the match
-          emitMultiClass(mode.beginScope, match);
-          modeBuffer = "";
-        }
-      }
-
-      top = Object.create(mode, { parent: { value: top } });
-      return top;
-    }
-
-    /**
-     * @param {CompiledMode } mode - the mode to potentially end
-     * @param {RegExpMatchArray} match - the latest match
-     * @param {string} matchPlusRemainder - match plus remainder of content
-     * @returns {CompiledMode | void} - the next mode, or if void continue on in current mode
-     */
-    function endOfMode(mode, match, matchPlusRemainder) {
-      let matched = startsWith(mode.endRe, matchPlusRemainder);
-
-      if (matched) {
-        if (mode["on:end"]) {
-          const resp = new Response(mode);
-          mode["on:end"](match, resp);
-          if (resp.isMatchIgnored) matched = false;
-        }
-
-        if (matched) {
-          while (mode.endsParent && mode.parent) {
-            mode = mode.parent;
-          }
-          return mode;
-        }
-      }
-      // even if on:end fires an `ignore` it's still possible
-      // that we might trigger the end node because of a parent mode
-      if (mode.endsWithParent) {
-        return endOfMode(mode.parent, match, matchPlusRemainder);
-      }
-    }
-
-    /**
-     * Handle matching but then ignoring a sequence of text
-     *
-     * @param {string} lexeme - string containing full match text
-     */
-    function doIgnore(lexeme) {
-      if (top.matcher.regexIndex === 0) {
-        // no more regexes to potentially match here, so we move the cursor forward one
-        // space
-        modeBuffer += lexeme[0];
-        return 1;
-      } else {
-        // no need to move the cursor, we still have additional regexes to try and
-        // match at this very spot
-        resumeScanAtSamePosition = true;
-        return 0;
-      }
-    }
-
-    /**
-     * Handle the start of a new potential mode match
-     *
-     * @param {EnhancedMatch} match - the current match
-     * @returns {number} how far to advance the parse cursor
-     */
-    function doBeginMatch(match) {
-      const lexeme = match[0];
-      const newMode = match.rule;
-
-      const resp = new Response(newMode);
-      // first internal before callbacks, then the public ones
-      const beforeCallbacks = [newMode.__beforeBegin, newMode["on:begin"]];
-      for (const cb of beforeCallbacks) {
-        if (!cb) continue;
-        cb(match, resp);
-        if (resp.isMatchIgnored) return doIgnore(lexeme);
-      }
-
-      if (newMode.skip) {
-        modeBuffer += lexeme;
-      } else {
-        if (newMode.excludeBegin) {
-          modeBuffer += lexeme;
-        }
-        processBuffer();
-        if (!newMode.returnBegin && !newMode.excludeBegin) {
-          modeBuffer = lexeme;
-        }
-      }
-      startNewMode(newMode, match);
-      return newMode.returnBegin ? 0 : lexeme.length;
-    }
-
-    /**
-     * Handle the potential end of mode
-     *
-     * @param {RegExpMatchArray} match - the current match
-     */
-    function doEndMatch(match) {
-      const lexeme = match[0];
-      const matchPlusRemainder = codeToHighlight.substring(match.index);
-
-      const endMode = endOfMode(top, match, matchPlusRemainder);
-      if (!endMode) { return NO_MATCH; }
-
-      const origin = top;
-      if (top.endScope && top.endScope._wrap) {
-        processBuffer();
-        emitKeyword(lexeme, top.endScope._wrap);
-      } else if (top.endScope && top.endScope._multi) {
-        processBuffer();
-        emitMultiClass(top.endScope, match);
-      } else if (origin.skip) {
-        modeBuffer += lexeme;
-      } else {
-        if (!(origin.returnEnd || origin.excludeEnd)) {
-          modeBuffer += lexeme;
-        }
-        processBuffer();
-        if (origin.excludeEnd) {
-          modeBuffer = lexeme;
-        }
-      }
-      do {
-        if (top.scope) {
-          emitter.closeNode();
-        }
-        if (!top.skip && !top.subLanguage) {
-          relevance += top.relevance;
-        }
-        top = top.parent;
-      } while (top !== endMode.parent);
-      if (endMode.starts) {
-        startNewMode(endMode.starts, match);
-      }
-      return origin.returnEnd ? 0 : lexeme.length;
-    }
-
-    function processContinuations() {
-      const list = [];
-      for (let current = top; current !== language; current = current.parent) {
-        if (current.scope) {
-          list.unshift(current.scope);
-        }
-      }
-      list.forEach(item => emitter.openNode(item));
-    }
-
-    /** @type {{type?: MatchType, index?: number, rule?: Mode}}} */
-    let lastMatch = {};
-
-    /**
-     *  Process an individual match
-     *
-     * @param {string} textBeforeMatch - text preceding the match (since the last match)
-     * @param {EnhancedMatch} [match] - the match itself
-     */
-    function processLexeme(textBeforeMatch, match) {
-      const lexeme = match && match[0];
-
-      // add non-matched text to the current mode buffer
-      modeBuffer += textBeforeMatch;
-
-      if (lexeme == null) {
-        processBuffer();
-        return 0;
-      }
-
-      // we've found a 0 width match and we're stuck, so we need to advance
-      // this happens when we have badly behaved rules that have optional matchers to the degree that
-      // sometimes they can end up matching nothing at all
-      // Ref: https://github.com/highlightjs/highlight.js/issues/2140
-      if (lastMatch.type === "begin" && match.type === "end" && lastMatch.index === match.index && lexeme === "") {
-        // spit the "skipped" character that our regex choked on back into the output sequence
-        modeBuffer += codeToHighlight.slice(match.index, match.index + 1);
-        if (!SAFE_MODE) {
-          /** @type {AnnotatedError} */
-          const err = new Error(`0 width match regex (${languageName})`);
-          err.languageName = languageName;
-          err.badRule = lastMatch.rule;
-          throw err;
-        }
-        return 1;
-      }
-      lastMatch = match;
-
-      if (match.type === "begin") {
-        return doBeginMatch(match);
-      } else if (match.type === "illegal" && !ignoreIllegals) {
-        // illegal match, we do not continue processing
-        /** @type {AnnotatedError} */
-        const err = new Error('Illegal lexeme "' + lexeme + '" for mode "' + (top.scope || '<unnamed>') + '"');
-        err.mode = top;
-        throw err;
-      } else if (match.type === "end") {
-        const processed = doEndMatch(match);
-        if (processed !== NO_MATCH) {
-          return processed;
-        }
-      }
-
-      // edge case for when illegal matches $ (end of line) which is technically
-      // a 0 width match but not a begin/end match so it's not caught by the
-      // first handler (when ignoreIllegals is true)
-      if (match.type === "illegal" && lexeme === "") {
-        // advance so we aren't stuck in an infinite loop
-        modeBuffer += "\n";
-        return 1;
-      }
-
-      // infinite loops are BAD, this is a last ditch catch all. if we have a
-      // decent number of iterations yet our index (cursor position in our
-      // parsing) still 3x behind our index then something is very wrong
-      // so we bail
-      if (iterations > 100000 && iterations > match.index * 3) {
-        const err = new Error('potential infinite loop, way more iterations than matches');
-        throw err;
-      }
-
-      /*
-      Why might be find ourselves here?  An potential end match that was
-      triggered but could not be completed.  IE, `doEndMatch` returned NO_MATCH.
-      (this could be because a callback requests the match be ignored, etc)
-
-      This causes no real harm other than stopping a few times too many.
-      */
-
-      modeBuffer += lexeme;
-      return lexeme.length;
-    }
-
-    const language = getLanguage(languageName);
-    if (!language) {
-      error(LANGUAGE_NOT_FOUND.replace("{}", languageName));
-      throw new Error('Unknown language: "' + languageName + '"');
-    }
-
-    const md = compileLanguage(language);
-    let result = '';
-    /** @type {CompiledMode} */
-    let top = continuation || md;
-    /** @type Record<string,CompiledMode> */
-    const continuations = {}; // keep continuations for sub-languages
-    const emitter = new options.__emitter(options);
-    processContinuations();
-    let modeBuffer = '';
-    let relevance = 0;
-    let index = 0;
-    let iterations = 0;
-    let resumeScanAtSamePosition = false;
-
-    try {
-      if (!language.__emitTokens) {
-        top.matcher.considerAll();
-
-        for (;;) {
-          iterations++;
-          if (resumeScanAtSamePosition) {
-            // only regexes not matched previously will now be
-            // considered for a potential match
-            resumeScanAtSamePosition = false;
-          } else {
-            top.matcher.considerAll();
-          }
-          top.matcher.lastIndex = index;
-
-          const match = top.matcher.exec(codeToHighlight);
-          // console.log("match", match[0], match.rule && match.rule.begin)
-
-          if (!match) break;
-
-          const beforeMatch = codeToHighlight.substring(index, match.index);
-          const processedCount = processLexeme(beforeMatch, match);
-          index = match.index + processedCount;
-        }
-        processLexeme(codeToHighlight.substring(index));
-      } else {
-        language.__emitTokens(codeToHighlight, emitter);
-      }
-
-      emitter.finalize();
-      result = emitter.toHTML();
-
-      return {
-        language: languageName,
-        value: result,
-        relevance,
-        illegal: false,
-        _emitter: emitter,
-        _top: top
-      };
-    } catch (err) {
-      if (err.message && err.message.includes('Illegal')) {
-        return {
-          language: languageName,
-          value: escape(codeToHighlight),
-          illegal: true,
-          relevance: 0,
-          _illegalBy: {
-            message: err.message,
-            index,
-            context: codeToHighlight.slice(index - 100, index + 100),
-            mode: err.mode,
-            resultSoFar: result
-          },
-          _emitter: emitter
-        };
-      } else if (SAFE_MODE) {
-        return {
-          language: languageName,
-          value: escape(codeToHighlight),
-          illegal: false,
-          relevance: 0,
-          errorRaised: err,
-          _emitter: emitter,
-          _top: top
-        };
-      } else {
-        throw err;
-      }
-    }
-  }
-
-  /**
-   * returns a valid highlight result, without actually doing any actual work,
-   * auto highlight starts with this and it's possible for small snippets that
-   * auto-detection may not find a better match
-   * @param {string} code
-   * @returns {HighlightResult}
-   */
-  function justTextHighlightResult(code) {
-    const result = {
-      value: escape(code),
-      illegal: false,
-      relevance: 0,
-      _top: PLAINTEXT_LANGUAGE,
-      _emitter: new options.__emitter(options)
-    };
-    result._emitter.addText(code);
-    return result;
-  }
-
-  /**
-  Highlighting with language detection. Accepts a string with the code to
-  highlight. Returns an object with the following properties:
-
-  - language (detected language)
-  - relevance (int)
-  - value (an HTML string with highlighting markup)
-  - secondBest (object with the same structure for second-best heuristically
-    detected language, may be absent)
-
-    @param {string} code
-    @param {Array<string>} [languageSubset]
-    @returns {AutoHighlightResult}
-  */
-  function highlightAuto(code, languageSubset) {
-    languageSubset = languageSubset || options.languages || Object.keys(languages);
-    const plaintext = justTextHighlightResult(code);
-
-    const results = languageSubset.filter(getLanguage).filter(autoDetection).map(name =>
-      _highlight(name, code, false)
-    );
-    results.unshift(plaintext); // plaintext is always an option
-
-    const sorted = results.sort((a, b) => {
-      // sort base on relevance
-      if (a.relevance !== b.relevance) return b.relevance - a.relevance;
-
-      // always award the tie to the base language
-      // ie if C++ and Arduino are tied, it's more likely to be C++
-      if (a.language && b.language) {
-        if (getLanguage(a.language).supersetOf === b.language) {
-          return 1;
-        } else if (getLanguage(b.language).supersetOf === a.language) {
-          return -1;
-        }
-      }
-
-      // otherwise say they are equal, which has the effect of sorting on
-      // relevance while preserving the original ordering - which is how ties
-      // have historically been settled, ie the language that comes first always
-      // wins in the case of a tie
-      return 0;
-    });
-
-    const [best, secondBest] = sorted;
-
-    /** @type {AutoHighlightResult} */
-    const result = best;
-    result.secondBest = secondBest;
-
-    return result;
-  }
-
-  /**
-   * Builds new class name for block given the language name
-   *
-   * @param {HTMLElement} element
-   * @param {string} [currentLang]
-   * @param {string} [resultLang]
-   */
-  function updateClassName(element, currentLang, resultLang) {
-    const language = (currentLang && aliases[currentLang]) || resultLang;
-
-    element.classList.add("hljs");
-    element.classList.add(`language-${language}`);
-  }
-
-  /**
-   * Applies highlighting to a DOM node containing code.
-   *
-   * @param {HighlightedHTMLElement} element - the HTML element to highlight
-  */
-  function highlightElement(element) {
-    /** @type HTMLElement */
-    let node = null;
-    const language = blockLanguage(element);
-
-    if (shouldNotHighlight(language)) return;
-
-    fire("before:highlightElement",
-      { el: element, language });
-
-    if (element.dataset.highlighted) {
-      console.log("Element previously highlighted. To highlight again, first unset `dataset.highlighted`.", element);
-      return;
-    }
-
-    // we should be all text, no child nodes (unescaped HTML) - this is possibly
-    // an HTML injection attack - it's likely too late if this is already in
-    // production (the code has likely already done its damage by the time
-    // we're seeing it)... but we yell loudly about this so that hopefully it's
-    // more likely to be caught in development before making it to production
-    if (element.children.length > 0) {
-      if (!options.ignoreUnescapedHTML) {
-        console.warn("One of your code blocks includes unescaped HTML. This is a potentially serious security risk.");
-        console.warn("https://github.com/highlightjs/highlight.js/wiki/security");
-        console.warn("The element with unescaped HTML:");
-        console.warn(element);
-      }
-      if (options.throwUnescapedHTML) {
-        const err = new HTMLInjectionError(
-          "One of your code blocks includes unescaped HTML.",
-          element.innerHTML
-        );
-        throw err;
-      }
-    }
-
-    node = element;
-    const text = node.textContent;
-    const result = language ? highlight(text, { language, ignoreIllegals: true }) : highlightAuto(text);
-
-    element.innerHTML = result.value;
-    element.dataset.highlighted = "yes";
-    updateClassName(element, language, result.language);
-    element.result = {
-      language: result.language,
-      // TODO: remove with version 11.0
-      re: result.relevance,
-      relevance: result.relevance
-    };
-    if (result.secondBest) {
-      element.secondBest = {
-        language: result.secondBest.language,
-        relevance: result.secondBest.relevance
-      };
-    }
-
-    fire("after:highlightElement", { el: element, result, text });
-  }
-
-  /**
-   * Updates highlight.js global options with the passed options
-   *
-   * @param {Partial<HLJSOptions>} userOptions
-   */
-  function configure(userOptions) {
-    options = inherit(options, userOptions);
-  }
-
-  // TODO: remove v12, deprecated
-  const initHighlighting = () => {
-    highlightAll();
-    deprecated("10.6.0", "initHighlighting() deprecated.  Use highlightAll() now.");
-  };
-
-  // TODO: remove v12, deprecated
-  function initHighlightingOnLoad() {
-    highlightAll();
-    deprecated("10.6.0", "initHighlightingOnLoad() deprecated.  Use highlightAll() now.");
-  }
-
-  let wantsHighlight = false;
-
-  /**
-   * auto-highlights all pre>code elements on the page
-   */
-  function highlightAll() {
-    function boot() {
-      // if a highlight was requested before DOM was loaded, do now
-      highlightAll();
-    }
-
-    // if we are called too early in the loading process
-    if (document.readyState === "loading") {
-      // make sure the event listener is only added once
-      if (!wantsHighlight) {
-        window.addEventListener('DOMContentLoaded', boot, false);
-      }
-      wantsHighlight = true;
-      return;
-    }
-
-    const blocks = document.querySelectorAll(options.cssSelector);
-    blocks.forEach(highlightElement);
-  }
-
-  /**
-   * Register a language grammar module
-   *
-   * @param {string} languageName
-   * @param {LanguageFn} languageDefinition
-   */
-  function registerLanguage(languageName, languageDefinition) {
-    let lang = null;
-    try {
-      lang = languageDefinition(hljs);
-    } catch (error$1) {
-      error("Language definition for '{}' could not be registered.".replace("{}", languageName));
-      // hard or soft error
-      if (!SAFE_MODE) { throw error$1; } else { error(error$1); }
-      // languages that have serious errors are replaced with essentially a
-      // "plaintext" stand-in so that the code blocks will still get normal
-      // css classes applied to them - and one bad language won't break the
-      // entire highlighter
-      lang = PLAINTEXT_LANGUAGE;
-    }
-    // give it a temporary name if it doesn't have one in the meta-data
-    if (!lang.name) lang.name = languageName;
-    languages[languageName] = lang;
-    lang.rawDefinition = languageDefinition.bind(null, hljs);
-
-    if (lang.aliases) {
-      registerAliases(lang.aliases, { languageName });
-    }
-  }
-
-  /**
-   * Remove a language grammar module
-   *
-   * @param {string} languageName
-   */
-  function unregisterLanguage(languageName) {
-    delete languages[languageName];
-    for (const alias of Object.keys(aliases)) {
-      if (aliases[alias] === languageName) {
-        delete aliases[alias];
-      }
-    }
-  }
-
-  /**
-   * @returns {string[]} List of language internal names
-   */
-  function listLanguages() {
-    return Object.keys(languages);
-  }
-
-  /**
-   * @param {string} name - name of the language to retrieve
-   * @returns {Language | undefined}
-   */
-  function getLanguage(name) {
-    name = (name || '').toLowerCase();
-    return languages[name] || languages[aliases[name]];
-  }
-
-  /**
-   *
-   * @param {string|string[]} aliasList - single alias or list of aliases
-   * @param {{languageName: string}} opts
-   */
-  function registerAliases(aliasList, { languageName }) {
-    if (typeof aliasList === 'string') {
-      aliasList = [aliasList];
-    }
-    aliasList.forEach(alias => { aliases[alias.toLowerCase()] = languageName; });
-  }
-
-  /**
-   * Determines if a given language has auto-detection enabled
-   * @param {string} name - name of the language
-   */
-  function autoDetection(name) {
-    const lang = getLanguage(name);
-    return lang && !lang.disableAutodetect;
-  }
-
-  /**
-   * Upgrades the old highlightBlock plugins to the new
-   * highlightElement API
-   * @param {HLJSPlugin} plugin
-   */
-  function upgradePluginAPI(plugin) {
-    // TODO: remove with v12
-    if (plugin["before:highlightBlock"] && !plugin["before:highlightElement"]) {
-      plugin["before:highlightElement"] = (data) => {
-        plugin["before:highlightBlock"](
-          Object.assign({ block: data.el }, data)
-        );
-      };
-    }
-    if (plugin["after:highlightBlock"] && !plugin["after:highlightElement"]) {
-      plugin["after:highlightElement"] = (data) => {
-        plugin["after:highlightBlock"](
-          Object.assign({ block: data.el }, data)
-        );
-      };
-    }
-  }
-
-  /**
-   * @param {HLJSPlugin} plugin
-   */
-  function addPlugin(plugin) {
-    upgradePluginAPI(plugin);
-    plugins.push(plugin);
-  }
-
-  /**
-   * @param {HLJSPlugin} plugin
-   */
-  function removePlugin(plugin) {
-    const index = plugins.indexOf(plugin);
-    if (index !== -1) {
-      plugins.splice(index, 1);
-    }
-  }
-
-  /**
-   *
-   * @param {PluginEvent} event
-   * @param {any} args
-   */
-  function fire(event, args) {
-    const cb = event;
-    plugins.forEach(function(plugin) {
-      if (plugin[cb]) {
-        plugin[cb](args);
-      }
-    });
-  }
-
-  /**
-   * DEPRECATED
-   * @param {HighlightedHTMLElement} el
-   */
-  function deprecateHighlightBlock(el) {
-    deprecated("10.7.0", "highlightBlock will be removed entirely in v12.0");
-    deprecated("10.7.0", "Please use highlightElement now.");
-
-    return highlightElement(el);
-  }
-
-  /* Interface definition */
-  Object.assign(hljs, {
-    highlight,
-    highlightAuto,
-    highlightAll,
-    highlightElement,
-    // TODO: Remove with v12 API
-    highlightBlock: deprecateHighlightBlock,
-    configure,
-    initHighlighting,
-    initHighlightingOnLoad,
-    registerLanguage,
-    unregisterLanguage,
-    listLanguages,
-    getLanguage,
-    registerAliases,
-    autoDetection,
-    inherit,
-    addPlugin,
-    removePlugin
-  });
-
-  hljs.debugMode = function() { SAFE_MODE = false; };
-  hljs.safeMode = function() { SAFE_MODE = true; };
-  hljs.versionString = version;
-
-  hljs.regex = {
-    concat: concat,
-    lookahead: lookahead,
-    either: either,
-    optional: optional,
-    anyNumberOfTimes: anyNumberOfTimes
-  };
-
-  for (const key in MODES) {
-    // @ts-ignore
-    if (typeof MODES[key] === "object") {
-      // @ts-ignore
-      deepFreeze(MODES[key]);
-    }
-  }
-
-  // merge all the modes/regexes into our main object
-  Object.assign(hljs, MODES);
-
-  return hljs;
-};
-
-// Other names for the variable may break build script
-const highlight = HLJS({});
-
-// returns a new instance of the highlighter to be used for extensions
-// check https://github.com/wooorm/lowlight/issues/47
-highlight.newInstance = () => HLJS({});
-
-var core = highlight;
-highlight.HighlightJS = highlight;
-highlight.default = highlight;
-
-var core_default = /*@__PURE__*/getDefaultExportFromCjs(core);
 
 /*
 Language: HTML, XML
@@ -24875,50 +19683,59 @@ function requireWasm () {
 	return wasm_1;
 }
 
-var hljs = core;
+var common;
+var hasRequiredCommon;
 
-hljs.registerLanguage('xml', requireXml());
-hljs.registerLanguage('bash', requireBash());
-hljs.registerLanguage('c', requireC());
-hljs.registerLanguage('cpp', requireCpp());
-hljs.registerLanguage('csharp', requireCsharp());
-hljs.registerLanguage('css', requireCss());
-hljs.registerLanguage('markdown', requireMarkdown());
-hljs.registerLanguage('diff', requireDiff());
-hljs.registerLanguage('ruby', requireRuby());
-hljs.registerLanguage('go', requireGo());
-hljs.registerLanguage('graphql', requireGraphql());
-hljs.registerLanguage('ini', requireIni());
-hljs.registerLanguage('java', requireJava());
-hljs.registerLanguage('javascript', requireJavascript());
-hljs.registerLanguage('json', requireJson());
-hljs.registerLanguage('kotlin', requireKotlin());
-hljs.registerLanguage('less', requireLess());
-hljs.registerLanguage('lua', requireLua());
-hljs.registerLanguage('makefile', requireMakefile());
-hljs.registerLanguage('perl', requirePerl());
-hljs.registerLanguage('objectivec', requireObjectivec());
-hljs.registerLanguage('php', requirePhp());
-hljs.registerLanguage('php-template', requirePhpTemplate());
-hljs.registerLanguage('plaintext', requirePlaintext());
-hljs.registerLanguage('python', requirePython());
-hljs.registerLanguage('python-repl', requirePythonRepl());
-hljs.registerLanguage('r', requireR());
-hljs.registerLanguage('rust', requireRust());
-hljs.registerLanguage('scss', requireScss());
-hljs.registerLanguage('shell', requireShell());
-hljs.registerLanguage('sql', requireSql());
-hljs.registerLanguage('swift', requireSwift());
-hljs.registerLanguage('yaml', requireYaml());
-hljs.registerLanguage('typescript', requireTypescript());
-hljs.registerLanguage('vbnet', requireVbnet());
-hljs.registerLanguage('wasm', requireWasm());
+function requireCommon () {
+	if (hasRequiredCommon) return common;
+	hasRequiredCommon = 1;
+	var hljs = /*@__PURE__*/ requireCore();
 
-hljs.HighlightJS = hljs;
-hljs.default = hljs;
-var common = hljs;
+	hljs.registerLanguage('xml', /*@__PURE__*/ requireXml());
+	hljs.registerLanguage('bash', /*@__PURE__*/ requireBash());
+	hljs.registerLanguage('c', /*@__PURE__*/ requireC());
+	hljs.registerLanguage('cpp', /*@__PURE__*/ requireCpp());
+	hljs.registerLanguage('csharp', /*@__PURE__*/ requireCsharp());
+	hljs.registerLanguage('css', /*@__PURE__*/ requireCss());
+	hljs.registerLanguage('markdown', /*@__PURE__*/ requireMarkdown());
+	hljs.registerLanguage('diff', /*@__PURE__*/ requireDiff());
+	hljs.registerLanguage('ruby', /*@__PURE__*/ requireRuby());
+	hljs.registerLanguage('go', /*@__PURE__*/ requireGo());
+	hljs.registerLanguage('graphql', /*@__PURE__*/ requireGraphql());
+	hljs.registerLanguage('ini', /*@__PURE__*/ requireIni());
+	hljs.registerLanguage('java', /*@__PURE__*/ requireJava());
+	hljs.registerLanguage('javascript', /*@__PURE__*/ requireJavascript());
+	hljs.registerLanguage('json', /*@__PURE__*/ requireJson());
+	hljs.registerLanguage('kotlin', /*@__PURE__*/ requireKotlin());
+	hljs.registerLanguage('less', /*@__PURE__*/ requireLess());
+	hljs.registerLanguage('lua', /*@__PURE__*/ requireLua());
+	hljs.registerLanguage('makefile', /*@__PURE__*/ requireMakefile());
+	hljs.registerLanguage('perl', /*@__PURE__*/ requirePerl());
+	hljs.registerLanguage('objectivec', /*@__PURE__*/ requireObjectivec());
+	hljs.registerLanguage('php', /*@__PURE__*/ requirePhp());
+	hljs.registerLanguage('php-template', /*@__PURE__*/ requirePhpTemplate());
+	hljs.registerLanguage('plaintext', /*@__PURE__*/ requirePlaintext());
+	hljs.registerLanguage('python', /*@__PURE__*/ requirePython());
+	hljs.registerLanguage('python-repl', /*@__PURE__*/ requirePythonRepl());
+	hljs.registerLanguage('r', /*@__PURE__*/ requireR());
+	hljs.registerLanguage('rust', /*@__PURE__*/ requireRust());
+	hljs.registerLanguage('scss', /*@__PURE__*/ requireScss());
+	hljs.registerLanguage('shell', /*@__PURE__*/ requireShell());
+	hljs.registerLanguage('sql', /*@__PURE__*/ requireSql());
+	hljs.registerLanguage('swift', /*@__PURE__*/ requireSwift());
+	hljs.registerLanguage('yaml', /*@__PURE__*/ requireYaml());
+	hljs.registerLanguage('typescript', /*@__PURE__*/ requireTypescript());
+	hljs.registerLanguage('vbnet', /*@__PURE__*/ requireVbnet());
+	hljs.registerLanguage('wasm', /*@__PURE__*/ requireWasm());
 
-var HighlightJS = /*@__PURE__*/getDefaultExportFromCjs(common);
+	hljs.HighlightJS = hljs;
+	hljs.default = hljs;
+	common = hljs;
+	return common;
+}
+
+var commonExports = requireCommon();
+var HighlightJS = /*@__PURE__*/getDefaultExportFromCjs(commonExports);
 
 // https://nodejs.org/api/packages.html#packages_writing_dual_packages_while_avoiding_or_minimizing_hazards
 

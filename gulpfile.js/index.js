@@ -123,7 +123,7 @@ const T = {
 		];
 		let opts = {};
 		return $.src(src)
-			.pipe(io.stream.modify((data, enc) => {
+			.pipe(io.modifyStream((data, enc) => {
 				return U.minifyJS(data, enc, opts).then(r => {
 					log(' :: Minify - Stats:', r.stats.summary);
 					return r.data;
@@ -156,7 +156,7 @@ const T = {
 			level: 1,
 		};
 		return $.src(src)
-			.pipe(io.stream.modify((data, enc) => {
+			.pipe(io.modifyStream((data, enc) => {
 				return U.minifyCSS(data, enc, opts).then(r => {
 					log(' :: Minify - Stats:', r.stats.summary);
 					return r.data;

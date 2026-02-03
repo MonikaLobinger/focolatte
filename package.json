@@ -37,13 +37,13 @@
   },
   "homepage": "https://amekusa.github.io/docolatte",
   "devDependencies": {
-    "@amekusa/nodeutil": "^1.5.2",
-    "@rollup/plugin-commonjs": "^25.0.8",
-    "@rollup/plugin-node-resolve": "^15.3.1",
+    "@amekusa/nodeutil": "^3.6.1",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-strip": "^3.0.4",
     "browser-sync": "^3.0.4",
     "clean-css": "^5.3.3",
-    "gulp": "^4.0.2",
+    "gulp": "^5.0.1",
     "gulp-rename": "^2.1.0",
     "jsdoc": "^4.0.5",
     "less": "^4.5.1",
@@ -56,10 +56,10 @@
     "@jsdoc/util": "^0.3.4",
     "emoji-js": "^3.9.0",
     "feather-icons": "^4.29.2",
-    "fuse.js": "^6.6.2",
+    "fuse.js": "^7.1.0",
     "highlight.js": "^11.11.1",
     "htmlfy": "^1.0.1",
-    "obj-digger": "^1.2.0",
-    "simplebar": "^5.3.9"
+    "obj-digger": "^2.4.1",
+    "simplebar": "^6.3.3"
   }
 }
